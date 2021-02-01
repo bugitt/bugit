@@ -2,7 +2,6 @@
 *.db
 *.log
 log/
-custom/
 data/
 .idea/
 *.iml
