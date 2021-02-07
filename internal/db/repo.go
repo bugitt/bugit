@@ -157,6 +157,7 @@ type Repository struct {
 	DefaultBranch   string
 	Size            int64 `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	UseCustomAvatar bool
+	ProjectID       int64 `xorm:"INDEX NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 
 	// Counters
 	NumWatches          int

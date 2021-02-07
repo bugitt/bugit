@@ -21,58 +21,58 @@ var (
 )
 
 // IsOwnedBy returns true if given user is in the owner team.
-func (org *User) IsOwnedBy(userID int64) bool {
-	return IsOrganizationOwner(org.ID, userID)
+func (u *User) IsOwnedBy(userID int64) bool {
+	return IsOrganizationOwner(u.ID, userID)
 }
 
 // IsOrgMember returns true if given user is member of organization.
-func (org *User) IsOrgMember(uid int64) bool {
-	return org.IsOrganization() && IsOrganizationMember(org.ID, uid)
+func (u *User) IsOrgMember(uid int64) bool {
+	return u.IsOrganization() && IsOrganizationMember(u.ID, uid)
 }
 
-func (org *User) getTeam(e Engine, name string) (*Team, error) {
-	return getTeamOfOrgByName(e, org.ID, name)
+func (u *User) getTeam(e Engine, name string) (*Team, error) {
+	return getTeamOfOrgByName(e, u.ID, name)
 }
 
 // GetTeamOfOrgByName returns named team of organization.
-func (org *User) GetTeam(name string) (*Team, error) {
-	return org.getTeam(x, name)
+func (u *User) GetTeam(name string) (*Team, error) {
+	return u.getTeam(x, name)
 }
 
-func (org *User) getOwnerTeam(e Engine) (*Team, error) {
-	return org.getTeam(e, OWNER_TEAM)
+func (u *User) getOwnerTeam(e Engine) (*Team, error) {
+	return u.getTeam(e, OWNER_TEAM)
 }
 
 // GetOwnerTeam returns owner team of organization.
-func (org *User) GetOwnerTeam() (*Team, error) {
-	return org.getOwnerTeam(x)
+func (u *User) GetOwnerTeam() (*Team, error) {
+	return u.getOwnerTeam(x)
 }
 
-func (org *User) getTeams(e Engine) (err error) {
-	org.Teams, err = getTeamsByOrgID(e, org.ID)
+func (u *User) getTeams(e Engine) (err error) {
+	u.Teams, err = getTeamsByOrgID(e, u.ID)
 	return err
 }
 
 // GetTeams returns all teams that belong to organization.
-func (org *User) GetTeams() error {
-	return org.getTeams(x)
+func (u *User) GetTeams() error {
+	return u.getTeams(x)
 }
 
 // TeamsHaveAccessToRepo returns all teamsthat have given access level to the repository.
-func (org *User) TeamsHaveAccessToRepo(repoID int64, mode AccessMode) ([]*Team, error) {
-	return GetTeamsHaveAccessToRepo(org.ID, repoID, mode)
+func (u *User) TeamsHaveAccessToRepo(repoID int64, mode AccessMode) ([]*Team, error) {
+	return GetTeamsHaveAccessToRepo(u.ID, repoID, mode)
 }
 
 // GetMembers returns all members of organization.
-func (org *User) GetMembers(limit int) error {
-	ous, err := GetOrgUsersByOrgID(org.ID, limit)
+func (u *User) GetMembers(limit int) error {
+	ous, err := GetOrgUsersByOrgID(u.ID, limit)
 	if err != nil {
 		return err
 	}
 
-	org.Members = make([]*User, len(ous))
+	u.Members = make([]*User, len(ous))
 	for i, ou := range ous {
-		org.Members[i], err = GetUserByID(ou.Uid)
+		u.Members[i], err = GetUserByID(ou.Uid)
 		if err != nil {
 			return err
 		}
@@ -81,22 +81,22 @@ func (org *User) GetMembers(limit int) error {
 }
 
 // AddMember adds new member to organization.
-func (org *User) AddMember(uid int64) error {
-	return AddOrgUser(org.ID, uid)
+func (u *User) AddMember(uid int64) error {
+	return AddOrgUser(u.ID, uid)
 }
 
 // RemoveMember removes member from organization.
-func (org *User) RemoveMember(uid int64) error {
-	return RemoveOrgUser(org.ID, uid)
+func (u *User) RemoveMember(uid int64) error {
+	return RemoveOrgUser(u.ID, uid)
 }
 
-func (org *User) removeOrgRepo(e Engine, repoID int64) error {
-	return removeOrgRepo(e, org.ID, repoID)
+func (u *User) removeOrgRepo(e Engine, repoID int64) error {
+	return removeOrgRepo(e, u.ID, repoID)
 }
 
 // RemoveOrgRepo removes all team-repository relations of organization.
-func (org *User) RemoveOrgRepo(repoID int64) error {
-	return org.removeOrgRepo(x, repoID)
+func (u *User) RemoveOrgRepo(repoID int64) error {
+	return u.removeOrgRepo(x, repoID)
 }
 
 // CreateOrganization creates record of a new organization.
@@ -462,17 +462,17 @@ func RemoveOrgRepo(orgID, repoID int64) error {
 	return removeOrgRepo(x, orgID, repoID)
 }
 
-func (org *User) getUserTeams(e Engine, userID int64, cols ...string) ([]*Team, error) {
-	teams := make([]*Team, 0, org.NumTeams)
-	return teams, e.Where("team_user.org_id = ?", org.ID).
+func (u *User) getUserTeams(e Engine, userID int64, cols ...string) ([]*Team, error) {
+	teams := make([]*Team, 0, u.NumTeams)
+	return teams, e.Where("team_user.org_id = ?", u.ID).
 		And("team_user.uid = ?", userID).
 		Join("INNER", "team_user", "team_user.team_id = team.id").
 		Cols(cols...).Find(&teams)
 }
 
 // GetUserTeamIDs returns of all team IDs of the organization that user is memeber of.
-func (org *User) GetUserTeamIDs(userID int64) ([]int64, error) {
-	teams, err := org.getUserTeams(x, userID, "team.id")
+func (u *User) GetUserTeamIDs(userID int64) ([]int64, error) {
+	teams, err := u.getUserTeams(x, userID, "team.id")
 	if err != nil {
 		return nil, fmt.Errorf("getUserTeams [%d]: %v", userID, err)
 	}
@@ -486,14 +486,14 @@ func (org *User) GetUserTeamIDs(userID int64) ([]int64, error) {
 
 // GetTeams returns all teams that belong to organization,
 // and that the user has joined.
-func (org *User) GetUserTeams(userID int64) ([]*Team, error) {
-	return org.getUserTeams(x, userID)
+func (u *User) GetUserTeams(userID int64) ([]*Team, error) {
+	return u.getUserTeams(x, userID)
 }
 
 // GetUserRepositories returns a range of repositories in organization which the user has access to,
 // and total number of records based on given condition.
-func (org *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repository, int64, error) {
-	teamIDs, err := org.GetUserTeamIDs(userID)
+func (u *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repository, int64, error) {
+	teamIDs, err := u.GetUserTeamIDs(userID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetUserTeamIDs: %v", err)
 	}
@@ -515,7 +515,7 @@ func (org *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repos
 		page = 1
 	}
 	repos := make([]*Repository, 0, pageSize)
-	if err = x.Where("owner_id = ?", org.ID).
+	if err = x.Where("owner_id = ?", u.ID).
 		And(builder.Or(
 			builder.And(builder.Expr("is_private = ?", false), builder.Expr("is_unlisted = ?", false)),
 			builder.In("id", teamRepoIDs))).
@@ -525,7 +525,7 @@ func (org *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repos
 		return nil, 0, fmt.Errorf("get user repositories: %v", err)
 	}
 
-	repoCount, err := x.Where("owner_id = ?", org.ID).
+	repoCount, err := x.Where("owner_id = ?", u.ID).
 		And(builder.Or(
 			builder.Expr("is_private = ?", false),
 			builder.In("id", teamRepoIDs))).
@@ -538,8 +538,8 @@ func (org *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repos
 }
 
 // GetUserMirrorRepositories returns mirror repositories of the organization which the user has access to.
-func (org *User) GetUserMirrorRepositories(userID int64) ([]*Repository, error) {
-	teamIDs, err := org.GetUserTeamIDs(userID)
+func (u *User) GetUserMirrorRepositories(userID int64) ([]*Repository, error) {
+	teamIDs, err := u.GetUserTeamIDs(userID)
 	if err != nil {
 		return nil, fmt.Errorf("GetUserTeamIDs: %v", err)
 	}
@@ -558,7 +558,7 @@ func (org *User) GetUserMirrorRepositories(userID int64) ([]*Repository, error) 
 	}
 
 	repos := make([]*Repository, 0, 10)
-	if err = x.Where("owner_id = ?", org.ID).
+	if err = x.Where("owner_id = ?", u.ID).
 		And("is_private = ?", false).
 		Or(builder.In("id", teamRepoIDs)).
 		And("is_mirror = ?", true). // Don't move up because it's an independent condition
