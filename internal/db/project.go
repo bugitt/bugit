@@ -3,6 +3,8 @@ package db
 import (
 	"fmt"
 	"time"
+
+	"xorm.io/xorm"
 )
 
 type ProjectStatus int
@@ -20,7 +22,9 @@ type Project struct {
 	CourseName  string
 	Status      ProjectStatus
 	CreatedUnix int64
+	Created     time.Time `xorm:"-" gorm:"-" json:"-"`
 	UpdatedUnix int64
+	Updated     time.Time `xorm:"-" gorm:"-" json:"-"`
 }
 
 type UserProjectOptions struct {
@@ -53,6 +57,15 @@ func (p *Project) BeforeInsert() {
 
 func (p *Project) BeforeUpdate() {
 	p.UpdatedUnix = time.Now().Unix()
+}
+
+func (p *Project) AfterSet(colName string, _ xorm.Cell) {
+	switch colName {
+	case "created_unix":
+		p.Created = time.Unix(p.CreatedUnix, 0).Local()
+	case "updated_unix":
+		p.Updated = time.Unix(p.UpdatedUnix, 0)
+	}
 }
 
 func (ps ProjectList) loadAttributes(e Engine) error {

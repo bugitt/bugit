@@ -85,8 +85,15 @@
 			</div>
 			<div class="ui eleven wide column">
 				<div class="ui secondary pointing menu">
-					<a class="{{if ne .TabName "activity"}}active{{end}} item" href="{{.Owner.HomeLink}}">
+					<a class="{{if eq .TabName "" "repos"}}active{{end}} item" href="{{.Owner.HomeLink}}">
 						<i class="octicon octicon-repo"></i> {{.i18n.Tr "user.repositories"}}
+					</a>
+					<a class="item">
+					{{if .ShowProjects}}
+						<a class="{{if eq .TabName "project"}}active{{end}} item" href="{{.Owner.HomeLink}}?tab=project">
+							<i class="octicon octicon-beaker"></i> {{.i18n.Tr "user.projects"}}
+						</a>
+					{{end}}
 					</a>
 					<a class="item">
 						<a class="{{if eq .TabName "activity"}}active{{end}} item" href="{{.Owner.HomeLink}}?tab=activity">
@@ -94,14 +101,19 @@
 						</a>
 					</a>
 				</div>
-				{{if ne .TabName "activity"}}
+				{{if eq .TabName "" "repos"}}
 					{{template "explore/repo_list" .}}
 					{{template "explore/page" .}}
-				{{else}}
+				{{else if eq .TabName "activity"}}
 					<br>
 					<div class="feeds">
 						{{template "user/dashboard/feeds" .}}
 					</div>
+				{{else if .ShowProjects}}
+					{{if eq .TabName "project"}}
+						{{template "explore/project_list" .}}
+						{{template "explore/page" .}}
+					{{end}}
 				{{end}}
 			</div>
 		</div>
