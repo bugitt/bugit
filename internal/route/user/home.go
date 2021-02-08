@@ -440,6 +440,26 @@ func showOrgProfile(c *context.Context) {
 
 	c.Data["Teams"] = org.Teams
 
+	showProjects := c.IsLogged && c.Org.IsMember
+	c.Data["ShowProjects"] = showProjects
+	if showProjects {
+		projects, err := db.GetUserProjects(&db.UserProjectOptions{
+			SenderID: c.User.ID,
+			Page:     page,
+			PageSize: c.User.NumProjects,
+		})
+		if err != nil {
+			c.Error(err, "get user projects")
+			return
+		}
+		err = projects.LoadAttributes()
+		if err != nil {
+			c.Error(err, "load project attributes")
+			return
+		}
+		c.Data["Projects"] = projects
+	}
+
 	c.Success(ORG_HOME)
 }
 
