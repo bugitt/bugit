@@ -10,14 +10,18 @@
 				{{end}}
 			</div>
 			<div class="six wide column">
-				<div class="ui {{if not .ContextUser.IsOrganization}}three{{else}}two{{end}} item tabable menu">
+				<div class="ui {{if not .ContextUser.IsOrganization}}four{{else}}two{{end}} item tabable menu">
 					<a class="item active" data-tab="repos">{{.i18n.Tr "repository"}}</a>
 					{{if not .ContextUser.IsOrganization}}
 						<a class="item" data-tab="orgs">{{.i18n.Tr "organization"}}</a>
 					{{end}}
+					<a class="item" data-tab="projects">{{.i18n.Tr "project"}}</a>
 					<a class="item" data-tab="mirrors">{{.i18n.Tr "mirror"}}</a>
 				</div>
+
+				<!-- 仓库部分 -->
 				<div class="ui tab active list" data-tab="repos">
+					<!-- 个人仓库的header -->
 					<div class="ui top attached header">
 						{{.i18n.Tr "home.my_repos"}} <span class="ui grey label">{{.RepoCount}}</span>
 						<div class="ui right">
@@ -27,6 +31,7 @@
 							</a>
 						</div>
 					</div>
+					<!-- 个人仓库列表 -->
 					<div class="ui attached table segment">
 						<ul class="repo-owner-name-list">
 							{{range .Repos}}
@@ -48,10 +53,13 @@
 						</ul>
 					</div>
 
+					<!-- 协作仓库部分 -->
 					{{if not .ContextUser.IsOrganization}}
+						<!-- 协作仓库部分的header -->
 						<h4 class="ui top attached header">
 							{{.i18n.Tr "home.collaborative_repos"}}
 						</h4>
+						<!-- 协作仓库列表 -->
 						<div class="ui attached table segment">
 							<ul id="collaborative-repo-list">
 								{{range .CollaborativeRepos}}
@@ -70,8 +78,10 @@
 							</ul>
 						</div>
 					{{end}}
+
 				</div>
 
+				<!-- organization 部分 -->
 				{{if not .ContextUser.IsOrganization}}
 					<div class="ui tab list" data-tab="orgs">
 						<div class="ui top attached header">
@@ -102,6 +112,63 @@
 						</div>
 					</div>
 				{{end}}
+
+				<!-- Project 部分 -->
+				<div class="ui tab list" data-tab="projects">
+					<!-- 个人仓库的header -->
+					<div class="ui top attached header">
+						{{.i18n.Tr "home.my_projects"}} <span class="ui grey label">{{.ProjectCount}}</span>
+						<!-- 日后需要在这里增加 新建Project的功能 的话，在这里添加 -->
+{{/*						<div class="ui right">*/}}
+{{/*							<a class="poping up" href="{{AppSubURL}}/repo/create{{if .ContextUser.IsOrganization}}?org={{.ContextUser.ID}}{{end}}" data-content="{{.i18n.Tr "new_repo"}}" data-variation="tiny inverted" data-position="left center">*/}}
+{{/*								<i class="plus icon"></i>*/}}
+{{/*								<span class="sr-only">{{.i18n.Tr "new_repo"}}</span>*/}}
+{{/*							</a>*/}}
+{{/*						</div>*/}}
+					</div>
+					<!-- 个人Project列表 -->
+					<div class="ui attached table segment">
+						<ul class="repo-owner-name-list">
+							{{range .Projects}}
+								<li>
+									<a href="{{AppSubURL}}/{{$.ContextUser.Name}}/{{.Name}}">
+										<i class="octicon octicon-beaker"></i>
+										<strong class="text truncate item-name">&nbsp;{{.Name}}</strong>
+									</a>
+								</li>
+							{{end}}
+{{/*							{{if gt .ContextUser.NumRepos .MaxShowRepoNum}}*/}}
+{{/*								<li>*/}}
+{{/*									<a href="{{.ContextUser.HomeLink}}">{{.i18n.Tr "home.show_more_repos"}}</a>*/}}
+{{/*								</li>*/}}
+{{/*							{{end}}*/}}
+						</ul>
+					</div>
+
+					<!-- 协作 Project 部分 -->
+					{{if not .ContextUser.IsOrganization}}
+						<!-- 协作 Project 部分的header -->
+						<h4 class="ui top attached header">
+							{{.i18n.Tr "home.collaborative_projects"}}
+						</h4>
+						<!-- 协作 Project 列表 -->
+						<div class="ui attached table segment">
+							<ul id="collaborative-repo-list">
+								{{range .CollaborativeProjects}}
+									<li>
+										<a href="{{AppSubURL}}/{{.Sender.Name}}/{{.Name}}">
+											<i class="octicon octicon-beaker"></i>
+											<span class="text truncate owner-and-repo">
+												<span class="text truncate owner-name">&nbsp;{{.Sender.Name}}</span> / <strong>{{.Name}}</strong>
+											</span>
+										</a>
+									</li>
+								{{end}}
+							</ul>
+						</div>
+					{{end}}
+
+				</div>
 
 				<div class="ui tab list" data-tab="mirrors">
 					<div class="ui top attached header">

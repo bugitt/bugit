@@ -161,6 +161,35 @@ func Dashboard(c *context.Context) {
 	c.Data["MirrorCount"] = len(mirrors)
 	c.Data["Mirrors"] = mirrors
 
+	// Get projects
+	var projectCount = ctxUser.NumProjects
+	err = ctxUser.GetProjects(1, ctxUser.NumProjects)
+	if err != nil {
+		c.Error(err, "get user projects")
+		return
+	}
+	c.Data["Projects"] = ctxUser.Projects
+	c.Data["ProjectCount"] = projectCount
+
+	collaborativeRepos := make(db.ProjectList, 0)
+	for _, org := range ctxUser.Orgs {
+		projects, err := db.GetUserProjects(&db.UserProjectOptions{
+			SenderID: org.ID,
+			Page:     1,
+			PageSize: org.NumProjects,
+		})
+		if err != nil {
+			c.Error(err, "get org projects")
+		}
+
+		collaborativeRepos = append(collaborativeRepos, projects...)
+	}
+	err = collaborativeRepos.LoadAttributes()
+	if err != nil {
+		c.Error(err, "load projects attribute error")
+	}
+	c.Data["CollaborativeProjects"] = collaborativeRepos
+
 	c.Success(DASHBOARD)
 }
 

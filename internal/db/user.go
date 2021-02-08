@@ -62,7 +62,7 @@ type User struct {
 	OwnedOrgs   []*User       `xorm:"-" gorm:"-" json:"-"`
 	Orgs        []*User       `xorm:"-" gorm:"-" json:"-"`
 	Repos       []*Repository `xorm:"-" gorm:"-" json:"-"`
-	Projects    []*Project    `xorm:"-" gorm:"-" json:"-"`
+	Projects    ProjectList   `xorm:"-" gorm:"-" json:"-"`
 	Location    string
 	Website     string
 	Rands       string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)"`
@@ -95,6 +95,7 @@ type User struct {
 	NumFollowing int `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	NumStars     int
 	NumRepos     int
+	NumProjects  int
 
 	// For organization
 	Description string
@@ -434,8 +435,17 @@ func (u *User) GetMirrorRepositories() ([]*Repository, error) {
 	return GetUserMirrorRepositories(u.ID)
 }
 
-func (u *User) GetProjects(err error) {
-
+func (u *User) GetProjects(page, pageSize int) (err error) {
+	u.Projects, err = GetUserProjects(&UserProjectOptions{
+		SenderID: u.ID,
+		Page:     page,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		return
+	}
+	err = u.Projects.LoadAttributes()
+	return
 }
 
 // GetOwnedOrganizations returns all organizations that user owns.
