@@ -2,7 +2,6 @@
 *.db
 *.log
 log/
-custom/
 data/
 .idea/
 *.iml
@@ -16,3 +15,5 @@ output*
 *.sublime-project
 *.sublime-workspace
 /release
+.vscode/
+.task/checksum/web

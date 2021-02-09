@@ -52,6 +52,7 @@ type User struct {
 	LowerName string `xorm:"UNIQUE NOT NULL" gorm:"UNIQUE"`
 	Name      string `xorm:"UNIQUE NOT NULL" gorm:"NOT NULL"`
 	FullName  string
+	StudentID string `xorm:"INDEX UNIQUE NOT NULL DEFAULT ''" gorm:"UNIQUE"`
 	// Email is the primary email address (to be used for communication)
 	Email       string `xorm:"NOT NULL" gorm:"NOT NULL"`
 	Passwd      string `xorm:"NOT NULL" gorm:"NOT NULL"`
@@ -61,6 +62,7 @@ type User struct {
 	OwnedOrgs   []*User       `xorm:"-" gorm:"-" json:"-"`
 	Orgs        []*User       `xorm:"-" gorm:"-" json:"-"`
 	Repos       []*Repository `xorm:"-" gorm:"-" json:"-"`
+	Projects    ProjectList   `xorm:"-" gorm:"-" json:"-"`
 	Location    string
 	Website     string
 	Rands       string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)"`
@@ -93,6 +95,7 @@ type User struct {
 	NumFollowing int `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	NumStars     int
 	NumRepos     int
+	NumProjects  int
 
 	// For organization
 	Description string
@@ -430,6 +433,19 @@ func (u *User) GetRepositories(page, pageSize int) (err error) {
 // GetRepositories returns mirror repositories that user owns, including private repositories.
 func (u *User) GetMirrorRepositories() ([]*Repository, error) {
 	return GetUserMirrorRepositories(u.ID)
+}
+
+func (u *User) GetProjects(page, pageSize int) (err error) {
+	u.Projects, err = GetUserProjects(&UserProjectOptions{
+		SenderID: u.ID,
+		Page:     page,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		return
+	}
+	err = u.Projects.LoadAttributes()
+	return
 }
 
 // GetOwnedOrganizations returns all organizations that user owns.
@@ -1203,13 +1219,13 @@ func (u *User) GetRepositoryAccesses() (map[*Repository]AccessMode, error) {
 
 // GetAccessibleRepositories finds repositories which the user has access but does not own.
 // If limit is smaller than 1 means returns all found results.
-func (user *User) GetAccessibleRepositories(limit int) (repos []*Repository, _ error) {
-	sess := x.Where("owner_id !=? ", user.ID).Desc("updated_unix")
+func (u *User) GetAccessibleRepositories(limit int) (repos []*Repository, _ error) {
+	sess := x.Where("owner_id !=? ", u.ID).Desc("updated_unix")
 	if limit > 0 {
 		sess.Limit(limit)
 		repos = make([]*Repository, 0, limit)
 	} else {
 		repos = make([]*Repository, 0, 10)
 	}
-	return repos, sess.Join("INNER", "access", "access.user_id = ? AND access.repo_id = repository.id", user.ID).Find(&repos)
+	return repos, sess.Join("INNER", "access", "access.user_id = ? AND access.repo_id = repository.id", u.ID).Find(&repos)
 }

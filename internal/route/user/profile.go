@@ -52,12 +52,38 @@ func Profile(c *context.Context, puser *context.ParamsUser) {
 
 	tab := c.Query("tab")
 	c.Data["TabName"] = tab
+	showProjects := c.IsLogged && puser.ID == c.User.ID || c.User.IsAdmin
+	c.Data["ShowProjects"] = showProjects
 	switch tab {
 	case "activity":
 		retrieveFeeds(c, puser.User, -1, true)
 		if c.Written() {
 			return
 		}
+	case "project":
+		if !showProjects {
+			break
+		}
+		page := c.QueryInt("page")
+		if page <= 0 {
+			page = 1
+		}
+		projects, err := db.GetUserProjects(&db.UserProjectOptions{
+			SenderID: c.User.ID,
+			Page:     page,
+			PageSize: conf.UI.User.RepoPagingNum,
+		})
+		if err != nil {
+			c.Error(err, "get user projects")
+			return
+		}
+		err = projects.LoadAttributes()
+		if err != nil {
+			c.Error(err, "load project attributes")
+			return
+		}
+		c.Data["Projects"] = projects
+		c.Data["Page"] = paginater.New(c.User.NumProjects, conf.UI.User.RepoPagingNum, page, 5)
 	default:
 		page := c.QueryInt("page")
 		if page <= 0 {
