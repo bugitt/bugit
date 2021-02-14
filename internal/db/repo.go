@@ -687,6 +687,11 @@ func isRepositoryExist(e Engine, u *User, repoName string) (bool, error) {
 	return has && com.IsDir(RepoPath(u.Name, repoName)), err
 }
 
+func isProjectExist(e Engine, u *User, projectID int64) (bool, error) {
+	has, err := e.Get(&Project{ID: projectID, SenderID: u.ID})
+	return has, err
+}
+
 // IsRepositoryExist returns true if the repository with given name under user has already existed.
 func IsRepositoryExist(u *User, repoName string) (bool, error) {
 	return isRepositoryExist(x, u, repoName)
@@ -930,6 +935,7 @@ func initRepoCommit(tmpPath string, sig *git.Signature) (err error) {
 
 type CreateRepoOptions struct {
 	Name        string
+	ProjectID   int64
 	Description string
 	Gitignores  string
 	License     string
@@ -1086,6 +1092,14 @@ func createRepository(e *xorm.Session, doer, owner *User, repo *Repository) (err
 		return ErrRepoAlreadyExist{args: errutil.Args{"ownerID": owner.ID, "name": repo.Name}}
 	}
 
+	has, err = isProjectExist(e, owner, repo.ProjectID)
+	if err != nil {
+		return fmt.Errorf("IsProjectExist: %v", err)
+	} else if !has {
+		// 如果要创建repo的用户根本不拥有这个project
+		return ErrProjectNotExist{}
+	}
+
 	if _, err = e.Insert(repo); err != nil {
 		return err
 	}
@@ -1144,6 +1158,7 @@ func CreateRepository(doer, owner *User, opts CreateRepoOptions) (_ *Repository,
 		OwnerID:      owner.ID,
 		Owner:        owner,
 		Name:         opts.Name,
+		ProjectID:    opts.ProjectID,
 		LowerName:    strings.ToLower(opts.Name),
 		Description:  opts.Description,
 		IsPrivate:    opts.IsPrivate,

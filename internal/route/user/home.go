@@ -11,10 +11,10 @@ import (
 
 	"github.com/unknwon/com"
 	"github.com/unknwon/paginater"
-
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/context"
 	"gogs.io/gogs/internal/db"
+	"gogs.io/gogs/internal/route/project"
 )
 
 const (
@@ -162,33 +162,14 @@ func Dashboard(c *context.Context) {
 	c.Data["Mirrors"] = mirrors
 
 	// Get projects
-	var projectCount = ctxUser.NumProjects
-	err = ctxUser.GetProjects(1, ctxUser.NumProjects)
+	_, collaborativeProjects, err := project.GetUsersAllProjects(ctxUser)
 	if err != nil {
-		c.Error(err, "get user projects")
+		c.Error(err, "get all projects error")
 		return
 	}
 	c.Data["Projects"] = ctxUser.Projects
-	c.Data["ProjectCount"] = projectCount
-
-	collaborativeRepos := make(db.ProjectList, 0)
-	for _, org := range ctxUser.Orgs {
-		projects, err := db.GetUserProjects(&db.UserProjectOptions{
-			SenderID: org.ID,
-			Page:     1,
-			PageSize: org.NumProjects,
-		})
-		if err != nil {
-			c.Error(err, "get org projects")
-		}
-
-		collaborativeRepos = append(collaborativeRepos, projects...)
-	}
-	err = collaborativeRepos.LoadAttributes()
-	if err != nil {
-		c.Error(err, "load projects attribute error")
-	}
-	c.Data["CollaborativeProjects"] = collaborativeRepos
+	c.Data["ProjectCount"] = len(ctxUser.Projects)
+	c.Data["CollaborativeProjects"] = collaborativeProjects
 
 	c.Success(DASHBOARD)
 }

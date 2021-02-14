@@ -46,6 +46,14 @@ func GetUserProjects(opts *UserProjectOptions) (ProjectList, error) {
 	return projects, sess.Find(&projects)
 }
 
+func GetUserAllProjects(user *User) (ProjectList, error) {
+	return GetUserProjects(&UserProjectOptions{
+		SenderID: user.ID,
+		Page:     1,
+		PageSize: user.NumProjects,
+	})
+}
+
 func (ps ProjectList) LoadAttributes() error {
 	return ps.loadAttributes(x)
 }
