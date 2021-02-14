@@ -65,6 +65,18 @@ func (err ErrRepoAlreadyExist) Error() string {
 	return fmt.Sprintf("repository already exists: %v", err.args)
 }
 
+type ErrProjectNotExist struct {
+}
+
+func (err ErrProjectNotExist) Error() string {
+	return "project not exist"
+}
+
+func IsErrProjectNotExist(err error) bool {
+	_, ok := err.(ErrProjectNotExist)
+	return ok
+}
+
 type createRepoOpts struct {
 	Name          string
 	Description   string
