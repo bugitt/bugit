@@ -17,6 +17,25 @@
 							<label for="repo_name">{{.i18n.Tr "repo.repo_name"}}<span class="text red hide" id="repo-name-change-prompt"> {{.i18n.Tr "repo.settings.change_reponame_prompt"}}</span></label>
 							<input id="repo_name" name="repo_name" value="{{.Repository.Name}}" data-repo-name="{{.Repository.Name}}" required>
 						</div>
+
+						<!-- 选择 Project 的下拉列表 -->
+						<div class="field {{if .Err_Project}}error{{end}}">
+							<label for="project_id">{{.i18n.Tr "repo.project"}}</label>
+							<div class="ui fluid search selection dropdown">
+								<input type="hidden" name="project_id" id="project_id" {{if .DefaultProject}}data-value="{{.DefaultProject.ID}}"{{end}}>
+								<i class="dropdown icon"></i>
+								<div class="default text">
+									{{if .DefaultProject}}<i class="octicon octicon-beaker"></i>&nbsp;{{.DefaultProject.Name}}{{end}}
+								</div>
+								<div class="menu">
+									<div class="item" data-value="0">{{.i18n.Tr "repo.remove_project"}}</div>
+									{{range	.UserProjects}}
+										<div class="item" data-value="{{.ID}}"><i class="octicon octicon-beaker"></i>&nbsp;{{.Name}}</div>
+									{{end}}
+								</div>
+							</div>
+						</div>
+
 						<div class="field {{if .Err_Description}}error{{end}}">
 							<label for="description">{{$.i18n.Tr "repo.repo_desc"}}</label>
 							<textarea class="autosize" id="description" name="description" rows="3">{{.Repository.Description}}</textarea>

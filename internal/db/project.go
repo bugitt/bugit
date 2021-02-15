@@ -27,12 +27,6 @@ type Project struct {
 	Updated     time.Time `xorm:"-" gorm:"-" json:"-"`
 }
 
-type UserProjectOptions struct {
-	SenderID int64
-	Page     int
-	PageSize int
-}
-
 // GetUserProjects returns a list of projects of given user.
 func GetUserProjects(opts *UserProjectOptions) (ProjectList, error) {
 	sess := x.Where("sender_id=?", opts.SenderID).Desc("updated_unix")
@@ -46,12 +40,41 @@ func GetUserProjects(opts *UserProjectOptions) (ProjectList, error) {
 	return projects, sess.Find(&projects)
 }
 
+func GetProjectByID(id int64) (*Project, error) {
+	project := &Project{
+		ID: id,
+	}
+	has, err := x.Where("id = ?", id).Get(project)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrProjectNotExist{project}
+	}
+	return project, project.LoadAttributes()
+}
+
 func GetUserAllProjects(user *User) (ProjectList, error) {
 	return GetUserProjects(&UserProjectOptions{
 		SenderID: user.ID,
 		Page:     1,
 		PageSize: user.NumProjects,
 	})
+}
+
+func (p Project) LoadAttributes() error {
+	return p.loadAttributes(x)
+}
+
+func (p Project) loadAttributes(e Engine) (err error) {
+	// Get User
+	if p.Sender == nil {
+		p.Sender, err = getUserByID(e, p.SenderID)
+		if err != nil {
+			return fmt.Errorf("getUserByID [%d]: %v", p.SenderID, err)
+		}
+	}
+
+	return nil
 }
 
 func (ps ProjectList) LoadAttributes() error {

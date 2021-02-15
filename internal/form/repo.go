@@ -89,6 +89,7 @@ func (f MigrateRepo) ParseRemoteAddr(user *db.User) (string, error) {
 
 type RepoSetting struct {
 	RepoName      string `binding:"Required;AlphaDashDot;MaxSize(100)"`
+	ProjectID     int64
 	Description   string `binding:"MaxSize(512)"`
 	Website       string `binding:"Url;MaxSize(100)"`
 	Branch        string
