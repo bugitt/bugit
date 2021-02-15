@@ -101,7 +101,7 @@ func handleCreateError(c *context.Context, owner *db.User, err error, name, tpl 
 	case db.IsErrRepoAlreadyExist(err):
 		c.Data["Err_RepoName"] = true
 		c.RenderWithErr(c.Tr("form.repo_name_been_taken"), tpl, form)
-	case db.IsErrProjectNotExist(err):
+	case db.IsErrProjectNotAppropriate(err):
 		c.Data["Err_Project"] = true
 		c.RenderWithErr(c.Tr("form.project_not_exist"), tpl, form)
 	case db.IsErrNameNotAllowed(err):

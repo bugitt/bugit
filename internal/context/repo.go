@@ -166,6 +166,20 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 		c.Data["RepoLink"] = c.Repo.RepoLink
 		c.Data["RepoRelPath"] = c.Repo.Owner.Name + "/" + c.Repo.Repository.Name
 
+		// 处理 Project 相关
+		defaultProject, err := db.GetProjectByID(repo.ProjectID)
+		if err != nil && !db.IsProjectNotExist(err) {
+			c.Error(err, "get default project")
+			return
+		}
+		err = owner.GetProjects(1, owner.NumProjects)
+		if err != nil {
+			c.Error(err, "get owner projects error")
+			return
+		}
+		c.Data["DefaultProject"] = defaultProject
+		c.Data["UserProjects"] = owner.Projects
+
 		// Admin has super access
 		if c.IsLogged && c.User.IsAdmin {
 			c.Repo.AccessMode = db.AccessModeOwner

@@ -687,14 +687,25 @@ func isRepositoryExist(e Engine, u *User, repoName string) (bool, error) {
 	return has && com.IsDir(RepoPath(u.Name, repoName)), err
 }
 
-func isProjectExist(e Engine, u *User, projectID int64) (bool, error) {
+// IsRepositoryExist returns true if the repository with given name under user has already existed.
+func IsRepositoryExist(u *User, repoName string) (bool, error) {
+	return isRepositoryExist(x, u, repoName)
+}
+
+func isProjectAppropriate(e Engine, u *User, projectID int64) (bool, error) {
 	has, err := e.Get(&Project{ID: projectID, SenderID: u.ID})
 	return has, err
 }
 
-// IsRepositoryExist returns true if the repository with given name under user has already existed.
-func IsRepositoryExist(u *User, repoName string) (bool, error) {
-	return isRepositoryExist(x, u, repoName)
+func IsProjectAppropriate(u *User, projectID int64) error {
+	ok, err := isProjectAppropriate(x, u, projectID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrProjectNotAppropriate{}
+	}
+	return nil
 }
 
 // CloneLink represents different types of clone URLs of repository.
@@ -1092,12 +1103,12 @@ func createRepository(e *xorm.Session, doer, owner *User, repo *Repository) (err
 		return ErrRepoAlreadyExist{args: errutil.Args{"ownerID": owner.ID, "name": repo.Name}}
 	}
 
-	has, err = isProjectExist(e, owner, repo.ProjectID)
+	has, err = isProjectAppropriate(e, owner, repo.ProjectID)
 	if err != nil {
-		return fmt.Errorf("IsProjectExist: %v", err)
+		return fmt.Errorf("ErrProjectNotAppropriate: %v", err)
 	} else if !has {
 		// 如果要创建repo的用户根本不拥有这个project
-		return ErrProjectNotExist{}
+		return ErrProjectNotAppropriate{}
 	}
 
 	if _, err = e.Insert(repo); err != nil {

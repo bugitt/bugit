@@ -47,6 +47,7 @@
 							<i class="dropdown icon"></i>
 							<div class="default text"></div>
 							<div class="menu">
+								<div class="item" data-value="0">{{.i18n.Tr "repo.remove_project"}}</div>
 								{{range	.Projects}}
 									<div class="item" data-value="{{.ID}}"><i class="octicon octicon-beaker"></i>&nbsp;{{.Name}}</div>
 								{{end}}
