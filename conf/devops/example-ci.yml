@@ -1,0 +1,25 @@
+version: "0.0.1"
+
+
+meta:
+  tag: "test"
+
+
+validation:
+  # validation中包含的各个task为并行执行
+  # 任何一个task执行失败或不符合预期都将直接终止pipeline的执行
+
+  - name: "validation1"
+    describe: ""
+    type: "golangci-lint"
+    scope: "."
+    threshold:
+      warnning: 5
+      error: -1
+
+
+build:
+  - name: "build1"
+    describe: ""
+    type: "docker"
+    dockerfile: "./Dockerfile"
