@@ -14,7 +14,7 @@ validation:
     type: "golangci-lint"
     scope: "."
     threshold:
-      warnning: 5
+      warning: 5
       error: -1
 
 
