@@ -5,7 +5,7 @@
 package repo
 
 import (
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/context"
 	"gogs.io/gogs/internal/db"

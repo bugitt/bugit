@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	log "unknwon.dev/clog/v2"
 
 	"gogs.io/gogs/internal/conf"
@@ -320,7 +320,7 @@ func DeleteRelease(c *context.Context) {
 		c.Flash.Success(c.Tr("repo.release.deletion_success"))
 	}
 
-	c.JSONSuccess( map[string]interface{}{
+	c.JSONSuccess(map[string]interface{}{
 		"redirect": c.Repo.RepoLink + "/releases",
 	})
 }

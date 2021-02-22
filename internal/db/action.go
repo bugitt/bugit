@@ -16,7 +16,7 @@ import (
 	log "unknwon.dev/clog/v2"
 	"xorm.io/xorm"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
 	"gogs.io/gogs/internal/conf"

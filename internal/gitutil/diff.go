@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/transform"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/template/highlight"

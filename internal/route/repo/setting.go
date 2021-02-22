@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/unknwon/com"
 	log "unknwon.dev/clog/v2"
 

@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/macaron.v1"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/db"
@@ -42,7 +42,7 @@ type Repository struct {
 	TagName      string
 	TreePath     string
 	CommitID     string
-	RepoLink     string
+	RepoLink     string // 指向 repo 的 URL，类似于 http://localhost:3000/loheagn/ThirdRepo 这种
 	CloneLink    db.CloneLink
 	CommitsCount int64
 	Mirror       *db.Mirror

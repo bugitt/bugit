@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

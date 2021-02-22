@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/unknwon/com"
 
 	"gogs.io/gogs/internal/errutil"

@@ -15,7 +15,7 @@ import (
 	"gogs.io/gogs/internal/route/project"
 	log "unknwon.dev/clog/v2"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/context"

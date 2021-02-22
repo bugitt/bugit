@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 
 	"gogs.io/gogs/internal/context"

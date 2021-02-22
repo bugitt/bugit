@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	"github.com/unknwon/com"
 	"gopkg.in/ini.v1"

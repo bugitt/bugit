@@ -352,6 +352,15 @@ func Init(customConf string) error {
 	I18n.dateLangs = File.Section("i18n.datelang").KeysHash()
 
 	// *************************
+	// ----- devops settings -----
+	// *************************
+
+	if err = File.Section("devops").MapTo(&Devops); err != nil {
+		return errors.Wrap(err, "mapping [devops] section")
+	}
+	Devops.Tmpdir = ensureAbs(Devops.Tmpdir)
+
+	// *************************
 	// ----- LFS settings -----
 	// *************************
 

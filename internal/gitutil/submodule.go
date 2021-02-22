@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/lazyregexp"
 )

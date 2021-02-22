@@ -323,6 +323,12 @@ var (
 		BasicAuthPassword string
 	}
 
+	// Devops settings
+	Devops struct {
+		Filename []string `ini:"filename" delim:"|"`
+		Tmpdir   string   `ini:"tmpdir"`
+	}
+
 	// Other settings
 	Other struct {
 		ShowFooterBranding         bool

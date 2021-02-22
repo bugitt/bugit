@@ -7,7 +7,7 @@ package gitutil
 import (
 	"testing"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/stretchr/testify/assert"
 )
 

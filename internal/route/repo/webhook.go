@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 	jsoniter "github.com/json-iterator/go"
 	"gopkg.in/macaron.v1"

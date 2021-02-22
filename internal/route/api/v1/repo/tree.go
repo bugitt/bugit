@@ -7,7 +7,7 @@ package repo
 import (
 	"fmt"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/context"
 	"gogs.io/gogs/internal/gitutil"

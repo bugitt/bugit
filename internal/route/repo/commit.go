@@ -8,7 +8,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/context"

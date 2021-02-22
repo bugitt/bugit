@@ -19,7 +19,7 @@ import (
 	gouuid "github.com/satori/go.uuid"
 	"github.com/unknwon/com"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/cryptoutil"

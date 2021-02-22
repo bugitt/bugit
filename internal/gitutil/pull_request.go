@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	log "unknwon.dev/clog/v2"
 )

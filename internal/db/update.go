@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 )
 
 // CommitToPushCommit transforms a git.Commit to PushCommit type.

@@ -10,7 +10,7 @@ import (
 
 	"github.com/json-iterator/go"
 
-	"github.com/gogs/git-module"
+	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
 	"gogs.io/gogs/internal/conf"
