@@ -12,7 +12,8 @@ validation:
   - name: "validation1"
     describe: ""
     type: "golangci-lint"
-    scope: "."
+    scope:
+      - "."
     threshold:
       warning: 5
       error: -1

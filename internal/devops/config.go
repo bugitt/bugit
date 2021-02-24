@@ -18,7 +18,7 @@ type CIConfig struct {
 	Version    string      `yaml:"version"`
 	Meta       Meta        `yaml:"meta"`
 	Validation []ValidTask `yaml:"validation"`
-	Build      []BaseTask  `yaml:"build"`
+	Build      []BuildTask `yaml:"build"`
 }
 
 type Meta struct {
@@ -37,13 +37,13 @@ type Threshold struct {
 }
 
 type ValidTask struct {
-	BaseTask
+	BaseTask  `yaml:",inline"`
 	Scope     []string  `yaml:"scope"`
 	Threshold Threshold `yaml:"threshold"`
 }
 
 type BuildTask struct {
-	BaseTask
+	BaseTask   `yaml:",inline"`
 	Dockerfile string `yaml:"dockerfile"`
 }
 
