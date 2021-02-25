@@ -45,6 +45,7 @@ type ValidTask struct {
 type BuildTask struct {
 	BaseTask   `yaml:",inline"`
 	Dockerfile string `yaml:"dockerfile"`
+	Scope      string `yaml:"scope"`
 }
 
 func ReadConf(ownerName, repoName, refName string) (*CIConfig, error) {
