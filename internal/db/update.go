@@ -100,10 +100,11 @@ func PushUpdate(opts PushUpdateOptions) (err error) {
 	}
 
 	var commits []*git.Commit
+	var newCommit *git.Commit
 	// Skip read parent commits when delete branch
 	if !isDelRef {
 		// Push new branch
-		newCommit, err := gitRepo.CatFileCommit(opts.NewCommitID)
+		newCommit, err = gitRepo.CatFileCommit(opts.NewCommitID)
 		if err != nil {
 			return fmt.Errorf("GetCommit [commit_id: %s]: %v", opts.NewCommitID, err)
 		}
@@ -129,6 +130,7 @@ func PushUpdate(opts PushUpdateOptions) (err error) {
 		RefFullName: opts.FullRefspec,
 		OldCommitID: opts.OldCommitID,
 		NewCommitID: opts.NewCommitID,
+		LastCommit:  newCommit,
 		Commits:     CommitsToPushCommits(commits),
 	}); err != nil {
 		return fmt.Errorf("CommitRepoAction.(branch): %v", err)

@@ -1,10 +1,11 @@
-package devops
+package db
 
 import (
-	"gogs.io/gogs/internal/conf"
 	"log"
 	"runtime"
 	"testing"
+
+	"gogs.io/gogs/internal/conf"
 )
 
 func TestReadConf(t *testing.T) {

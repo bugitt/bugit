@@ -1,22 +1,44 @@
-package devops
+package db
 
 import (
-	"github.com/artdarek/go-unzip"
-	"github.com/bugitt/git-module"
-	"github.com/unknwon/com"
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/tool"
-	"gopkg.in/yaml.v3"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
+
+	"github.com/artdarek/go-unzip"
+	"github.com/bugitt/git-module"
+	"github.com/unknwon/com"
+	"gogs.io/gogs/internal/conf"
+	"gogs.io/gogs/internal/tool"
+	"gopkg.in/yaml.v3"
 )
+
+const (
+	DevopsPush string = "push"
+	DevopsPR   string = "pr"
+	DevopsMR   string = "mr"
+)
+
+type ErrConfFileNotFound struct {
+	repoPath string
+}
+
+func (err ErrConfFileNotFound) Error() string {
+	return fmt.Sprintf("devops conf file not found: repo: %s", err.repoPath)
+}
+
+func IsErrConfFileNotFound(err error) bool {
+	_, ok := err.(ErrConfFileNotFound)
+	return ok
+}
 
 type CIConfig struct {
 	Version    string      `yaml:"version"`
 	Meta       Meta        `yaml:"meta"`
+	On         []string    `yaml:"on"`
 	Validation []ValidTask `yaml:"validation"`
 	Build      []BuildTask `yaml:"build"`
 }
@@ -48,6 +70,34 @@ type BuildTask struct {
 	Scope      string `yaml:"scope"`
 }
 
+func (c *CIConfig) ShouldCIOnPush() bool {
+	for _, s := range c.On {
+		if strings.ToLower(s) == DevopsPush {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *CIConfig) ShouldCIOnPR() bool {
+	for _, s := range c.On {
+		lowS := strings.ToLower(s)
+		if lowS == DevopsPR ||
+			lowS == "pull request" ||
+			lowS == "merge request" ||
+			lowS == DevopsMR {
+			return true
+		}
+	}
+	return false
+}
+
+func ParseCIConfig(input []byte) (*CIConfig, error) {
+	ciConfig := &CIConfig{}
+	err := yaml.Unmarshal(input, ciConfig)
+	return ciConfig, err
+}
+
 func ReadConf(ownerName, repoName, refName string) (*CIConfig, error) {
 	repoPath, err := loadRepo(ownerName, repoName, refName)
 	if err != nil {
@@ -76,7 +126,7 @@ func ReadConf(ownerName, repoName, refName string) (*CIConfig, error) {
 }
 
 func loadRepo(ownerName, repoName, refName string) (repoPath string, err error) {
-	gitRepo, err := git.Open(db.RepoPath(ownerName, repoName))
+	gitRepo, err := git.Open(RepoPath(ownerName, repoName))
 	if err != nil {
 		return
 	}

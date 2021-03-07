@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/unknwon/com"
 	log "unknwon.dev/clog/v2"
 	"xorm.io/xorm"
@@ -452,6 +452,7 @@ type CommitRepoActionOptions struct {
 	RefFullName string
 	OldCommitID string
 	NewCommitID string
+	LastCommit  *git.Commit
 	Commits     *PushCommits
 }
 
@@ -574,6 +575,10 @@ func CommitRepoAction(opts CommitRepoActionOptions) error {
 			Sender:     apiPusher,
 		}); err != nil {
 			return fmt.Errorf("PrepareWebhooks.(new commit): %v", err)
+		}
+
+		if err = ciOnPush(opts.LastCommit); err != nil {
+			return fmt.Errorf("ci on push: %v", err)
 		}
 
 		action.OpType = ACTION_COMMIT_REPO
