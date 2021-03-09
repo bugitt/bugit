@@ -2,9 +2,6 @@ package db
 
 import (
 	"fmt"
-	"time"
-
-	"xorm.io/xorm"
 )
 
 type ProjectStatus int
@@ -12,19 +9,16 @@ type ProjectStatus int
 type ProjectList []*Project
 
 type Project struct {
-	ID          int64
-	Name        string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
-	SenderID    int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
-	Sender      *User  `xorm:"-" gorm:"-" json:"-"`
-	ExpID       int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
-	ExpString   string
-	CourseID    int64 `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
-	CourseName  string
-	Status      ProjectStatus
-	CreatedUnix int64
-	Created     time.Time `xorm:"-" gorm:"-" json:"-"`
-	UpdatedUnix int64
-	Updated     time.Time `xorm:"-" gorm:"-" json:"-"`
+	ID         int64
+	Name       string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
+	SenderID   int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
+	Sender     *User  `xorm:"-" gorm:"-" json:"-"`
+	ExpID      int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
+	ExpString  string
+	CourseID   int64 `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
+	CourseName string
+	Status     ProjectStatus
+	BaseModel
 }
 
 // GetUserProjects returns a list of projects of given user.
@@ -79,24 +73,6 @@ func (p Project) loadAttributes(e Engine) (err error) {
 
 func (ps ProjectList) LoadAttributes() error {
 	return ps.loadAttributes(x)
-}
-
-func (p *Project) BeforeInsert() {
-	p.CreatedUnix = time.Now().Unix()
-	p.UpdatedUnix = p.CreatedUnix
-}
-
-func (p *Project) BeforeUpdate() {
-	p.UpdatedUnix = time.Now().Unix()
-}
-
-func (p *Project) AfterSet(colName string, _ xorm.Cell) {
-	switch colName {
-	case "created_unix":
-		p.Created = time.Unix(p.CreatedUnix, 0).Local()
-	case "updated_unix":
-		p.Updated = time.Unix(p.UpdatedUnix, 0)
-	}
 }
 
 func (ps ProjectList) loadAttributes(e Engine) error {
