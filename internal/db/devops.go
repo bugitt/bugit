@@ -27,8 +27,9 @@ func ciOnPush(commit *git.Commit) error {
 	if err != nil {
 		return err
 	}
+	log.Trace("%#v", ciConfig)
 	if !ciConfig.ShouldCIOnPush() {
-		log.Info("no need for CI %s", commit.ID.String())
+		log.Trace("no need for CI %s", commit.ID.String())
 		return nil
 	}
 
