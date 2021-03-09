@@ -18,7 +18,7 @@ type Project struct {
 	CourseID   int64 `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
 	CourseName string
 	Status     ProjectStatus
-	BaseModel
+	BaseModel  `xorm:"extends"`
 }
 
 // GetUserProjects returns a list of projects of given user.

@@ -70,5 +70,12 @@ func TriggerTask(c *macaron.Context) {
 
 	go db.HookQueue.Add(repo.ID)
 	go db.AddTestPullRequestTask(pusher, repo.ID, branch, true)
+
+	// check CI
+	shouldCI := c.Query("ci")
+	if shouldCI == "true" {
+		go db.CIQueue.Add(repo.ID)
+	}
+
 	c.Status(http.StatusAccepted)
 }

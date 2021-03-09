@@ -578,7 +578,7 @@ func CommitRepoAction(opts CommitRepoActionOptions) (shouldCI bool, err error) {
 			return false, fmt.Errorf("PrepareWebhooks.(new commit): %v", err)
 		}
 
-		if shouldCI, err = shouldCIOnPush(opts.LastCommit); err != nil {
+		if shouldCI, err = shouldCIOnPush(opts.LastCommit, repo, pusher, refName); err != nil {
 			return false, fmt.Errorf("ci on push: %v", err)
 		}
 

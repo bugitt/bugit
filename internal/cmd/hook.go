@@ -234,7 +234,7 @@ func runHookPostReceive(c *cli.Context) error {
 			shouldCI = false // double ensure
 			log.Error("PushUpdate: %v", err)
 		}
-
+		log.Trace("%s", com.ToStr(shouldCI))
 		// Ask for running deliver hook and test pull request tasks
 		q := make(url.Values)
 		q.Add("branch", git.RefShortName(options.FullRefspec))

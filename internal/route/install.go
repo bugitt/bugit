@@ -83,6 +83,7 @@ func GlobalInit(customConf string) error {
 		cron.NewContext()
 		db.InitSyncMirrors()
 		db.InitDeliverHooks()
+		db.StartCI()
 		db.InitTestPullRequests()
 	}
 	if conf.HasMinWinSvc {

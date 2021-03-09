@@ -10,7 +10,7 @@ import (
 
 var CIQueue = sync.NewUniqueQueue(1000)
 
-func shouldCIOnPush(commit *git.Commit) (bool, error) {
+func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName string) (bool, error) {
 	var fileContent []byte
 	var err error
 	for _, filename := range conf.Devops.Filename {
@@ -31,13 +31,35 @@ func shouldCIOnPush(commit *git.Commit) (bool, error) {
 		return false, err
 	}
 	log.Trace("%#v", ciConfig)
-	// TODO: 这里考虑是否要保存一下？
-	// TODO: 添加到任务队列？参考一下webHook那里的实现？
-	return ciConfig.ShouldCIOnPush(), nil
+	shouldCI := ciConfig.ShouldCIOnPush()
+	if !shouldCI {
+		return false, nil
+	}
+
+	// 创建 pipeline
+	pipeline, err := preparePipeline(commit, fileContent, repo, pusher, refName)
+	if err != nil {
+		log.Error("%s", err.Error())
+		return false, err
+	}
+
+	log.Trace("%d", pipeline.ID)
+
+	// 创建 pipelineTask
+	if err := preparePipeTask(pipeline, pusher); err != nil {
+		return false, err
+	}
+
+	go CIQueue.Add(repo.ID)
+	return true, nil
 }
 
-func CI() {
+func ci() {
 	for t := range CIQueue.Queue() {
 		log.Trace("ciTest: %s", t)
 	}
+}
+
+func StartCI() {
+	go ci()
 }
