@@ -31,6 +31,8 @@ func shouldCIOnPush(commit *git.Commit) (bool, error) {
 		return false, err
 	}
 	log.Trace("%#v", ciConfig)
+	// TODO: 这里考虑是否要保存一下？
+	// TODO: 添加到任务队列？参考一下webHook那里的实现？
 	return ciConfig.ShouldCIOnPush(), nil
 }
 
