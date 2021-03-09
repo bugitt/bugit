@@ -231,6 +231,7 @@ func runHookPostReceive(c *cli.Context) error {
 			shouldCI bool
 		)
 		if shouldCI, err = db.PushUpdate(options); err != nil {
+			shouldCI = false // double ensure
 			log.Error("PushUpdate: %v", err)
 		}
 
