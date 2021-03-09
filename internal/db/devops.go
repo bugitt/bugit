@@ -4,10 +4,13 @@ import (
 	"github.com/bugitt/git-module"
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/db/errors"
+	"gogs.io/gogs/internal/sync"
 	log "unknwon.dev/clog/v2"
 )
 
-func ciOnPush(commit *git.Commit) error {
+var CIQueue = sync.NewUniqueQueue(1000)
+
+func shouldCIOnPush(commit *git.Commit) (bool, error) {
 	var fileContent []byte
 	var err error
 	for _, filename := range conf.Devops.Filename {
@@ -20,18 +23,19 @@ func ciOnPush(commit *git.Commit) error {
 
 	if len(fileContent) <= 0 {
 		// TODO: 无法解析config的时候是不是要给用户提示？
-		return errors.New("can not parse config")
+		return false, errors.New("can not parse config")
 	}
 
 	ciConfig, err := ParseCIConfig(fileContent)
 	if err != nil {
-		return err
+		return false, err
 	}
 	log.Trace("%#v", ciConfig)
-	if !ciConfig.ShouldCIOnPush() {
-		log.Trace("no need for CI %s", commit.ID.String())
-		return nil
-	}
+	return ciConfig.ShouldCIOnPush(), nil
+}
 
-	return err
+func CI() {
+	for t := range CIQueue.Queue() {
+		log.Trace("ciTest: %s", t)
+	}
 }

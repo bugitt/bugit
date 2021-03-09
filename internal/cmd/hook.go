@@ -226,7 +226,11 @@ func runHookPostReceive(c *cli.Context) error {
 			RepoUserName: os.Getenv(db.ENV_REPO_OWNER_NAME),
 			RepoName:     os.Getenv(db.ENV_REPO_NAME),
 		}
-		if err := db.PushUpdate(options); err != nil {
+		var (
+			err      error
+			shouldCI bool
+		)
+		if shouldCI, err = db.PushUpdate(options); err != nil {
 			log.Error("PushUpdate: %v", err)
 		}
 
@@ -235,6 +239,7 @@ func runHookPostReceive(c *cli.Context) error {
 		q.Add("branch", git.RefShortName(options.FullRefspec))
 		q.Add("secret", os.Getenv(db.ENV_REPO_OWNER_SALT_MD5))
 		q.Add("pusher", os.Getenv(db.ENV_AUTH_USER_ID))
+		q.Add("ci", com.ToStr(shouldCI))
 		reqURL := fmt.Sprintf("%s%s/%s/tasks/trigger?%s", conf.Server.LocalRootURL, options.RepoUserName, options.RepoName, q.Encode())
 		log.Trace("Trigger task: %s", reqURL)
 
