@@ -693,6 +693,9 @@ func IsRepositoryExist(u *User, repoName string) (bool, error) {
 }
 
 func isProjectAppropriate(e Engine, u *User, projectID int64) (bool, error) {
+	if projectID <= 0 {
+		return true, nil
+	}
 	has, err := e.Get(&Project{ID: projectID, SenderID: u.ID})
 	return has, err
 }
