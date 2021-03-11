@@ -332,10 +332,11 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 	}
 
 	u := &db.User{
-		Name:     f.UserName,
-		Email:    f.Email,
-		Passwd:   f.Password,
-		IsActive: !conf.Auth.RequireEmailConfirmation,
+		Name:      f.UserName,
+		Email:     f.Email,
+		Passwd:    f.Password,
+		StudentID: f.StudentNumber,
+		IsActive:  !conf.Auth.RequireEmailConfirmation,
 	}
 	if err := db.CreateUser(u); err != nil {
 		switch {
@@ -345,6 +346,9 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 		case db.IsErrEmailAlreadyUsed(err):
 			c.FormErr("Email")
 			c.RenderWithErr(c.Tr("form.email_been_used"), SIGNUP, &f)
+		case db.IsErrStudentIDAlreadyExist(err):
+			c.FormErr("StudentNumber")
+			c.RenderWithErr(c.Tr("form.student_number_been_used"), SIGNUP, &f)
 		case db.IsErrNameNotAllowed(err):
 			c.FormErr("UserName")
 			c.RenderWithErr(c.Tr("user.form.name_not_allowed", err.(db.ErrNameNotAllowed).Value()), SIGNUP, &f)

@@ -206,6 +206,27 @@ func (err ErrEmailAlreadyUsed) Error() string {
 	return fmt.Sprintf("email has been used: %v", err.args)
 }
 
+type ErrStudentIDAlreadyExist struct {
+	StudentID string
+}
+
+func (err ErrStudentIDAlreadyExist) Error() string {
+	return fmt.Sprintf("email has been used: %s", err.StudentID)
+}
+
+func IsErrStudentIDAlreadyExist(err error) bool {
+	_, ok := err.(ErrStudentIDAlreadyExist)
+	return ok
+}
+
+type ErrStudentIDNotValid struct {
+	StudentID string
+}
+
+func (err ErrStudentIDNotValid) Error() string {
+	return fmt.Sprintf("email has been used: %s", err.StudentID)
+}
+
 func (db *users) Create(username, email string, opts CreateUserOpts) (*User, error) {
 	err := isUsernameAllowed(username)
 	if err != nil {

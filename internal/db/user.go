@@ -599,6 +599,20 @@ func CreateUser(u *User) (err error) {
 		return ErrEmailAlreadyUsed{args: errutil.Args{"email": u.Email}}
 	}
 
+	valid, err := IsStudentIDValid(u.StudentID)
+	if err != nil {
+		return err
+	} else if !valid {
+		return ErrStudentIDNotValid{u.StudentID}
+	}
+	// 检查学号是不是已经被注册过了
+	isExist, err = IsStudentIDExist(u.StudentID)
+	if err != nil {
+		return err
+	} else if isExist {
+		return ErrStudentIDAlreadyExist{u.StudentID}
+	}
+
 	u.LowerName = strings.ToLower(u.Name)
 	u.AvatarEmail = u.Email
 	u.Avatar = tool.HashEmail(u.AvatarEmail)
