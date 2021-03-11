@@ -43,8 +43,11 @@ func Home(c *context.Context) {
 		return
 	}
 
-	c.Data["PageIsHome"] = true
-	c.Success(HOME)
+	// 首页还没做好。。。先强制重定向到登录页面
+	c.Redirect(conf.Server.Subpath + "/user/login")
+
+	// c.Data["PageIsHome"] = true
+	// c.Success(HOME)
 }
 
 func ExploreRepos(c *context.Context) {
