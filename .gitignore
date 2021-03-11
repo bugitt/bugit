@@ -3,6 +3,7 @@
 *.log
 log/
 data/
+custom/
 .idea/
 *.iml
 public/img/avatar/
