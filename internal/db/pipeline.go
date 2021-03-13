@@ -28,9 +28,12 @@ type Pipeline struct {
 	ID           int64
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
 	RepoID       int64
+	repoDB       *Repository     `xorm:"-" json:"-"`
+	gitRepo      *git.Repository `xorm:"-" json:"-"`
 	UUID         string
 	RefName      string
 	Commit       string
+	gitCommit    *git.Commit `xorm:"-" json:"-"`
 	ConfigString string
 	Config       *CIConfig `xorm:"-" json:"-"`
 	BaseModel    `xorm:"extends"`
@@ -99,6 +102,38 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 
 	p.UUID = gouuid.NewV4().String()
 	return e.Insert(p)
+}
+
+func (p *Pipeline) loadAttributes() error {
+	if p.repoDB == nil {
+		repo := new(Repository)
+		has, err := x.ID(p.RepoID).Get(repo)
+		if err != nil {
+			return err
+		}
+		if !has {
+			return errors.New("repo not found")
+		}
+		p.repoDB = repo
+	}
+
+	if p.gitRepo == nil {
+		gitRepo, err := git.Open(p.repoDB.RepoPath())
+		if err != nil {
+			return err
+		}
+		p.gitRepo = gitRepo
+	}
+
+	if p.gitCommit == nil {
+		gitCommit, err := p.gitRepo.CatFileCommit(p.Commit)
+		if err != nil {
+			return err
+		}
+		p.gitCommit = gitCommit
+	}
+
+	return nil
 }
 
 func (p *Pipeline) BeforeInsert() {
