@@ -39,6 +39,7 @@ type Pipeline struct {
 type PipeTask struct {
 	ID         int64
 	RepoID     int64
+	RepoDB     *Repository `xorm:"-" json:"-"`
 	UUID       string
 	PipelineID int64
 	Pipeline   *Pipeline `xorm:"-" json:"-"`
