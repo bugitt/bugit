@@ -18,3 +18,6 @@ output*
 /release
 .vscode/
 .task/checksum/web
+
+# ci relate
+ci-repo/
