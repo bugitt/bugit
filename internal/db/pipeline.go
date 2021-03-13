@@ -134,7 +134,10 @@ func (ptask *PipeTask) endTime() error {
 
 func (ptask *PipeTask) success() error {
 	ptask.IsSucceed = true
-	_, err := x.ID(ptask.ID).Update(ptask)
+	row, err := x.ID(ptask.ID).Cols("is_succeed").Update(ptask)
+	if err == nil && row != 1 {
+		err = errors.New("set ptask success failed")
+	}
 	return err
 }
 
