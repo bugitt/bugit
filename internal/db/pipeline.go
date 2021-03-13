@@ -21,7 +21,7 @@ import (
 type PipeStage int
 
 const (
-	NotStart PipeStage = iota - 1
+	NotStart PipeStage = iota
 	LoadRepoStart
 	LoadRepoEnd
 	ValidStart
@@ -286,7 +286,7 @@ func (p *Pipeline) BeforeInsert() {
 func (p *Pipeline) AfterSet(colName string, cell xorm.Cell) {
 	p.BaseModel.AfterSet(colName, cell)
 	switch colName {
-	case "config":
+	case "config_string":
 		p.Config, _ = ParseCIConfig([]byte(p.ConfigString))
 	}
 }
