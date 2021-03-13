@@ -83,6 +83,19 @@ func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pushe
 }
 
 func createPipeline(e Engine, p *Pipeline) (int64, error) {
+	// 先检查一下是不是已经创建过相同的pipeline配置了
+	oldPipe := &Pipeline{
+		RepoID: p.RepoID,
+		Commit: p.Commit,
+	}
+	has, err := x.Get(oldPipe)
+	if err != nil {
+		return -1, err
+	}
+	if has {
+		return oldPipe.ID, nil
+	}
+
 	p.UUID = gouuid.NewV4().String()
 	return e.Insert(p)
 }
