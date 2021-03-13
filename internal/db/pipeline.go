@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
@@ -61,6 +62,8 @@ type PipeTask struct {
 	SenderTime int64     // 触发执行时的时间戳
 	Stage      PipeStage
 	IsSucceed  bool
+	BeginUnix  int64 // 开始时间戳
+	EndUnix    int64 // 结束时间戳
 	BaseModel  `xorm:"extends"`
 }
 
@@ -91,26 +94,48 @@ func (ptask *PipeTask) LoadRepo() error {
 	return ptask.updateStatus(LoadRepoEnd)
 }
 
-func (ptask *PipeTask) CI() error {
+func (ptask *PipeTask) CI() (err error) {
 	// prepare attributes
 	if err := ptask.loadAttributes(); err != nil {
 		return err
 	}
 
-	// load repo
-	if err := ptask.LoadRepo(); err != nil {
-		return err
-	} else {
-		log.Info("load repo success for CI task: %d", ptask.ID)
+	defer func() {
+		// 保证打上结束的时间戳
+		_ = ptask.endTime()
+		if err == nil {
+			err = ptask.success()
+		}
+	}()
+
+	if err = ptask.beginTime(); err != nil {
+		return
 	}
 
 	switch ptask.Pipeline.Config.Version {
 	case "0.0.1":
-		if err := ptask.CI001(); err != nil {
-			return err
-		}
+		err = ptask.CI001()
 	}
-	return nil
+
+	return err
+}
+
+func (ptask *PipeTask) beginTime() error {
+	ptask.BeginUnix = time.Now().Unix()
+	_, err := x.ID(ptask.ID).Update(ptask)
+	return err
+}
+
+func (ptask *PipeTask) endTime() error {
+	ptask.EndUnix = time.Now().Unix()
+	_, err := x.ID(ptask.ID).Update(ptask)
+	return err
+}
+
+func (ptask *PipeTask) success() error {
+	ptask.IsSucceed = true
+	_, err := x.ID(ptask.ID).Update(ptask)
+	return err
 }
 
 func (ptask *PipeTask) updateStatus(status PipeStage) error {
