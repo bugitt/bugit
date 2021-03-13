@@ -60,6 +60,7 @@ type Threshold struct {
 
 type ValidTask struct {
 	BaseTask  `yaml:",inline"`
+	Lang      string    `yaml:"lang"`
 	Scope     []string  `yaml:"scope"`
 	Threshold Threshold `yaml:"threshold"`
 }
