@@ -81,9 +81,6 @@ func createPipeTask(e Engine, p *PipeTask) error {
 }
 
 func (ptask *PipeTask) LoadRepo() error {
-	if err := ptask.loadAttributes(); err != nil {
-		return err
-	}
 	err := ptask.updateStatus(LoadRepoStart)
 	if err != nil {
 		return nil
@@ -95,6 +92,11 @@ func (ptask *PipeTask) LoadRepo() error {
 }
 
 func (ptask *PipeTask) CI() error {
+	// prepare attributes
+	if err := ptask.loadAttributes(); err != nil {
+		return err
+	}
+	
 	// load repo
 	if err := ptask.LoadRepo(); err != nil {
 		return err
