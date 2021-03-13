@@ -1,8 +1,17 @@
 package db
 
 import (
+	"errors"
+	"os"
+	"path"
+	"path/filepath"
+
+	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
 	gouuid "github.com/satori/go.uuid"
+	"github.com/unknwon/com"
+	"gogs.io/gogs/internal/conf"
+	"gogs.io/gogs/internal/tool"
 	"gopkg.in/yaml.v3"
 	log "unknwon.dev/clog/v2"
 	"xorm.io/xorm"
@@ -12,6 +21,8 @@ type PipeStage int
 
 const (
 	NotStart PipeStage = iota - 1
+	LoadRepoStart
+	LoadRepoEnd
 	ValidStart
 	ValidEnd
 	BuildStart
@@ -36,13 +47,13 @@ type Pipeline struct {
 	gitCommit    *git.Commit `xorm:"-" json:"-"`
 	ConfigString string
 	Config       *CIConfig `xorm:"-" json:"-"`
+	CIPath       string
 	BaseModel    `xorm:"extends"`
 }
 
 type PipeTask struct {
 	ID         int64
 	RepoID     int64
-	RepoDB     *Repository `xorm:"-" json:"-"`
 	UUID       string
 	PipelineID int64
 	Pipeline   *Pipeline `xorm:"-" json:"-"`
@@ -67,6 +78,55 @@ func createPipeTask(e Engine, p *PipeTask) error {
 	p.UUID = gouuid.NewV4().String()
 	_, err := e.Insert(p)
 	return err
+}
+
+func (ptask *PipeTask) LoadRepo() error {
+	if err := ptask.loadAttributes(); err != nil {
+		return err
+	}
+	err := ptask.updateStatus(LoadRepoStart)
+	if err != nil {
+		return nil
+	}
+	if err := ptask.Pipeline.loadRepo(); err != nil {
+		return err
+	}
+	return ptask.updateStatus(LoadRepoEnd)
+}
+
+func (ptask *PipeTask) CI() error {
+	// load repo
+	if err := ptask.LoadRepo(); err != nil {
+		return err
+	} else {
+		log.Info("load repo success for CI task: %d", ptask.ID)
+	}
+	return nil
+}
+
+func (ptask *PipeTask) updateStatus(status PipeStage) error {
+	ptask.Stage = status
+	_, err := x.Where("id = ?", ptask.ID).Update(ptask)
+	return err
+}
+
+func (ptask *PipeTask) loadAttributes() error {
+	if ptask.Pipeline == nil {
+		pipeline := new(Pipeline)
+		has, err := x.ID(ptask.PipelineID).Get(pipeline)
+		if err != nil {
+			return err
+		}
+		if !has {
+			return errors.New("pipeline not found")
+		}
+		if err := pipeline.loadAttributes(); err != nil {
+			return err
+		}
+		ptask.Pipeline = pipeline
+	}
+
+	return nil
 }
 
 func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
@@ -101,7 +161,11 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 	}
 
 	p.UUID = gouuid.NewV4().String()
-	return e.Insert(p)
+	_, err = e.Insert(p)
+	if err != nil {
+		return -1, err
+	}
+	return p.ID, nil
 }
 
 func (p *Pipeline) loadAttributes() error {
@@ -134,6 +198,38 @@ func (p *Pipeline) loadAttributes() error {
 	}
 
 	return nil
+}
+
+func (p *Pipeline) loadRepo() error {
+	// 如果已经存在了，那么就不用再load一次了
+	if com.IsDir(p.CIPath) {
+		return nil
+	}
+	hash := tool.ShortSHA1(p.Commit)
+	archivePath := filepath.Join(p.gitRepo.Path(), "archives", "zip")
+	if !com.IsDir(archivePath) {
+		if err := os.MkdirAll(archivePath, os.ModePerm); err != nil {
+			return err
+		}
+	}
+	archivePath = path.Join(archivePath, hash+".zip")
+	if !com.IsFile(archivePath) {
+		if err := p.gitCommit.CreateArchive(git.ArchiveZip, archivePath); err != nil {
+			return err
+		}
+	}
+
+	repoPath := filepath.Join(conf.Devops.Tmpdir, p.repoDB.RepoPath(), hash)
+	if !com.IsDir(repoPath) {
+		uz := unzip.New(archivePath, repoPath)
+		if err := uz.Extract(); err != nil {
+			return err
+		}
+	}
+	p.CIPath = repoPath
+	// 更新数据库
+	_, err := x.ID(p.ID).Update(p)
+	return err
 }
 
 func (p *Pipeline) BeforeInsert() {

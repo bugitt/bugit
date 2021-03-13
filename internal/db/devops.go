@@ -55,8 +55,21 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 }
 
 func ci() {
-	for t := range CIQueue.Queue() {
-		log.Trace("ciTest: %s", t)
+	for repoID := range CIQueue.Queue() {
+		log.Trace("Begin Pipeline for [repo_id: %v]", repoID)
+		CIQueue.Remove(repoID)
+
+		tasks := make([]*PipeTask, 0, 5)
+		if err := x.Where("repo_id = ?", repoID).And("stage = ?", NotStart).Find(&tasks); err != nil {
+			log.Error("Get repository [%s] pipe tasks: %v", repoID, err)
+			continue
+		}
+		for _, ptask := range tasks {
+			err := ptask.CI()
+			if err != nil {
+				log.Error("pipe CI error: %s", err.Error())
+			}
+		}
 	}
 }
 
