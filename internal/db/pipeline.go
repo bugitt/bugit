@@ -96,12 +96,19 @@ func (ptask *PipeTask) CI() error {
 	if err := ptask.loadAttributes(); err != nil {
 		return err
 	}
-	
+
 	// load repo
 	if err := ptask.LoadRepo(); err != nil {
 		return err
 	} else {
 		log.Info("load repo success for CI task: %d", ptask.ID)
+	}
+
+	switch ptask.Pipeline.Config.Version {
+	case "0.0.1":
+		if err := ptask.CI001(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
