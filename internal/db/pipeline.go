@@ -21,7 +21,7 @@ import (
 type PipeStage int
 
 const (
-	NotStart PipeStage = iota
+	NotStart PipeStage = iota + 1
 	LoadRepoStart
 	LoadRepoEnd
 	ValidStart
@@ -256,7 +256,7 @@ func (p *Pipeline) loadRepo() error {
 		}
 	}
 
-	repoPath := filepath.Join(conf.Devops.Tmpdir, p.repoDB.RepoPath(), hash)
+	repoPath := filepath.Join(conf.Devops.Tmpdir, p.repoDB.MustOwner().Name, p.repoDB.Name, hash)
 	if !com.IsDir(repoPath) {
 		uz := unzip.New(archivePath, repoPath)
 		if err := uz.Extract(); err != nil {
