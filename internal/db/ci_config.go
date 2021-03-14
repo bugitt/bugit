@@ -36,18 +36,18 @@ func IsErrConfFileNotFound(err error) bool {
 }
 
 type CIConfig struct {
-	Version    string      `yaml:"version"`
-	Meta       Meta        `yaml:"meta"`
-	On         []string    `yaml:"on"`
-	Validation []ValidTask `yaml:"validation"`
-	Build      []BuildTask `yaml:"build"`
+	Version    string            `yaml:"version"`
+	Meta       Meta              `yaml:"meta"`
+	On         []string          `yaml:"on"`
+	Validation []ValidTaskConfig `yaml:"validation"`
+	Build      []BuildTaskConfig `yaml:"build"`
 }
 
 type Meta struct {
 	Tag string `yaml:"tag"`
 }
 
-type BaseTask struct {
+type BaseTaskConfig struct {
 	Name     string `yaml:"name"`
 	Describe string `yaml:"describe"`
 	Type     string `yaml:"type"`
@@ -58,17 +58,17 @@ type Threshold struct {
 	Error   int `yaml:"error"`
 }
 
-type ValidTask struct {
-	BaseTask  `yaml:",inline"`
-	Lang      string    `yaml:"lang"`
-	Scope     []string  `yaml:"scope"`
-	Threshold Threshold `yaml:"threshold"`
+type ValidTaskConfig struct {
+	BaseTaskConfig `yaml:",inline"`
+	Lang           string    `yaml:"lang"`
+	Scope          []string  `yaml:"scope"`
+	Threshold      Threshold `yaml:"threshold"`
 }
 
-type BuildTask struct {
-	BaseTask   `yaml:",inline"`
-	Dockerfile string `yaml:"dockerfile"`
-	Scope      string `yaml:"scope"`
+type BuildTaskConfig struct {
+	BaseTaskConfig `yaml:",inline"`
+	Dockerfile     string `yaml:"dockerfile"`
+	Scope          string `yaml:"scope"`
 }
 
 func (c *CIConfig) ShouldCIOnPush() bool {
