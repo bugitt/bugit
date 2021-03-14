@@ -53,18 +53,6 @@ type BaseTaskConfig struct {
 	Type     string `yaml:"type"`
 }
 
-type Threshold struct {
-	Warning int `yaml:"warning"`
-	Error   int `yaml:"error"`
-}
-
-type ValidTaskConfig struct {
-	BaseTaskConfig `yaml:",inline"`
-	Lang           string    `yaml:"lang"`
-	Scope          []string  `yaml:"scope"`
-	Threshold      Threshold `yaml:"threshold"`
-}
-
 type BuildTaskConfig struct {
 	BaseTaskConfig `yaml:",inline"`
 	Dockerfile     string `yaml:"dockerfile"`

@@ -2,6 +2,7 @@ package db
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 
 	jsoniter "github.com/json-iterator/go"
@@ -55,6 +56,7 @@ func golangciLint(config *ValidTaskConfig) (Linter, error) {
 	cmd.Dir = config.Path
 	var output bytes.Buffer
 	cmd.Stdout = &output
+	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			code := exitErr.ExitCode()
@@ -76,7 +78,7 @@ func golangciLint(config *ValidTaskConfig) (Linter, error) {
 
 func (result *GolangciResult) ConvertValidationResult(taskID int64) []*ValidationResult {
 	if len(result.ErrorLog) > 0 {
-		return []*ValidationResult{ErrorValidationResult}
+		return []*ValidationResult{{ErrorType: ValidationError, SourceLog: result.ErrorLog}}
 	}
 	n := len(result.Issues)
 	valResultList := make([]*ValidationResult, 0, n)
@@ -93,6 +95,7 @@ func (result *GolangciResult) ConvertValidationResult(taskID int64) []*Validatio
 				Line:     issue.Pos.Line,
 				Column:   issue.Pos.Column,
 			},
+			PosString: fmt.Sprintf("%s:%d:%d", issue.Pos.Filename, issue.Pos.Line, issue.Pos.Column),
 		})
 	}
 	return valResultList

@@ -36,6 +36,14 @@ const (
 	DeployEnd
 )
 
+type RunStatus int
+
+const (
+	BeforeStart RunStatus = iota + 1
+	Running
+	Finished
+)
+
 type Pipeline struct {
 	ID           int64
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
@@ -65,6 +73,47 @@ type PipeTask struct {
 	BeginUnix  int64 // 开始时间戳
 	EndUnix    int64 // 结束时间戳
 	BaseModel  `xorm:"extends"`
+}
+
+type BasicTask struct {
+	ID         int64
+	PipeTaskID int64
+	pipeTask   *PipeTask `xorm:"-" json:"-"`
+	Number     int
+	Status     RunStatus
+	IsSucceed  bool
+	BeginUnix  int64 // 开始时间戳
+	EndUnix    int64 // 结束时间戳
+}
+
+func (ptask *PipeTask) papreValidstaionTask(index int) (*ValidationTask, error) {
+	task := &ValidationTask{}
+	task.PipeTaskID = ptask.ID
+	task.Number = index
+	task.pipeTask = ptask
+	task.Status = BeforeStart
+	config := ptask.Pipeline.Config.Validation[index-1]
+	task.config = &config
+	_, err := x.Insert(task)
+	return task, err
+}
+
+func (ptask *PipeTask) Validation() error {
+	_ = ptask.updateStatus(ValidStart)
+	configs := ptask.Pipeline.Config.Validation
+	for i := range configs {
+		task, err := ptask.papreValidstaionTask(i + 1)
+		if err != nil {
+			return err
+		}
+		_ = task.start()
+		if err = task.Run(); err != nil {
+			_ = task.failed()
+			return err
+		}
+		_ = task.success()
+	}
+	return ptask.updateStatus(ValidEnd)
 }
 
 func preparePipeTask(pipeline *Pipeline, pusher *User) error {
