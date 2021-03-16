@@ -4,8 +4,14 @@ go 1.16
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/bugitt/git-module v1.2.1
+	github.com/containerd/containerd v1.4.4 // indirect
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/docker v20.10.5+incompatible // indirect
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-units v0.4.0 // indirect
 	github.com/editorconfig/editorconfig-core-go/v2 v2.3.9
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-macaron/binding v1.1.1
@@ -35,6 +41,9 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niklasfasching/go-org v0.1.9
 	github.com/olekukonko/tablewriter v0.0.4
+	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.2.0
 	github.com/prometheus/client_golang v1.8.0
@@ -51,6 +60,7 @@ require (
 	github.com/urfave/cli v1.22.5
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
+	golang.org/x/sys v0.0.0-20210315160823-c6e025ad8005 // indirect
 	golang.org/x/text v0.3.4
 	gopkg.in/DATA-DOG/go-sqlmock.v2 v2.0.0-20180914054222-c19298f520d0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

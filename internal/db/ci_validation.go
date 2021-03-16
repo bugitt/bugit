@@ -109,6 +109,10 @@ func (task *ValidationTask) success() error {
 	task.IsSucceed = true
 	task.EndUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
+	if err != nil {
+		return err
+	}
+	_, err = x.ID(task.ID).Update(task)
 	return err
 }
 
@@ -117,5 +121,9 @@ func (task *ValidationTask) failed() error {
 	task.IsSucceed = false
 	task.EndUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
+	if err != nil {
+		return err
+	}
+	_, err = x.ID(task.ID).Update(task)
 	return err
 }

@@ -53,12 +53,6 @@ type BaseTaskConfig struct {
 	Type     string `yaml:"type"`
 }
 
-type BuildTaskConfig struct {
-	BaseTaskConfig `yaml:",inline"`
-	Dockerfile     string `yaml:"dockerfile"`
-	Scope          string `yaml:"scope"`
-}
-
 func (c *CIConfig) ShouldCIOnPush() bool {
 	for _, s := range c.On {
 		if strings.ToLower(s) == DevopsPush {

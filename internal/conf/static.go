@@ -329,6 +329,12 @@ var (
 		Tmpdir   string   `ini:"tmpdir"`
 	}
 
+	// Docker settings
+	Docker struct {
+		Registry      string `ini:"registry"`
+		DockerService string `ini:"docker_service"`
+	}
+
 	// Other settings
 	Other struct {
 		ShowFooterBranding         bool

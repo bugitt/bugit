@@ -18,6 +18,11 @@ import (
 	"xorm.io/xorm"
 )
 
+type CIContext struct {
+	path     string
+	imageTag string
+}
+
 type PipeStage int
 
 const (
@@ -70,6 +75,7 @@ type PipeTask struct {
 	SenderTime int64     // 触发执行时的时间戳
 	Stage      PipeStage
 	IsSucceed  bool
+	ImageTag   string
 	BeginUnix  int64 // 开始时间戳
 	EndUnix    int64 // 结束时间戳
 	BaseModel  `xorm:"extends"`
@@ -86,7 +92,7 @@ type BasicTask struct {
 	EndUnix    int64 // 结束时间戳
 }
 
-func (ptask *PipeTask) papreValidstaionTask(index int) (*ValidationTask, error) {
+func (ptask *PipeTask) prepareValidstaionTask(index int) (*ValidationTask, error) {
 	task := &ValidationTask{}
 	task.PipeTaskID = ptask.ID
 	task.Number = index
@@ -98,11 +104,31 @@ func (ptask *PipeTask) papreValidstaionTask(index int) (*ValidationTask, error) 
 	return task, err
 }
 
-func (ptask *PipeTask) Validation() error {
+func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
+	task := &BuildTask{}
+	task.PipeTaskID = ptask.ID
+	task.Number = index
+	task.pipeTask = ptask
+	task.Status = BeforeStart
+	task.config = ptask.Pipeline.Config.Build[index-1]
+	_, err := x.Insert(task)
+	return task, err
+}
+
+func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
+	task := &PushTask{}
+	task.PipeTaskID = ptask.ID
+	task.pipeTask = ptask
+	task.Status = BeforeStart
+	_, err := x.Insert(task)
+	return task, err
+}
+
+func (ptask *PipeTask) Validation(context *CIContext) error {
 	_ = ptask.updateStatus(ValidStart)
 	configs := ptask.Pipeline.Config.Validation
 	for i := range configs {
-		task, err := ptask.papreValidstaionTask(i + 1)
+		task, err := ptask.prepareValidstaionTask(i + 1)
 		if err != nil {
 			return err
 		}
@@ -114,6 +140,39 @@ func (ptask *PipeTask) Validation() error {
 		_ = task.success()
 	}
 	return ptask.updateStatus(ValidEnd)
+}
+
+func (ptask *PipeTask) Build(context *CIContext) error {
+	_ = ptask.updateStatus(BuildStart)
+	configs := ptask.Pipeline.Config.Build
+	for i := range configs {
+		task, err := ptask.prepareBuildTask(context, i+1)
+		if err != nil {
+			return err
+		}
+		_ = task.start()
+		if err = task.Run(context); err != nil {
+			_ = task.failed()
+			return err
+		}
+		_ = task.success()
+	}
+	return ptask.updateStatus(BuildEnd)
+}
+
+func (ptask *PipeTask) Push(context *CIContext) error {
+	_ = ptask.updateStatus(PushStart)
+	task, err := ptask.preparePushTask(context)
+	if err != nil {
+		return err
+	}
+	_ = task.start()
+	if err = task.Run(context); err != nil {
+		_ = task.failed()
+		return err
+	}
+	_ = task.success()
+	return ptask.updateStatus(PushEnd)
 }
 
 func preparePipeTask(pipeline *Pipeline, pusher *User) error {
@@ -132,7 +191,7 @@ func createPipeTask(e Engine, p *PipeTask) error {
 	return err
 }
 
-func (ptask *PipeTask) LoadRepo() error {
+func (ptask *PipeTask) LoadRepo(context *CIContext) error {
 	err := ptask.updateStatus(LoadRepoStart)
 	if err != nil {
 		return nil
