@@ -361,6 +361,14 @@ func Init(customConf string) error {
 	Devops.Tmpdir = ensureAbs(Devops.Tmpdir)
 
 	// *************************
+	// ----- docker settings -----
+	// *************************
+
+	if err = File.Section("docker").MapTo(&Docker); err != nil {
+		return errors.Wrap(err, "mapping [docker] section")
+	}
+
+	// *************************
 	// ----- LFS settings -----
 	// *************************
 
