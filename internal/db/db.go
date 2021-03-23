@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	log "unknwon.dev/clog/v2"
+	"xorm.io/core"
+	"xorm.io/xorm"
 
 	"gogs.io/gogs/internal/conf"
 	"gogs.io/gogs/internal/dbutil"
@@ -221,4 +224,51 @@ func Init(w logger.Writer) (*gorm.DB, error) {
 	Users = &users{DB: db}
 
 	return db, nil
+}
+
+func MigrateFromSqlite(dbPath string) error {
+	dbPath, err := filepath.Abs(dbPath)
+	if err != nil {
+		return err
+	}
+	sqlite, err := xorm.NewEngine("sqlite3", "file:"+dbPath+"?cache=shared&mode=rwc")
+	if err != nil {
+		return errors.Wrap(err, "sqlite engine error")
+	}
+	sqlite.SetMapper(core.GonicMapper{})
+
+	session := x.NewSession()
+	defer session.Close()
+
+	if err := session.Begin(); err != nil {
+		return err
+	}
+
+	for _, table := range legacyTables {
+		t := reflect.TypeOf(table)
+		valueMap := reflect.MakeMap(reflect.MapOf(reflect.TypeOf(int64(0)), t))
+		log.Info("begin to migrate: %s", t.String())
+		err = sqlite.Find(valueMap.Interface())
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("read values error for: %s", t.String()))
+		}
+
+		values := reflect.MakeSlice(reflect.SliceOf(t), 0, valueMap.Len())
+		for _, k := range valueMap.MapKeys() {
+			v := valueMap.MapIndex(k)
+			values = reflect.Append(values, v)
+		}
+
+		cnt, err := session.Insert(values.Interface())
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("write values error for: %s", t.String()))
+		}
+		if cnt != int64(values.Len()) {
+			return errors.New("insert error")
+		}
+
+		log.Info("end migrate: %s", t.String())
+	}
+
+	return session.Commit()
 }
