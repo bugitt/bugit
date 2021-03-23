@@ -31,6 +31,7 @@ to make automatic initialization process more smoothly`,
 			subcmdRewriteAuthorizedKeys,
 			subcmdSyncRepositoryHooks,
 			subcmdReinitMissingRepositories,
+			subcmdMigrageFromSqlite,
 		},
 	}
 
@@ -130,6 +131,16 @@ to make automatic initialization process more smoothly`,
 			stringFlag("config, c", "", "Custom configuration file path"),
 		},
 	}
+
+	subcmdMigrageFromSqlite = cli.Command{
+		Name:   "migrate-sqlite",
+		Usage:  "migrate data from sqlite3",
+		Action: adminMigrateFromSqlite,
+		Flags: []cli.Flag{
+			stringFlag("sqlite, s", "", "sqlite db path"),
+			stringFlag("config, c", "", "Custom configuration file path"),
+		},
+	}
 )
 
 func runCreateUser(c *cli.Context) error {
@@ -185,4 +196,27 @@ func adminDashboardOperation(operation func() error, successMessage string) func
 		fmt.Printf("%s\n", successMessage)
 		return nil
 	}
+}
+
+func adminMigrateFromSqlite(c *cli.Context) error {
+	if !c.IsSet("sqlite") {
+		return errors.New("sqlite is not specified")
+	}
+
+	err := conf.Init(c.String("config"))
+	if err != nil {
+		return errors.Wrap(err, "init configuration")
+	}
+	conf.InitLogging(true)
+
+	if _, err = db.SetEngine(); err != nil {
+		return errors.Wrap(err, "set engine")
+	}
+
+	if err := db.MigrateFromSqlite(c.String("sqlite")); err != nil {
+		return fmt.Errorf("migrate from sqlite: %v", err)
+	}
+
+	fmt.Print("migrate from sqlite successfully")
+	return nil
 }
