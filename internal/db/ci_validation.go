@@ -35,7 +35,7 @@ type ValidationResult struct {
 	ID               int64
 	ValidationTaskID int64
 	ErrorType        ValidationErrorType
-	SourceLog        string
+	SourceLog        string `xorm:"TEXT"`
 	FromLinter       string
 	Text             string
 	SourceLines      []string

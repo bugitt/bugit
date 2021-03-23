@@ -59,8 +59,8 @@ type Pipeline struct {
 	RefName      string
 	Commit       string
 	gitCommit    *git.Commit `xorm:"-" json:"-"`
-	ConfigString string
-	Config       *CIConfig `xorm:"-" json:"-"`
+	ConfigString string      `xorm:"text"`
+	Config       *CIConfig   `xorm:"-" json:"-"`
 	CIPath       string
 	BaseModel    `xorm:"extends"`
 }
