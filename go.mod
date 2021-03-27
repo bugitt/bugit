@@ -4,14 +4,12 @@ go 1.16
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/Microsoft/hcsshim v0.8.15 // indirect
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/bugitt/git-module v1.2.1
-	github.com/containerd/containerd v1.4.4 // indirect
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.5+incompatible // indirect
+	github.com/containerd/continuity v0.0.0-20210315143101-93e15499afd5 // indirect
+	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
 	github.com/editorconfig/editorconfig-core-go/v2 v2.3.9
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-macaron/binding v1.1.1
@@ -32,18 +30,16 @@ require (
 	github.com/issue9/identicon v1.0.1
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.10
-	github.com/klauspost/compress v1.8.6 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
+	github.com/moby/sys/mount v0.2.0 // indirect
+	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
+	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/msteinert/pam v0.0.0-20190215180659-f29b9f28d6f9
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niklasfasching/go-org v0.1.9
 	github.com/olekukonko/tablewriter v0.0.4
-	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
-	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.2.0
 	github.com/prometheus/client_golang v1.8.0
@@ -59,7 +55,7 @@ require (
 	github.com/unknwon/paginater v0.0.0-20170405233947-45e5d631308e
 	github.com/urfave/cli v1.22.5
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	golang.org/x/sys v0.0.0-20210315160823-c6e025ad8005 // indirect
 	golang.org/x/text v0.3.4
 	gopkg.in/DATA-DOG/go-sqlmock.v2 v2.0.0-20180914054222-c19298f520d0
@@ -71,10 +67,14 @@ require (
 	gopkg.in/macaron.v1 v1.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/mysql v1.0.3
-	gorm.io/driver/postgres v1.0.5
+	gorm.io/driver/postgres v1.0.8
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/driver/sqlserver v1.0.5
-	gorm.io/gorm v1.20.8
+	gorm.io/gorm v1.20.12
+	gotest.tools/v3 v3.0.3 // indirect
+	k8s.io/api v0.20.5
+	k8s.io/apimachinery v0.20.5
+	k8s.io/client-go v0.20.5
 	unknwon.dev/clog/v2 v2.1.2
 	xorm.io/builder v0.3.6
 	xorm.io/core v0.7.2
