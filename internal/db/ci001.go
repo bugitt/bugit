@@ -2,13 +2,27 @@ package db
 
 import log "unknwon.dev/clog/v2"
 
-func (ptask *PipeTask) CI001() error {
-
-	context := &CIContext{
-		owner:  ptask.Pipeline.repoDB.MustOwner().LowerName,
-		repo:   ptask.Pipeline.repoDB.LowerName,
+func prepareCICtx(ptask *PipeTask) (*CIContext, error) {
+	repo := ptask.Pipeline.repoDB
+	ctx := &CIContext{
 		commit: ptask.Pipeline.Commit,
 		config: ptask.Pipeline.Config,
+		repo:   repo,
+	}
+	if repo.Owner == nil {
+		if err := repo.GetOwner(); err != nil {
+			return nil, err
+		}
+	}
+	ctx.owner = repo.Owner
+	return ctx, nil
+}
+
+func (ptask *PipeTask) CI001() error {
+
+	context, err := prepareCICtx(ptask)
+	if err != nil {
+		return err
 	}
 
 	// load repo

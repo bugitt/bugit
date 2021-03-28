@@ -21,8 +21,8 @@ import (
 type CIContext struct {
 	path     string
 	imageTag string
-	owner    string
-	repo     string
+	owner    *User
+	repo     *Repository
 	commit   string
 	config   *CIConfig
 }
