@@ -31,7 +31,7 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 		return false, err
 	}
 	log.Trace("%#v", ciConfig)
-	shouldCI := ciConfig.ShouldCIOnPush()
+	shouldCI := ciConfig.ShouldCIOnPush(refName)
 	if !shouldCI {
 		return false, nil
 	}

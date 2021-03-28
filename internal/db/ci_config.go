@@ -36,11 +36,11 @@ func IsErrConfFileNotFound(err error) bool {
 }
 
 type CIConfig struct {
-	Version    string            `yaml:"version"`
-	Meta       Meta              `yaml:"meta"`
-	On         []string          `yaml:"on"`
-	Validation []ValidTaskConfig `yaml:"validation"`
-	Build      []BuildTaskConfig `yaml:"build"`
+	Version    string              `yaml:"version"`
+	Meta       Meta                `yaml:"meta"`
+	On         map[string][]string `yaml:"on"`
+	Validation []ValidTaskConfig   `yaml:"validation"`
+	Build      []BuildTaskConfig   `yaml:"build"`
 }
 
 type Meta struct {
@@ -53,8 +53,15 @@ type BaseTaskConfig struct {
 	Type     string `yaml:"type"`
 }
 
-func (c *CIConfig) ShouldCIOnPush() bool {
-	for _, s := range c.On {
+func (c *CIConfig) ShouldCIOnPush(refName string) bool {
+	var events []string
+	for k, v := range c.On {
+		if k == refName {
+			events = v
+			break
+		}
+	}
+	for _, s := range events {
 		if strings.ToLower(s) == DevopsPush {
 			return true
 		}
@@ -62,8 +69,15 @@ func (c *CIConfig) ShouldCIOnPush() bool {
 	return false
 }
 
-func (c *CIConfig) ShouldCIOnPR() bool {
-	for _, s := range c.On {
+func (c *CIConfig) ShouldCIOnPR(refName string) bool {
+	var events []string
+	for k, v := range c.On {
+		if k == refName {
+			events = v
+			break
+		}
+	}
+	for _, s := range events {
 		lowS := strings.ToLower(s)
 		if lowS == DevopsPR ||
 			lowS == "pull request" ||
