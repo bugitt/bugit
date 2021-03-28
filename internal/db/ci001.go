@@ -25,7 +25,7 @@ func prepareCICtx(ptask *PipeTask) (*CIContext, error) {
 }
 
 func (ptask *PipeTask) CI001() error {
-
+	// TODO: cancel long context
 	context, err := prepareCICtx(ptask)
 	if err != nil {
 		return err
