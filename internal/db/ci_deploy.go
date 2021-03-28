@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 // Port
 type Port struct {
 	Name     string `yaml:"name"`
@@ -21,4 +23,48 @@ type DeployTaskConfig struct {
 	Storage    bool                   `yaml:"storage"`
 	WorkingDir string                 `yaml:"workingDir"`
 	Cmd        Cmd                    `yaml:"cmd"`
+}
+
+type DeployTask struct {
+	SourceLog string `xorm:"TEXT" json:"source_log"`
+	Url       string
+	Port      int
+	config    *DeployTaskConfig `xorm:"-" json:"-"`
+	BasicTask `xorm:"extends"`
+	BaseModel `xorm:"extends"`
+}
+
+func (task *DeployTask) Run(context *CIContext) error {
+	return nil
+}
+
+func (task *DeployTask) start() error {
+	task.Status = Running
+	task.BeginUnix = time.Now().Unix()
+	_, err := x.ID(task.ID).Cols("status", "is_started", "begin_unix").Update(task)
+	return err
+}
+
+func (task *DeployTask) success() error {
+	task.Status = Finished
+	task.IsSucceed = true
+	task.EndUnix = time.Now().Unix()
+	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
+	if err != nil {
+		return err
+	}
+	_, err = x.ID(task.ID).Update(task)
+	return err
+}
+
+func (task *DeployTask) failed() error {
+	task.Status = Finished
+	task.IsSucceed = false
+	task.EndUnix = time.Now().Unix()
+	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
+	if err != nil {
+		return err
+	}
+	_, err = x.ID(task.ID).Update(task)
+	return err
 }

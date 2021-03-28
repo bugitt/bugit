@@ -124,6 +124,15 @@ func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
 	return task, err
 }
 
+func (ptask *PipeTask) prepareDeployTask(context *CIContext) (*DeployTask, error) {
+	task := &DeployTask{}
+	task.PipeTaskID = ptask.ID
+	task.pipeTask = ptask
+	task.Status = BeforeStart
+	_, err := x.Insert(task)
+	return task, err
+}
+
 func (ptask *PipeTask) Validation(context *CIContext) error {
 	_ = ptask.updateStatus(ValidStart)
 	configs := ptask.Pipeline.Config.Validation
@@ -173,6 +182,21 @@ func (ptask *PipeTask) Push(context *CIContext) error {
 	}
 	_ = task.success()
 	return ptask.updateStatus(PushEnd)
+}
+
+func (ptask *PipeTask) Deploy(context *CIContext) error {
+	_ = ptask.updateStatus(DeployStart)
+	task, err := ptask.prepareDeployTask(context)
+	if err != nil {
+		return err
+	}
+	_ = task.start()
+	if err = task.Run(context); err != nil {
+		_ = task.failed()
+		return err
+	}
+	_ = task.success()
+	return ptask.updateStatus(DeployEnd)
 }
 
 func preparePipeTask(pipeline *Pipeline, pusher *User) error {
