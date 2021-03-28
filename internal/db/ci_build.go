@@ -22,22 +22,21 @@ type BuildTaskConfig struct {
 type BuildTask struct {
 	SourceLog      string `xorm:"TEXT" json:"source_log"`
 	ImageTag       string
-	BuildErrString string          `xorm:"build_err TEXT"`
-	config         BuildTaskConfig `xorm:"-" json:"-"`
+	BuildErrString string `xorm:"build_err TEXT"`
 	BasicTask      `xorm:"extends"`
 	BaseModel      `xorm:"extends"`
 }
 
-func (task *BuildTask) Run(context *CIContext) error {
-	config := task.config
-	buildPath := filepath.Join(context.path, config.Scope)
+func (task *BuildTask) Run(ctx *CIContext) error {
+	config := ctx.config.Build[task.Number-1]
+	buildPath := filepath.Join(ctx.path, config.Scope)
 	switch strings.ToLower(config.Type) {
 	case "docker":
 		imageTag := fmt.Sprintf("%s/%s/%s:%s",
 			conf.Docker.Registry,
-			task.pipeTask.Pipeline.repoDB.mustOwner(x).LowerName,
-			task.pipeTask.Pipeline.repoDB.LowerName,
-			task.pipeTask.Pipeline.Commit[:5])
+			ctx.owner,
+			ctx.repo,
+			ctx.commit[:5])
 
 		// Build
 		sourceLog, isSuccessful, buildErr, err := BuildImage(config.Dockerfile, buildPath, []string{imageTag})
@@ -52,7 +51,8 @@ func (task *BuildTask) Run(context *CIContext) error {
 		} else {
 			task.BuildErrString = ""
 		}
-		context.imageTag = imageTag
+		// 设置镜像tag
+		ctx.imageTag = imageTag
 	}
 	return nil
 }

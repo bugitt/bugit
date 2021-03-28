@@ -29,12 +29,11 @@ type DeployTask struct {
 	SourceLog string `xorm:"TEXT" json:"source_log"`
 	Url       string
 	Port      int
-	config    *DeployTaskConfig `xorm:"-" json:"-"`
 	BasicTask `xorm:"extends"`
 	BaseModel `xorm:"extends"`
 }
 
-func (task *DeployTask) Run(context *CIContext) error {
+func (task *DeployTask) Run(ctx *CIContext) error {
 	return nil
 }
 

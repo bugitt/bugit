@@ -21,6 +21,10 @@ import (
 type CIContext struct {
 	path     string
 	imageTag string
+	owner    string
+	repo     string
+	commit   string
+	config   *CIConfig
 }
 
 type PipeStage int
@@ -84,7 +88,6 @@ type PipeTask struct {
 type BasicTask struct {
 	ID         int64
 	PipeTaskID int64
-	pipeTask   *PipeTask `xorm:"-" json:"-"`
 	Number     int
 	Status     RunStatus
 	IsSucceed  bool
@@ -96,10 +99,7 @@ func (ptask *PipeTask) prepareValidstaionTask(index int) (*ValidationTask, error
 	task := &ValidationTask{}
 	task.PipeTaskID = ptask.ID
 	task.Number = index
-	task.pipeTask = ptask
 	task.Status = BeforeStart
-	config := ptask.Pipeline.Config.Validation[index-1]
-	task.config = &config
 	_, err := x.Insert(task)
 	return task, err
 }
@@ -108,9 +108,7 @@ func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTa
 	task := &BuildTask{}
 	task.PipeTaskID = ptask.ID
 	task.Number = index
-	task.pipeTask = ptask
 	task.Status = BeforeStart
-	task.config = ptask.Pipeline.Config.Build[index-1]
 	_, err := x.Insert(task)
 	return task, err
 }
@@ -118,7 +116,6 @@ func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTa
 func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
 	task := &PushTask{}
 	task.PipeTaskID = ptask.ID
-	task.pipeTask = ptask
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
@@ -127,13 +124,12 @@ func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
 func (ptask *PipeTask) prepareDeployTask(context *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
 	task.PipeTaskID = ptask.ID
-	task.pipeTask = ptask
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
 }
 
-func (ptask *PipeTask) Validation(context *CIContext) error {
+func (ptask *PipeTask) Validation(ctx *CIContext) error {
 	_ = ptask.updateStatus(ValidStart)
 	configs := ptask.Pipeline.Config.Validation
 	for i := range configs {
@@ -142,7 +138,7 @@ func (ptask *PipeTask) Validation(context *CIContext) error {
 			return err
 		}
 		_ = task.start()
-		if err = task.Run(); err != nil {
+		if err = task.Run(ctx); err != nil {
 			_ = task.failed()
 			return err
 		}
@@ -151,16 +147,16 @@ func (ptask *PipeTask) Validation(context *CIContext) error {
 	return ptask.updateStatus(ValidEnd)
 }
 
-func (ptask *PipeTask) Build(context *CIContext) error {
+func (ptask *PipeTask) Build(ctx *CIContext) error {
 	_ = ptask.updateStatus(BuildStart)
 	configs := ptask.Pipeline.Config.Build
 	for i := range configs {
-		task, err := ptask.prepareBuildTask(context, i+1)
+		task, err := ptask.prepareBuildTask(ctx, i+1)
 		if err != nil {
 			return err
 		}
 		_ = task.start()
-		if err = task.Run(context); err != nil {
+		if err = task.Run(ctx); err != nil {
 			_ = task.failed()
 			return err
 		}
@@ -169,14 +165,14 @@ func (ptask *PipeTask) Build(context *CIContext) error {
 	return ptask.updateStatus(BuildEnd)
 }
 
-func (ptask *PipeTask) Push(context *CIContext) error {
+func (ptask *PipeTask) Push(ctx *CIContext) error {
 	_ = ptask.updateStatus(PushStart)
-	task, err := ptask.preparePushTask(context)
+	task, err := ptask.preparePushTask(ctx)
 	if err != nil {
 		return err
 	}
 	_ = task.start()
-	if err = task.Run(context); err != nil {
+	if err = task.Run(ctx); err != nil {
 		_ = task.failed()
 		return err
 	}
@@ -184,14 +180,14 @@ func (ptask *PipeTask) Push(context *CIContext) error {
 	return ptask.updateStatus(PushEnd)
 }
 
-func (ptask *PipeTask) Deploy(context *CIContext) error {
+func (ptask *PipeTask) Deploy(ctx *CIContext) error {
 	_ = ptask.updateStatus(DeployStart)
-	task, err := ptask.prepareDeployTask(context)
+	task, err := ptask.prepareDeployTask(ctx)
 	if err != nil {
 		return err
 	}
 	_ = task.start()
-	if err = task.Run(context); err != nil {
+	if err = task.Run(ctx); err != nil {
 		_ = task.failed()
 		return err
 	}

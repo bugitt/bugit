@@ -4,7 +4,12 @@ import log "unknwon.dev/clog/v2"
 
 func (ptask *PipeTask) CI001() error {
 
-	context := &CIContext{}
+	context := &CIContext{
+		owner:  ptask.Pipeline.repoDB.MustOwner().LowerName,
+		repo:   ptask.Pipeline.repoDB.LowerName,
+		commit: ptask.Pipeline.Commit,
+		config: ptask.Pipeline.Config,
+	}
 
 	// load repo
 	if err := ptask.LoadRepo(context); err != nil {

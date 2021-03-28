@@ -26,7 +26,6 @@ type ValidTaskConfig struct {
 
 type ValidationTask struct {
 	Issues    []ValidationResult `xorm:"-" json:"-"`
-	config    *ValidTaskConfig   `xorm:"-" json:"-"`
 	BasicTask `xorm:"extends"`
 	BaseModel `xorm:"extends"`
 }
@@ -54,9 +53,9 @@ type Linter interface {
 	ConvertValidationResult(taskID int64) []*ValidationResult
 }
 
-func (task *ValidationTask) Run() error {
-	config := task.config
-	config.Path = filepath.Join(task.pipeTask.Pipeline.CIPath, config.Scope)
+func (task *ValidationTask) Run(ctx *CIContext) error {
+	config := ctx.config.Validation[task.Number-1]
+	config.Path = filepath.Join(ctx.path, config.Scope)
 	var (
 		linter Linter
 		err    error
@@ -64,7 +63,7 @@ func (task *ValidationTask) Run() error {
 	if len(config.Type) > 0 {
 		switch strings.ToLower(config.Type) {
 		case "golangci-lint":
-			linter, err = golangciLint(config)
+			linter, err = golangciLint(&config)
 			if err != nil {
 				return err
 			}
@@ -72,7 +71,7 @@ func (task *ValidationTask) Run() error {
 	} else {
 		switch strings.ToLower(config.Lang) {
 		case "go", "golang":
-			linter, err = golangciLint(config)
+			linter, err = golangciLint(&config)
 			if err != nil {
 				return err
 			}

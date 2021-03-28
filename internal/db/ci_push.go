@@ -15,9 +15,9 @@ type PushTask struct {
 	BaseModel     `xorm:"extends"`
 }
 
-func (task *PushTask) Run(context *CIContext) error {
+func (task *PushTask) Run(ctx *CIContext) error {
 	// Push
-	sourceLog, isSuccessful, buildErr, err := PushImage(context.imageTag)
+	sourceLog, isSuccessful, buildErr, err := PushImage(ctx.imageTag)
 	if err != nil {
 		return err
 	}
