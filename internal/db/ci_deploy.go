@@ -17,18 +17,21 @@ type Cmd struct {
 
 // DeployTaskConfig
 type DeployTaskConfig struct {
-	Envs       map[string]interface{} `yaml:"envs"`
-	Ports      []Port                 `yaml:"ports"`
-	Stateful   bool                   `yaml:"stateful"`
-	Storage    bool                   `yaml:"storage"`
-	WorkingDir string                 `yaml:"workingDir"`
-	Cmd        Cmd                    `yaml:"cmd"`
+	Envs       map[string]string `yaml:"envs"`
+	Ports      []Port            `yaml:"ports"`
+	Stateful   bool              `yaml:"stateful"`
+	Storage    bool              `yaml:"storage"`
+	WorkingDir string            `yaml:"workingDir"`
+	Cmd        Cmd               `yaml:"cmd"`
 }
 
 type DeployTask struct {
 	SourceLog string `xorm:"TEXT" json:"source_log"`
-	Url       string
-	Port      int
+	PortsS    string `xorm:"TEXT" json:"ports_s"`
+	Ports     []struct {
+		Address string
+		Port    int32
+	} `xorm:"-" gorm:"-"`
 	BasicTask `xorm:"extends"`
 	BaseModel `xorm:"extends"`
 }
