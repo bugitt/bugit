@@ -23,8 +23,7 @@ func getKubeClient() (*kubernetes.Clientset, error) {
 }
 
 // ensureNS 确保 namespace 存在
-func ensureNS(pid, uid int64) error {
-	ns := fmt.Sprintf("%d-%d", pid, uid)
+func ensureNS(ns string) error {
 	clientSet, err := getKubeClient()
 	if err != nil {
 		return err

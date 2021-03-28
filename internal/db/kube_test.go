@@ -16,7 +16,7 @@ func Test_ensureNS(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ensureNS(tt.args.pid, tt.args.uid); (err != nil) != tt.wantErr {
+			if err := ensureNS("7-10"); (err != nil) != tt.wantErr {
 				t.Errorf("ensureNS() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
