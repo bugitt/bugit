@@ -42,7 +42,7 @@ func (ptask *PipeTask) CI001() error {
 	if err := ptask.Build(context); err != nil {
 		return err
 	}
-	log.Info("build image for success for CI task: %d", ptask.ID)
+	log.Info("build image success for CI task: %d", ptask.ID)
 
 	// test
 	// TODO
@@ -51,7 +51,13 @@ func (ptask *PipeTask) CI001() error {
 	if err := ptask.Push(context); err != nil {
 		return err
 	}
-	log.Info("push image for success for CI task: %d", ptask.ID)
+	log.Info("push image success for CI task: %d", ptask.ID)
+
+	// deploy image
+	if err := ptask.Deploy(context); err != nil {
+		return err
+	}
+	log.Info("deploy success for CI task: %d", ptask.ID)
 
 	return nil
 }

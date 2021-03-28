@@ -34,6 +34,12 @@ type DeployTask struct {
 }
 
 func (task *DeployTask) Run(ctx *CIContext) error {
+	// Deploy
+	url, port, err := Deploy(ctx)
+	if err != nil {
+		return err
+	}
+	task.Url, task.Port = url, port
 	return nil
 }
 
