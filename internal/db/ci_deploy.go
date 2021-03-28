@@ -6,7 +6,7 @@ import "time"
 type Port struct {
 	Name     string `yaml:"name"`
 	Protocol string `yaml:"protocol"`
-	Port     int    `yaml:"port"`
+	Port     int32  `yaml:"port"`
 }
 
 // Cmd
@@ -38,11 +38,10 @@ type DeployTask struct {
 
 func (task *DeployTask) Run(ctx *CIContext) error {
 	// Deploy
-	url, port, err := Deploy(ctx)
+	err := Deploy(ctx, task)
 	if err != nil {
 		return err
 	}
-	task.Url, task.Port = url, port
 	return nil
 }
 

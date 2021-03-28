@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path"
@@ -19,11 +20,13 @@ import (
 )
 
 type CIContext struct {
+	context.Context
 	path     string
 	imageTag string
 	owner    *User
 	repo     *Repository
 	commit   string
+	refName  string
 	config   *CIConfig
 }
 

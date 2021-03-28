@@ -1,13 +1,19 @@
 package db
 
-import log "unknwon.dev/clog/v2"
+import (
+	"context"
+
+	log "unknwon.dev/clog/v2"
+)
 
 func prepareCICtx(ptask *PipeTask) (*CIContext, error) {
 	repo := ptask.Pipeline.repoDB
 	ctx := &CIContext{
-		commit: ptask.Pipeline.Commit,
-		config: ptask.Pipeline.Config,
-		repo:   repo,
+		commit:  ptask.Pipeline.Commit,
+		config:  ptask.Pipeline.Config,
+		repo:    repo,
+		refName: ptask.Pipeline.RefName,
+		Context: context.Background(),
 	}
 	if repo.Owner == nil {
 		if err := repo.GetOwner(); err != nil {
