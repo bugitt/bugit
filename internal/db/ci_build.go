@@ -34,8 +34,8 @@ func (task *BuildTask) Run(ctx *CIContext) error {
 	case "docker":
 		imageTag := fmt.Sprintf("%s/%s/%s:%s",
 			conf.Docker.Registry,
-			ctx.owner,
-			ctx.repo,
+			ctx.owner.LowerName,
+			ctx.repo.LowerName,
 			ctx.commit[:5])
 
 		// Build
