@@ -195,7 +195,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		return
 	}
 
-	// 等待创建结束
+	// 等待创建成功
 	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
 		result, err := deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
 		if err != nil {
