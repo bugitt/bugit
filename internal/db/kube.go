@@ -213,8 +213,6 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	return
 }
 
-func int32Ptr(i int32) *int32 { return &i }
-
 func checkErrNotFound(err error) bool {
 	e, ok := err.(*kerrors.StatusError)
 	return ok && e.ErrStatus.Code%100 == 4
@@ -226,14 +224,14 @@ func waitForDone(ctx context.Context, atLeast time.Duration, judge func() (bool,
 
 	done := make(chan error)
 	go func() {
-		var (
-			ok  bool
-			err error
-		)
-		for ok, err = judge(); !ok && err == nil; ok, err = judge() {
+		for {
+			ok, err := judge()
 			if err != nil {
 				done <- err
 				return
+			}
+			if ok {
+				break
 			}
 			time.Sleep(atLeast)
 			select {
@@ -242,7 +240,7 @@ func waitForDone(ctx context.Context, atLeast time.Duration, judge func() (bool,
 			default:
 			}
 		}
-		done <- error(err)
+		done <- nil
 	}()
 	select {
 	case err := <-done:
