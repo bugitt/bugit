@@ -60,10 +60,8 @@ func ci() {
 		log.Error("Get pre pipe tasks: %v", err)
 	}
 	for _, ptask := range tasks {
-		err := ptask.CI()
-		if err != nil {
-			log.Error("pipe CI error: %s", err.Error())
-		}
+		go ptask.Run()
+
 	}
 	for repoID := range CIQueue.Queue() {
 		log.Trace("Begin Pipeline for [repo_id: %v]", repoID)
@@ -75,10 +73,7 @@ func ci() {
 			continue
 		}
 		for _, ptask := range tasks {
-			err := ptask.CI()
-			if err != nil {
-				log.Error("pipe CI error: %s", err.Error())
-			}
+			go ptask.Run()
 		}
 	}
 }

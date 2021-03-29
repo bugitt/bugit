@@ -6,14 +6,14 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
-func prepareCICtx(ptask *PipeTask) (*CIContext, error) {
+func prepareCICtx(ptask *PipeTask, c context.Context) (*CIContext, error) {
 	repo := ptask.Pipeline.repoDB
 	ctx := &CIContext{
 		commit:  ptask.Pipeline.Commit,
 		config:  ptask.Pipeline.Config,
 		repo:    repo,
 		refName: ptask.Pipeline.RefName,
-		Context: context.Background(),
+		Context: c,
 	}
 	if repo.Owner == nil {
 		if err := repo.GetOwner(); err != nil {
@@ -24,9 +24,8 @@ func prepareCICtx(ptask *PipeTask) (*CIContext, error) {
 	return ctx, nil
 }
 
-func (ptask *PipeTask) CI001() error {
-	// TODO: cancel long context
-	context, err := prepareCICtx(ptask)
+func (ptask *PipeTask) CI001(c context.Context) error {
+	context, err := prepareCICtx(ptask, c)
 	if err != nil {
 		return err
 	}

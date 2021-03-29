@@ -225,32 +225,48 @@ func (ptask *PipeTask) LoadRepo(context *CIContext) error {
 	return ptask.updateStatus(LoadRepoEnd)
 }
 
-func (ptask *PipeTask) CI() (err error) {
-	// prepare attributes
-	if err := ptask.loadAttributes(); err != nil {
-		return err
-	}
+// CI CI过程中生成的error应该被自己消费掉
+func (ptask *PipeTask) Run() {
+	// 一个task最多只允许跑一小时
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
 
-	defer func() {
-		// 保证打上结束的时间戳
-		_ = ptask.endTime()
-		if err == nil {
-			err = ptask.success()
-		}
-	}()
+	var err error
+	// prepare attributes
+	if err = ptask.loadAttributes(); err != nil {
+		return
+	}
 
 	if err = ptask.beginTime(); err != nil {
 		return
 	}
 
-	switch ptask.Pipeline.Config.Version {
-	case "0.0.1":
-		err = ptask.CI001()
+	// work
+	done := make(chan error)
+	go func() {
+		switch ptask.Pipeline.Config.Version {
+		case "0.0.1":
+			done <- ptask.CI001(ctx)
+		}
+	}()
+	select {
+	case err = <-done:
+	case <-ctx.Done():
+		err = ctx.Err()
 	}
 
-	return err
+	// TODO: 对返回的错误进行统一处理
+	// 保证打上结束的时间戳
+	_ = ptask.endTime()
+	if err == nil {
+		err = ptask.success()
+	}
+	if err != nil {
+		log.Error("pipe CI error: %s", err.Error())
+	}
 }
 
+// TODO: 对task进行统一的接口处理，包括处理success failed 等等
 func (ptask *PipeTask) beginTime() error {
 	ptask.BeginUnix = time.Now().Unix()
 	_, err := x.ID(ptask.ID).Update(ptask)
