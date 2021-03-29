@@ -27,7 +27,11 @@ type DockerBuildErrorDetail struct {
 
 func getDockerCli() (*client.Client, error) {
 	host := conf.Docker.DockerService
-	return client.NewClientWithOpts(client.WithHost(host))
+	cli, err := client.NewClientWithOpts(client.WithHost(host))
+	if err == nil {
+		return cli, err
+	}
+	return client.NewEnvClient()
 }
 
 func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog string, isSuccessful bool, buildErr DockerBuildError, err error) {
