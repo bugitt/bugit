@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-type ValidationErrorType int
+type ValidationErrorType1 int
 
 const (
-	ValidationError ValidationErrorType = iota + 1
+	ValidationError ValidationErrorType1 = iota + 1
 	ValidationWarn
 )
 
@@ -33,7 +33,7 @@ type ValidationTask struct {
 type ValidationResult struct {
 	ID               int64
 	ValidationTaskID int64
-	ErrorType        ValidationErrorType
+	ErrorType        ValidationErrorType1
 	SourceLog        string `xorm:"TEXT"`
 	FromLinter       string
 	Text             string
