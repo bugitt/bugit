@@ -31,7 +31,7 @@ func getDockerCli() (*client.Client, error) {
 	if err == nil {
 		return cli, err
 	}
-	return client.NewEnvClient()
+	return client.NewClientWithOpts(client.FromEnv)
 }
 
 func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog string, isSuccessful bool, buildErr DockerBuildError, err error) {
