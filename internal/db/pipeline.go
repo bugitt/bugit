@@ -82,6 +82,9 @@ type PipeTask struct {
 	SenderTime int64     // 触发执行时的时间戳
 	Stage      PipeStage
 	IsSucceed  bool
+	ErrType    CIErrType
+	SrcErrMsg  string `xorm:"text"`
+	CusErrMsg  string `xorm:"text"`
 	ImageTag   string
 	BeginUnix  int64 // 开始时间戳
 	EndUnix    int64 // 结束时间戳
@@ -94,8 +97,11 @@ type BasicTask struct {
 	Number     int
 	Status     RunStatus
 	IsSucceed  bool
-	BeginUnix  int64 // 开始时间戳
-	EndUnix    int64 // 结束时间戳
+	ErrType    CIErrType
+	SrcErrMsg  string `xorm:"text"`
+	CusErrMsg  string `xorm:"text"`
+	BeginUnix  int64  // 开始时间戳
+	EndUnix    int64  // 结束时间戳
 }
 
 func (ptask *PipeTask) prepareValidstaionTask(index int) (*ValidationTask, error) {
