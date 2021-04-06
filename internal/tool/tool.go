@@ -11,6 +11,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"html/template"
+	"image/png"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 	"unicode"
@@ -22,8 +25,12 @@ import (
 
 	"github.com/gogs/chardet"
 
+	"gogs.io/gogs/internal/avatar"
 	"gogs.io/gogs/internal/conf"
 )
+
+// USER_AVATAR_URL_PREFIX is used to identify a URL is to access user avatar.
+const USER_AVATAR_URL_PREFIX = "avatars"
 
 // ShortSHA1 truncates SHA1 string length to at most 10.
 func ShortSHA1(sha1 string) string {
@@ -135,21 +142,27 @@ func HashEmail(email string) string {
 // which includes app sub-url as prefix. However, it is possible
 // to return full URL if user enables Gravatar-like service.
 func AvatarLink(email string) (url string) {
-	if conf.Picture.EnableFederatedAvatar && conf.Picture.LibravatarService != nil &&
-		strings.Contains(email, "@") {
-		var err error
-		url, err = conf.Picture.LibravatarService.FromEmail(email)
+	avatarPath := filepath.Join(conf.Picture.AvatarUploadPath, HashEmail(email))
+	if !com.IsExist(avatarPath) {
+		defaultUrl := conf.Server.Subpath + "/img/avatar_default.png"
+		img, err := avatar.RandomImage([]byte(email))
 		if err != nil {
-			log.Warn("AvatarLink.LibravatarService.FromEmail [%s]: %v", email, err)
+			return defaultUrl
+		}
+		if err = os.MkdirAll(filepath.Dir(avatarPath), os.ModePerm); err != nil {
+			return defaultUrl
+		}
+		fw, err := os.Create(avatarPath)
+		if err != nil {
+			return defaultUrl
+		}
+		defer fw.Close()
+
+		if err = png.Encode(fw, img); err != nil {
+			return defaultUrl
 		}
 	}
-	if len(url) == 0 && !conf.Picture.DisableGravatar {
-		url = conf.Picture.GravatarSource + HashEmail(email) + "?d=identicon"
-	}
-	if len(url) == 0 {
-		url = conf.Server.Subpath + "/img/avatar_default.png"
-	}
-	return url
+	return fmt.Sprintf("%s/%s/%s", conf.Server.Subpath, USER_AVATAR_URL_PREFIX, HashEmail(email))
 }
 
 // AppendAvatarSize appends avatar size query parameter to the URL in the correct format.
