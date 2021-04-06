@@ -27,18 +27,21 @@ tasks:
       BUILD_COMMIT:
         sh: git rev-parse HEAD
 
-  pro-build:
+  deploy:
     desc: Build the binary.
     cmds:
-      - GOOS=linux 
-        GOARCH=amd64 
+      - GOOS=linux
+        GOARCH=amd64
         go build -v
         -ldflags '
-          -X "{{.PKG_PATH}}.BuildTime={{.BUILD_TIME}}"
-          -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
+        -X "{{.PKG_PATH}}.BuildTime={{.BUILD_TIME}}"
+        -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
         '
         -tags '{{.TAGS}}'
         -trimpath -o gogs
+      - ssh loheagn-bugit "sudo systemctl stop bugit"
+      - scp ./gogs bugit:/home/git/bugit/gogs
+      - ssh loheagn-bugit "sudo systemctl start bugit"
     vars:
       PKG_PATH: gogs.io/gogs/internal/conf
       BUILD_TIME:
