@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 tasks:
   web:
@@ -15,8 +15,8 @@ tasks:
     cmds:
       - go build -v
         -ldflags '
-          -X "{{.PKG_PATH}}.BuildTime={{.BUILD_TIME}}"
-          -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
+        -X "{{.PKG_PATH}}.BuildTime={{.BUILD_TIME}}"
+        -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
         '
         -tags '{{.TAGS}}'
         -trimpath -o gogs
