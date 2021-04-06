@@ -52,7 +52,7 @@ type User struct {
 	LowerName string `xorm:"UNIQUE NOT NULL" gorm:"UNIQUE"`
 	Name      string `xorm:"UNIQUE NOT NULL" gorm:"NOT NULL"`
 	FullName  string
-	StudentID string `xorm:"INDEX UNIQUE NOT NULL DEFAULT ''" gorm:"UNIQUE"`
+	StudentID string `xorm:"INDEX NOT NULL DEFAULT ''"`
 	// Email is the primary email address (to be used for communication)
 	Email       string `xorm:"NOT NULL" gorm:"NOT NULL"`
 	Passwd      string `xorm:"NOT NULL" gorm:"NOT NULL"`
