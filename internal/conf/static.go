@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/gogs/go-libravatar"
 )
 
 // ℹ️ README: This file contains static values that should only be set at initialization time.
@@ -203,9 +201,6 @@ var (
 		GravatarSource             string
 		DisableGravatar            bool
 		EnableFederatedAvatar      bool
-
-		// Derived from other static values
-		LibravatarService *libravatar.Libravatar `ini:"-"` // Initialized client for federated avatar.
 	}
 
 	// Mirror settings

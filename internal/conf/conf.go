@@ -17,7 +17,6 @@ import (
 	_ "github.com/go-macaron/cache/memcache"
 	_ "github.com/go-macaron/cache/redis"
 	_ "github.com/go-macaron/session/redis"
-	"github.com/gogs/go-libravatar"
 	"github.com/pkg/errors"
 	"gopkg.in/ini.v1"
 	log "unknwon.dev/clog/v2"
@@ -312,21 +311,6 @@ func Init(customConf string) error {
 	}
 	if Picture.DisableGravatar {
 		Picture.EnableFederatedAvatar = false
-	}
-	if Picture.EnableFederatedAvatar {
-		gravatarURL, err := url.Parse(Picture.GravatarSource)
-		if err != nil {
-			return errors.Wrapf(err, "parse Gravatar source %q", Picture.GravatarSource)
-		}
-
-		Picture.LibravatarService = libravatar.New()
-		if gravatarURL.Scheme == "https" {
-			Picture.LibravatarService.SetUseHTTPS(true)
-			Picture.LibravatarService.SetSecureFallbackHost(gravatarURL.Host)
-		} else {
-			Picture.LibravatarService.SetUseHTTPS(false)
-			Picture.LibravatarService.SetFallbackHost(gravatarURL.Host)
-		}
 	}
 
 	// ***************************
