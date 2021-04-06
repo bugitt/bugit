@@ -28,7 +28,7 @@ tasks:
         sh: git rev-parse HEAD
 
   deploy:
-    desc: Build the binary.
+    desc: Deploy the binary.
     cmds:
       - GOOS=linux
         GOARCH=amd64
