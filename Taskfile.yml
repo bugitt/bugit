@@ -38,9 +38,9 @@ tasks:
         -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
         '
         -tags '{{.TAGS}}'
-        -trimpath -o gogs
+        -trimpath -o gogs-deploy
       - ssh loheagn-bugit "sudo systemctl stop bugit"
-      - scp ./gogs bugit:/home/git/bugit/gogs
+      - scp ./gogs-deploy bugit:/home/git/bugit/gogs
       - ssh loheagn-bugit "sudo systemctl start bugit"
     vars:
       PKG_PATH: gogs.io/gogs/internal/conf
