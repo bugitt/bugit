@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
+	github.com/aofei/cameron v1.1.6
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/bugitt/git-module v1.2.1
 	github.com/containerd/continuity v0.0.0-20210315143101-93e15499afd5 // indirect
@@ -27,7 +28,6 @@ require (
 	github.com/gogs/minwinsvc v0.0.0-20170301035411-95be6356811a
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/issue9/identicon v1.0.1
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.10
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sergi/go-diff v1.1.0
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/unknwon/cae v1.0.2
 	github.com/unknwon/com v1.0.1
 	github.com/unknwon/i18n v0.0.0-20190805065654-5c6446a380b6
