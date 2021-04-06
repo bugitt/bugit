@@ -24,3 +24,6 @@ ci-repo/
 
 # vscode debug
 __debug_bin
+
+# deploy
+gogs-deploy
