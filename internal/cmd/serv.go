@@ -38,7 +38,7 @@ var Serv = cli.Command{
 // logs error message on the server side. When not in "prod" mode,
 // error message is also printed to the client for easier debugging.
 func fail(userMessage, errMessage string, args ...interface{}) {
-	_, _ = fmt.Fprintln(os.Stderr, "BuGit:", userMessage)
+	_, _ = fmt.Fprintln(os.Stderr, "\nBuGit:", userMessage)
 
 	if len(errMessage) > 0 {
 		if !conf.IsProdMode() {
@@ -185,7 +185,7 @@ func runServ(c *cli.Context) error {
 
 	// Prohibit push to mirror repositories.
 	if requestMode > db.AccessModeRead && repo.IsMirror {
-		fail("Mirror repository is read-only", "")
+		fail("Mirror repository is read-only.\nBuGit不支持推送向镜像仓库中推动内容。\nBuGit会定时更新仓库内容，可以在“仓库设置”中查看。\n", "")
 	}
 
 	// Allow anonymous (user is nil) clone for public repositories.
