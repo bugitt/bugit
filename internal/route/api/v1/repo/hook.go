@@ -8,13 +8,13 @@ import (
 	"net/http"
 
 	api "github.com/gogs/go-gogs-client"
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"github.com/unknwon/com"
 
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/route/api/v1/convert"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/convert"
 )
 
 // https://github.com/gogs/go-gogs-client/wiki/Repositories#list-hooks

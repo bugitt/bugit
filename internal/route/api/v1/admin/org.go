@@ -7,9 +7,9 @@ package admin
 import (
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/route/api/v1/org"
-	"gogs.io/gogs/internal/route/api/v1/user"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/org"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/user"
 )
 
 func CreateOrg(c *context.APIContext, form api.CreateOrgOption) {

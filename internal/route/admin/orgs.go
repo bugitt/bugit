@@ -5,10 +5,10 @@
 package admin
 
 import (
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/route"
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route"
 )
 
 const (

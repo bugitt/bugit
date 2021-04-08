@@ -21,9 +21,9 @@ import (
 	"gopkg.in/ini.v1"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/assets/conf"
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/semverutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/assets/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/semverutil"
 )
 
 func init() {

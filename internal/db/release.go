@@ -16,8 +16,8 @@ import (
 	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/process"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/process"
 )
 
 // Release represents a release of repository.

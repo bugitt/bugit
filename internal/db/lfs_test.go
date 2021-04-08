@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/lfsutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/lfsutil"
 )
 
 func Test_lfs(t *testing.T) {

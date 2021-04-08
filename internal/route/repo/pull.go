@@ -15,11 +15,11 @@ import (
 
 	"github.com/bugitt/git-module"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/form"
-	"gogs.io/gogs/internal/gitutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/form"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/gitutil"
 )
 
 const (

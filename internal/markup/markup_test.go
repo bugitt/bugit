@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "gogs.io/gogs/internal/markup"
+	. "git.scs.buaa.edu.cn/iobs/bugit/internal/markup"
 )
 
 func Test_IsReadmeFile(t *testing.T) {

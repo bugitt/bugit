@@ -13,9 +13,9 @@ import (
 	"github.com/unknwon/com"
 	"golang.org/x/net/html"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/lazyregexp"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/lazyregexp"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 // IsReadmeFile reports whether name looks like a README file based on its extension.
@@ -38,11 +38,11 @@ var (
 	MentionPattern = lazyregexp.New(`(\s|^|\W)@[0-9a-zA-Z-_\.]+`)
 
 	// CommitPattern matches link to certain commit with or without trailing hash,
-	// e.g. https://try.gogs.io/gogs/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2
+	// e.g. https://try.git.scs.buaa.edu.cn/iobs/bugit/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2
 	CommitPattern = lazyregexp.New(`(\s|^)https?.*commit/[0-9a-zA-Z]+(#+[0-9a-zA-Z-]*)?`)
 
 	// IssueFullPattern matches link to an issue with or without trailing hash,
-	// e.g. https://try.gogs.io/gogs/gogs/issues/4#issue-685
+	// e.g. https://try.git.scs.buaa.edu.cn/iobs/bugit/gogs/issues/4#issue-685
 	IssueFullPattern = lazyregexp.New(`(\s|^)https?.*issues/[0-9]+(#+[0-9a-zA-Z-]*)?`)
 	// IssueNumericPattern matches string that references to a numeric issue, e.g. #1287
 	IssueNumericPattern = lazyregexp.New(`( |^|\(|\[)#[0-9]+\b`)

@@ -11,8 +11,8 @@ import (
 	"github.com/bugitt/git-module"
 	"github.com/unknwon/com"
 
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 type Branch struct {

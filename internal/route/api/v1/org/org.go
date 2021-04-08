@@ -9,10 +9,10 @@ import (
 
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/route/api/v1/convert"
-	"gogs.io/gogs/internal/route/api/v1/user"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/convert"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/user"
 )
 
 func CreateOrgForUser(c *context.APIContext, apiForm api.CreateOrgOption, user *db.User) {

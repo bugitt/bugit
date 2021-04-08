@@ -29,15 +29,15 @@ import (
 	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/avatar"
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/markup"
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/process"
-	"gogs.io/gogs/internal/semverutil"
-	"gogs.io/gogs/internal/sync"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/avatar"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/markup"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/process"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/semverutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
 )
 
 // REPO_AVATAR_URL_PREFIX is used to identify a URL is to access repository avatar.

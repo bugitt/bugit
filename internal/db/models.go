@@ -21,9 +21,9 @@ import (
 	"xorm.io/core"
 	"xorm.io/xorm"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db/migrations"
-	"gogs.io/gogs/internal/dbutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/migrations"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/dbutil"
 )
 
 // Engine represents a XORM engine or session.

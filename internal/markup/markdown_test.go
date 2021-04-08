@@ -12,8 +12,8 @@ import (
 	"github.com/russross/blackfriday"
 	"github.com/stretchr/testify/assert"
 
-	"gogs.io/gogs/internal/conf"
-	. "gogs.io/gogs/internal/markup"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	. "git.scs.buaa.edu.cn/iobs/bugit/internal/markup"
 )
 
 func Test_IsMarkdownFile(t *testing.T) {
@@ -63,7 +63,7 @@ func Test_Markdown(t *testing.T) {
 		// Commit URL
 		{input: "http://localhost:3000/user/project/commit/d8a994ef243349f321568f9e36d5c3f444b99cae", expVal: " <code><a href=\"http://localhost:3000/user/project/commit/d8a994ef243349f321568f9e36d5c3f444b99cae\">d8a994ef24</a></code>"},
 		{input: "http://localhost:3000/user/project/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2", expVal: " <code><a href=\"http://localhost:3000/user/project/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2\">d8a994ef24</a></code>"},
-		{input: "https://external-link.gogs.io/gogs/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2", expVal: "<a href=\"https://external-link.gogs.io/gogs/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2\">https://external-link.gogs.io/gogs/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2</a>"},
+		{input: "https://external-link.git.scs.buaa.edu.cn/iobs/bugit/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2", expVal: "<a href=\"https://external-link.git.scs.buaa.edu.cn/iobs/bugit/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2\">https://external-link.git.scs.buaa.edu.cn/iobs/bugit/gogs/commit/d8a994ef243349f321568f9e36d5c3f444b99cae#diff-2</a>"},
 		{input: "https://commit/d8a994ef243349f321568f9e36d5c3f444b99cae", expVal: "<a href=\"https://commit/d8a994ef243349f321568f9e36d5c3f444b99cae\">https://commit/d8a994ef243349f321568f9e36d5c3f444b99cae</a>"},
 	}
 	for _, test := range tests {

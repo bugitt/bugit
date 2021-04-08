@@ -18,17 +18,17 @@ import (
 	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/cron"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/email"
-	"gogs.io/gogs/internal/form"
-	"gogs.io/gogs/internal/markup"
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/ssh"
-	"gogs.io/gogs/internal/strutil"
-	"gogs.io/gogs/internal/template/highlight"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cron"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/email"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/form"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/markup"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/ssh"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/template/highlight"
 )
 
 const (

@@ -25,8 +25,8 @@ import (
 
 	"github.com/gogs/chardet"
 
-	"gogs.io/gogs/internal/avatar"
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/avatar"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 )
 
 // USER_AVATAR_URL_PREFIX is used to identify a URL is to access user avatar.

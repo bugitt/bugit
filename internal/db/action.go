@@ -19,9 +19,9 @@ import (
 	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/lazyregexp"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/lazyregexp"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 type ActionType int

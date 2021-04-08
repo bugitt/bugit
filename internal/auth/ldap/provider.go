@@ -7,7 +7,7 @@ package ldap
 import (
 	"fmt"
 
-	"gogs.io/gogs/internal/auth"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
 )
 
 // Provider contains configuration of an LDAP authentication provider.

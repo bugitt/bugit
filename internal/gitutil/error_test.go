@@ -11,7 +11,7 @@ import (
 	"github.com/bugitt/git-module"
 	"github.com/stretchr/testify/assert"
 
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 func TestError_NotFound(t *testing.T) {

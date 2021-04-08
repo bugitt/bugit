@@ -12,8 +12,8 @@ import (
 	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/gitutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/gitutil"
 )
 
 func GetContents(c *context.APIContext) {

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 // EmailAddresses is the list of all email addresses of a user. Can contain the

@@ -28,12 +28,12 @@ import (
 	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/avatar"
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/strutil"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/avatar"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 // USER_AVATAR_URL_PREFIX is used to identify a URL is to access user avatar.

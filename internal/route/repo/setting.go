@@ -14,14 +14,14 @@ import (
 	"github.com/unknwon/com"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/email"
-	"gogs.io/gogs/internal/form"
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/email"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/form"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 const (

@@ -16,8 +16,8 @@ import (
 
 	"github.com/bugitt/git-module"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 type PullRequest struct {

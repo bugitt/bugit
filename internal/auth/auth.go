@@ -7,7 +7,7 @@ package auth
 import (
 	"fmt"
 
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 type Type int

@@ -11,8 +11,8 @@ import (
 
 	"github.com/gogs/cron"
 
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 var c = cron.New()

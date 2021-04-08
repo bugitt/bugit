@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
 
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 //go:generate go run main.go ../../../docs/dev/database_schema.md

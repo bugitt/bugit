@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"gogs.io/gogs/internal/auth"
-	"gogs.io/gogs/internal/cryptoutil"
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 // UsersStore is the persistent interface for users.

@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/bugitt/git-module"
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 )
 
 type SlackMeta struct {

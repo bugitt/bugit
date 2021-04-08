@@ -5,7 +5,7 @@ RUN apk --no-cache --no-progress add --virtual \
   git \
   linux-pam-dev
 
-WORKDIR /gogs.io/gogs
+WORKDIR /git.scs.buaa.edu.cn/iobs/bugit
 COPY . .
 RUN make build TAGS="cert pam"
 
@@ -33,7 +33,7 @@ COPY docker/nsswitch.conf /etc/nsswitch.conf
 
 WORKDIR /app/gogs
 COPY docker ./docker
-COPY --from=binarybuilder /gogs.io/gogs/gogs .
+COPY --from=binarybuilder /git.scs.buaa.edu.cn/iobs/bugit/gogs .
 
 RUN ./docker/finalize.sh
 

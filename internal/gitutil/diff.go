@@ -18,9 +18,9 @@ import (
 
 	"github.com/bugitt/git-module"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/template/highlight"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/template/highlight"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 // DiffSection is a wrapper to git.DiffSection with helper methods.

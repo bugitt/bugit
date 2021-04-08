@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 
-	"gogs.io/gogs/internal/auth"
-	"gogs.io/gogs/internal/auth/github"
-	"gogs.io/gogs/internal/auth/pam"
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth/github"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth/pam"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 func TestLoginSource_BeforeSave(t *testing.T) {

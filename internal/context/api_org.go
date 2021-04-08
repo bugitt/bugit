@@ -5,7 +5,7 @@
 package context
 
 import (
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 type APIOrganization struct {

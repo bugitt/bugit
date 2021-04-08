@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	log "unknwon.dev/clog/v2"
 
 	"github.com/docker/docker/api/types"

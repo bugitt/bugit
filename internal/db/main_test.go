@@ -17,8 +17,8 @@ import (
 	"gorm.io/gorm/schema"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/testutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/testutil"
 )
 
 func TestMain(m *testing.M) {

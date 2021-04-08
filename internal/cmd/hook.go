@@ -21,10 +21,10 @@ import (
 
 	"github.com/bugitt/git-module"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/email"
-	"gogs.io/gogs/internal/httplib"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/email"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
 )
 
 var (

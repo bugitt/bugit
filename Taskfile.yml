@@ -21,7 +21,7 @@ tasks:
         -tags '{{.TAGS}}'
         -trimpath -o gogs
     vars:
-      PKG_PATH: gogs.io/gogs/internal/conf
+      PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
       BUILD_TIME:
         sh: date -u '+%Y-%m-%d %I:%M:%S %Z'
       BUILD_COMMIT:
@@ -43,7 +43,7 @@ tasks:
       - scp ./gogs-deploy bugit:/home/git/bugit/gogs
       - ssh loheagn-bugit "sudo systemctl start bugit"
     vars:
-      PKG_PATH: gogs.io/gogs/internal/conf
+      PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
       BUILD_TIME:
         sh: date -u '+%Y-%m-%d %I:%M:%S %Z'
       BUILD_COMMIT:

@@ -7,8 +7,8 @@ package repo
 import (
 	api "github.com/gogs/go-gogs-client"
 
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/route/api/v1/convert"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/convert"
 )
 
 // https://github.com/gogs/go-gogs-client/wiki/Repositories#get-branch
@@ -25,7 +25,7 @@ func GetBranch(c *context.APIContext) {
 		return
 	}
 
-	c.JSONSuccess( convert.ToBranch(branch, commit))
+	c.JSONSuccess(convert.ToBranch(branch, commit))
 }
 
 // https://github.com/gogs/go-gogs-client/wiki/Repositories#list-branches
@@ -46,5 +46,5 @@ func ListBranches(c *context.APIContext) {
 		apiBranches[i] = convert.ToBranch(branches[i], commit)
 	}
 
-	c.JSONSuccess( &apiBranches)
+	c.JSONSuccess(&apiBranches)
 }

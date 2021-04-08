@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/auth"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
 )
 
 // Provider contains configuration of an SMTP authentication provider.

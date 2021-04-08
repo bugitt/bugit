@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/process"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/process"
 )
 
 // cleanUpOpenSSHVersion cleans up the raw output of "ssh -V" and returns a clean version string.

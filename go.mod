@@ -1,4 +1,4 @@
-module gogs.io/gogs
+module git.scs.buaa.edu.cn/iobs/bugit
 
 go 1.16
 

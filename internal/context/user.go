@@ -7,7 +7,7 @@ package context
 import (
 	"gopkg.in/macaron.v1"
 
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 // ParamsUser is the wrapper type of the target user defined by URL parameter, namely ':username'.

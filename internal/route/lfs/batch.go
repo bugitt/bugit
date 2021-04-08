@@ -12,10 +12,10 @@ import (
 	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/lfsutil"
-	"gogs.io/gogs/internal/strutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/lfsutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
 )
 
 // POST /{owner}/{repo}.git/info/lfs/object/batch
@@ -32,7 +32,7 @@ func serveBatch(c *macaron.Context, owner *db.User, repo *db.Repository) {
 
 	// NOTE: We only support basic transfer as of now.
 	transfer := transferBasic
-	// Example: https://try.gogs.io/gogs/gogs.git/info/lfs/object/basic
+	// Example: https://try.git.scs.buaa.edu.cn/iobs/bugit/gogs.git/info/lfs/object/basic
 	baseHref := fmt.Sprintf("%s%s/%s.git/info/lfs/objects/basic", conf.Server.ExternalURL, owner.Name, repo.Name)
 
 	objects := make([]batchObject, 0, len(request.Objects))

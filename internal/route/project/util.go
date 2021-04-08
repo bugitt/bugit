@@ -1,6 +1,6 @@
 package project
 
-import "gogs.io/gogs/internal/db"
+import "git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 
 func GetUsersAllProjects(user *db.User) (projects, collaborativeProjects db.ProjectList, err error) {
 	err = user.GetProjects(1, user.NumProjects)

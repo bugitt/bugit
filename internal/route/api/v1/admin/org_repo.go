@@ -5,8 +5,8 @@
 package admin
 
 import (
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 func GetRepositoryByParams(c *context.APIContext) *db.Repository {

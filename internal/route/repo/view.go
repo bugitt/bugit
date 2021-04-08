@@ -17,14 +17,14 @@ import (
 	"github.com/unknwon/paginater"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/gitutil"
-	"gogs.io/gogs/internal/markup"
-	"gogs.io/gogs/internal/template"
-	"gogs.io/gogs/internal/template/highlight"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/gitutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/markup"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/template"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/template/highlight"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 const (

@@ -16,7 +16,7 @@ import (
 	"github.com/unknwon/com"
 	"github.com/urfave/cli"
 
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 )
 
 var (

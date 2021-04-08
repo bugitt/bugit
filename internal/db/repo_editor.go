@@ -21,13 +21,13 @@ import (
 
 	"github.com/bugitt/git-module"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/cryptoutil"
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/gitutil"
-	"gogs.io/gogs/internal/osutil"
-	"gogs.io/gogs/internal/process"
-	"gogs.io/gogs/internal/tool"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/gitutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/osutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/process"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
 const (
@@ -487,7 +487,7 @@ func (repo *Repository) UploadRepoFiles(doer *User, opts UploadRepoFileOptions) 
 			continue
 		}
 
-		// Prevent copying files into .git directory, see https://gogs.io/gogs/issues/5558.
+		// Prevent copying files into .git directory, see https://git.scs.buaa.edu.cn/iobs/bugit/issues/5558.
 		if isRepositoryGitPath(upload.Name) {
 			continue
 		}

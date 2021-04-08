@@ -10,11 +10,11 @@ import (
 	api "github.com/gogs/go-gogs-client"
 	"github.com/pkg/errors"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/context"
-	"gogs.io/gogs/internal/db"
-	"gogs.io/gogs/internal/route/api/v1/convert"
-	"gogs.io/gogs/internal/route/api/v1/repo"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/convert"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/repo"
 )
 
 func GetUserByParamsName(c *context.APIContext, name string) *db.User {

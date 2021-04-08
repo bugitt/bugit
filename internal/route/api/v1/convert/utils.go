@@ -5,7 +5,7 @@
 package convert
 
 import (
-	"gogs.io/gogs/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 )
 
 // ToCorrectPageSize makes sure page size is in allowed range.

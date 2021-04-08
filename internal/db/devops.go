@@ -1,10 +1,10 @@
 package db
 
 import (
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
 	"github.com/bugitt/git-module"
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db/errors"
-	"gogs.io/gogs/internal/sync"
 	log "unknwon.dev/clog/v2"
 )
 

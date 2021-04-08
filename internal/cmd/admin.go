@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 
-	"gogs.io/gogs/internal/conf"
-	"gogs.io/gogs/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 var (

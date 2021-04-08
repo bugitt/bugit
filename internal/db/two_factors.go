@@ -14,9 +14,9 @@ import (
 	"gorm.io/gorm"
 	log "unknwon.dev/clog/v2"
 
-	"gogs.io/gogs/internal/cryptoutil"
-	"gogs.io/gogs/internal/errutil"
-	"gogs.io/gogs/internal/strutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
 )
 
 // TwoFactorsStore is the persistent interface for 2FA.

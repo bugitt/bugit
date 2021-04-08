@@ -11,8 +11,8 @@ import (
 	gouuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 
-	"gogs.io/gogs/internal/cryptoutil"
-	"gogs.io/gogs/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
 // AccessTokensStore is the persistent interface for access tokens.

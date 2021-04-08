@@ -14,12 +14,12 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"gogs.io/gogs/internal/auth"
-	"gogs.io/gogs/internal/auth/github"
-	"gogs.io/gogs/internal/auth/pam"
-	"gogs.io/gogs/internal/cryptoutil"
-	"gogs.io/gogs/internal/lfsutil"
-	"gogs.io/gogs/internal/testutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth/github"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth/pam"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/lfsutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/testutil"
 )
 
 func Test_dumpAndImport(t *testing.T) {
