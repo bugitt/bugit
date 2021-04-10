@@ -251,6 +251,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	}
 
 	// service 系列端口
+	// TODO：如果有旧的端口号，那么使用旧的端口号
 	var svcPorts []apiv1.ServicePort
 	for _, port := range ports {
 		p := apiv1.ServicePort{
