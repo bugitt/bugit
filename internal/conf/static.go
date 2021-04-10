@@ -322,6 +322,7 @@ var (
 	Devops struct {
 		Filename []string `ini:"filename" delim:"|"`
 		Tmpdir   string   `ini:"tmpdir"`
+		KubeIP   []string `ini:"kubeip" delim:"|"`
 	}
 
 	// Docker settings

@@ -53,7 +53,7 @@ func init() {
 		new(User), new(PublicKey), new(TwoFactor), new(TwoFactorRecoveryCode),
 		new(Project),
 		new(Pipeline), new(PipeTask),
-		new(BuildTask), new(PushTask),
+		new(BuildTask), new(PushTask), new(DeployTask),
 		new(ValidationTask), new(ValidationResult),
 		new(Repository), new(DeployKey), new(Collaboration), new(Upload),
 		new(Watch), new(Star), new(Follow), new(Action),

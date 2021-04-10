@@ -14,6 +14,7 @@ import (
 	"github.com/bugitt/git-module"
 	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
+	log "unknwon.dev/clog/v2"
 )
 
 const (
@@ -55,6 +56,7 @@ type BaseTaskConfig struct {
 }
 
 func (c *CIConfig) ShouldCIOnPush(refName string) bool {
+	log.Trace("refName: %s", refName)
 	var events []string
 	for k, v := range c.On {
 		if k == refName {
