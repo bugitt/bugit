@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
+	"github.com/gomodule/redigo/redis"
 	gouuid "github.com/satori/go.uuid"
 	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
@@ -104,6 +105,60 @@ func isAPIPath(url string) bool {
 	return strings.HasPrefix(url, "/api/")
 }
 
+var rePool *redis.Pool
+
+func init() {
+	host := conf.CloudAPI.RedisHost
+
+	rePool = &redis.Pool{
+		MaxIdle:     30,
+		MaxActive:   1024,
+		IdleTimeout: 300,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", host)
+			if err != nil {
+				log.Error(err.Error())
+				return nil, err
+			}
+			if _, err := c.Do("AUTH", "@buaa21"); err != nil {
+				c.Close()
+				return nil, err
+			}
+			if _, err = c.Do("PING"); err != nil {
+				c.Close()
+				log.Error(err.Error())
+				return nil, err
+			}
+			return c, err
+		},
+	}
+	log.Info("redis init success")
+}
+
+func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
+	RedisConn := rePool.Get()
+	defer RedisConn.Close()
+	studentID, err := redis.String(RedisConn.Do("GET", token))
+	if err != nil {
+		log.Error(err.Error())
+		return 0, false
+	}
+	if len(studentID) <= 0 {
+		return 0, false
+	}
+	studentID = strings.Trim(studentID, "\"")
+	user, err := db.GetUserByStudentID(studentID)
+	if err != nil {
+		log.Error(err.Error())
+		return 0, false
+	}
+	if user == nil {
+		log.Error("student user %s not found", studentID)
+		return 0, false
+	}
+	return user.ID, true
+}
+
 // authenticatedUserID returns the ID of the authenticated user, along with a bool value
 // which indicates whether the user uses token authentication.
 func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTokenAuth bool) {
@@ -124,6 +179,9 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 				auths := strings.Fields(auHead)
 				if len(auths) == 2 && auths[0] == "token" {
 					tokenSHA = auths[1]
+				} else if len(auths) == 1 {
+					// 从Redis中获取权限校验信息
+					return redisAuthUserID(auths[0])
 				}
 			}
 		}

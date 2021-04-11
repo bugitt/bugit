@@ -331,6 +331,11 @@ var (
 		DockerService string `ini:"docker_service"`
 	}
 
+	// cloud api settings
+	CloudAPI struct {
+		RedisHost string `ini:"redis_host"`
+	}
+
 	// Other settings
 	Other struct {
 		ShowFooterBranding         bool

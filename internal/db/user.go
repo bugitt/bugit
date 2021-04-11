@@ -998,6 +998,21 @@ func GetUserByName(name string) (*User, error) {
 	return u, nil
 }
 
+// GetUserByStudentID 通过学号获取用户
+func GetUserByStudentID(studentID string) (*User, error) {
+	if len(studentID) == 0 {
+		return nil, ErrUserNotExist{args: map[string]interface{}{"studentID": studentID}}
+	}
+	u := &User{StudentID: studentID}
+	has, err := x.Get(u)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrUserNotExist{args: map[string]interface{}{"studengID": studentID}}
+	}
+	return u, nil
+}
+
 // GetUserEmailsByNames returns a list of e-mails corresponds to names.
 func GetUserEmailsByNames(names []string) []string {
 	mails := make([]string, 0, len(names))

@@ -353,6 +353,14 @@ func Init(customConf string) error {
 	}
 
 	// *************************
+	// ----- cloud api settings -----
+	// *************************
+
+	if err = File.Section("cloud_api").MapTo(&CloudAPI); err != nil {
+		return errors.Wrap(err, "mapping [cloud_api] section")
+	}
+
+	// *************************
 	// ----- LFS settings -----
 	// *************************
 
