@@ -21,6 +21,11 @@ type Project struct {
 	BaseModel  `xorm:"extends"`
 }
 
+func CreateProject(project *Project) (err error) {
+	_, err = x.Insert(project)
+	return
+}
+
 // GetUserProjects returns a list of projects of given user.
 func GetUserProjects(opts *UserProjectOptions) (ProjectList, error) {
 	sess := x.Where("sender_id=?", opts.SenderID).Desc("updated_unix")

@@ -19,6 +19,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/admin"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/misc"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/org"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/project"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/repo"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/user"
 )
@@ -177,6 +178,11 @@ func RegisterRoutes(m *macaron.Macaron) {
 		// Miscellaneous
 		m.Post("/markdown", bind(api.MarkdownOption{}), misc.Markdown)
 		m.Post("/markdown/raw", misc.MarkdownRaw)
+
+		// Projects
+		m.Group("/project", func() {
+			m.Post("", bind(project.CreateOption{}), project.CreateProject)
+		}, reqToken())
 
 		// Users
 		m.Group("/users", func() {
