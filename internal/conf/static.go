@@ -333,7 +333,8 @@ var (
 
 	// cloud api settings
 	CloudAPI struct {
-		RedisHost string `ini:"redis_host"`
+		RedisHost   string `ini:"redis_host"`
+		SupperDebug bool   `ini:"supper_debug"`
 	}
 
 	// Other settings
