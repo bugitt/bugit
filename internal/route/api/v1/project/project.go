@@ -20,34 +20,11 @@ type CreateOption struct {
 }
 
 func GetAllProjects(c *context.APIContext) {
-	projects, err := db.GetUserAllProjects(c.User)
+	projects, err := db.GetAllProjectsWithCoAndAttr(c.User)
 	if err != nil {
 		log.Error(err.Error())
 		c.Status(http.StatusInternalServerError)
 		return
-	}
-	err = c.User.GetOrganizations(true)
-	if err != nil {
-		log.Error(err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-	for _, org := range c.User.Orgs {
-		ps, err := db.GetUserAllProjects(org)
-		if err != nil {
-			log.Error(err.Error())
-			c.Status(http.StatusInternalServerError)
-			return
-		}
-		projects = append(projects, ps...)
-	}
-	for i := range projects {
-		err = projects[i].LoadAttributes()
-		if err != nil {
-			log.Error(err.Error())
-			c.Status(http.StatusInternalServerError)
-			return
-		}
 	}
 	c.JSON(http.StatusOK, projects)
 }
@@ -103,3 +80,5 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 
 	c.JSON(http.StatusCreated, project)
 }
+
+func getAllProjects()

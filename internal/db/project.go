@@ -102,3 +102,29 @@ func (ps ProjectList) loadAttributes(e Engine) error {
 	}
 	return nil
 }
+
+// TODO： 避免多次查询
+func GetAllProjectsWithCoAndAttr(user *User) ([]*Project, error) {
+	projects, err := GetUserAllProjects(user)
+	if err != nil {
+		return nil, err
+	}
+	user.GetOrganizations(true)
+	if err != nil {
+		return nil, err
+	}
+	for _, org := range user.Orgs {
+		ps, err := GetUserAllProjects(org)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, ps...)
+	}
+	for i := range projects {
+		err = projects[i].LoadAttributes()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return projects, nil
+}
