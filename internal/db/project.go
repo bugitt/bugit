@@ -12,7 +12,7 @@ type Project struct {
 	ID         int64
 	Name       string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
 	SenderID   int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
-	Sender     *User  `xorm:"-" gorm:"-" json:"-"`
+	Sender     *User  `xorm:"-" gorm:"-"`
 	ExpID      int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
 	ExpString  string
 	CourseID   int64 `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
@@ -60,11 +60,11 @@ func GetUserAllProjects(user *User) (ProjectList, error) {
 	})
 }
 
-func (p Project) LoadAttributes() error {
+func (p *Project) LoadAttributes() error {
 	return p.loadAttributes(x)
 }
 
-func (p Project) loadAttributes(e Engine) (err error) {
+func (p *Project) loadAttributes(e Engine) (err error) {
 	// Get User
 	if p.Sender == nil {
 		p.Sender, err = getUserByID(e, p.SenderID)
