@@ -55,7 +55,7 @@ type User struct {
 	StudentID string `xorm:"INDEX NOT NULL DEFAULT ''"`
 	// Email is the primary email address (to be used for communication)
 	Email       string `xorm:"NOT NULL" gorm:"NOT NULL"`
-	Passwd      string `xorm:"NOT NULL" gorm:"NOT NULL"`
+	Passwd      string `xorm:"NOT NULL" gorm:"NOT NULL" json:"-"`
 	LoginSource int64  `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	LoginName   string
 	Type        UserType
@@ -65,8 +65,8 @@ type User struct {
 	Projects    ProjectList   `xorm:"-" gorm:"-" json:"-"`
 	Location    string
 	Website     string
-	Rands       string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)"`
-	Salt        string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)"`
+	Rands       string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)" json:"-"`
+	Salt        string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)" json:"-"`
 
 	Created     time.Time `xorm:"-" gorm:"-" json:"-"`
 	CreatedUnix int64
