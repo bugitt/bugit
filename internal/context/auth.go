@@ -107,7 +107,7 @@ func isAPIPath(url string) bool {
 
 var rePool *redis.Pool
 
-func init() {
+func initRedis() *redis.Pool {
 	host := conf.CloudAPI.RedisHost
 
 	rePool = &redis.Pool{
@@ -133,11 +133,15 @@ func init() {
 		},
 	}
 	log.Info("redis init success")
+	return rePool
 }
 
 func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
 	if conf.CloudAPI.SupperDebug {
 		return 1, true
+	}
+	if rePool == nil {
+		rePool = initRedis()
 	}
 	RedisConn := rePool.Get()
 	defer RedisConn.Close()
