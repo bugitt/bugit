@@ -3,6 +3,7 @@ package project
 import (
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	log "unknwon.dev/clog/v2"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
@@ -21,6 +22,37 @@ type CreateOption struct {
 
 func GetAllProjects(c *context.APIContext) {
 	projects, err := db.GetAllProjectsWithCoAndAttr(c.User)
+	if err != nil {
+		log.Error(err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, projects)
+}
+
+func GetProjectsByCourse(c *context.APIContext) {
+	courseListS := c.Query("courseIds")
+	var (
+		projects []*db.Project
+		err      error
+	)
+	if courseListS == "-1" {
+		projects, err = db.GetUserAllProjects(c.User)
+		if err != nil {
+			log.Error(err.Error())
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.JSON(http.StatusOK, projects)
+	}
+	courseIDList := make([]int64, 0)
+	err = jsoniter.Unmarshal([]byte(courseListS), &courseIDList)
+	if err != nil {
+		log.Error(err.Error())
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+	projects, err = db.GetProjectsByUserAndCourse(c.UserID(), courseIDList)
 	if err != nil {
 		log.Error(err.Error())
 		c.Status(http.StatusInternalServerError)
@@ -80,5 +112,3 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 
 	c.JSON(http.StatusCreated, project)
 }
-
-func getAllProjects()

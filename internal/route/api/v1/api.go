@@ -185,6 +185,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 		}, reqToken())
 		m.Group("/user/projects", func() {
 			m.Get("", project.GetAllProjects)
+			m.Get("/by/course", project.GetProjectsByCourse)
 		}, reqToken())
 
 		// Users

@@ -10,14 +10,14 @@ type ProjectList []*Project
 
 type Project struct {
 	ID         int64
-	Name       string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
-	SenderID   int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
-	Sender     *User  `xorm:"-" gorm:"-"`
-	ExpID      int64  `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL"`
-	ExpString  string
-	CourseID   int64 `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
-	CourseName string
-	Status     ProjectStatus
+	Name       string        `xorm:"INDEX NOT NULL" gorm:"NOT NULL" json:"name"`
+	SenderID   int64         `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL" json:"sender_id"`
+	Sender     *User         `xorm:"-" gorm:"-"`
+	ExpID      int64         `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s;NOT NULL" json:"exp_id"`
+	ExpString  string        `json:"exp_name"`
+	CourseID   int64         `xorm:"INDEX NOT NULL" gorm:"NOT NULL" json:"course_id"`
+	CourseName string        `json:"course_name"`
+	Status     ProjectStatus `json:"status"`
 	BaseModel  `xorm:"extends"`
 }
 
@@ -52,6 +52,12 @@ func GetProjectByID(id int64) (*Project, error) {
 	return project, project.LoadAttributes()
 }
 
+func GetProjectsByUserAndCourse(senderID int64, courseIDList []int64) ([]*Project, error) {
+	var data []*Project = make([]*Project, 0)
+	_, err := x.Where("sender_id = ?", senderID).And("course_id in (?)", courseIDList).Get(&data)
+	return data, err
+}
+
 func GetUserAllProjects(user *User) (ProjectList, error) {
 	return GetUserProjects(&UserProjectOptions{
 		SenderID: user.ID,
@@ -64,6 +70,7 @@ func (p *Project) LoadAttributes() error {
 	return p.loadAttributes(x)
 }
 
+// TODO: 防止多次查询
 func (p *Project) loadAttributes(e Engine) (err error) {
 	// Get User
 	if p.Sender == nil {
@@ -109,7 +116,7 @@ func GetAllProjectsWithCoAndAttr(user *User) ([]*Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	user.GetOrganizations(true)
+	err = user.GetOrganizations(true)
 	if err != nil {
 		return nil, err
 	}
