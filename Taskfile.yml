@@ -39,8 +39,10 @@ tasks:
         '
         -tags '{{.TAGS}}'
         -trimpath -o gogs-deploy
+      - scp ./gogs-deploy bugit:/home/git/bugit/gogs-tmp
       - ssh loheagn-bugit "sudo systemctl stop bugit"
-      - scp ./gogs-deploy bugit:/home/git/bugit/gogs
+      - ssh bugit "mv /home/git/bugit/gogs /home/git/bugit/gogs.old"
+      - ssh bugit "mv /home/git/bugit/gogs-tmp /home/git/bugit/gogs"
       - ssh loheagn-bugit "sudo systemctl start bugit"
     vars:
       PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
