@@ -941,7 +941,7 @@ func initRepoCommit(tmpPath string, sig *git.Signature) (err error) {
 
 	if _, stderr, err = process.ExecDir(-1,
 		tmpPath, fmt.Sprintf("initRepoCommit (git push): %s", tmpPath),
-		"git", "push", "origin", "master"); err != nil {
+		"git", "push", "origin", "main"); err != nil {
 		return fmt.Errorf("git push: %s", stderr)
 	}
 	return nil
@@ -1041,7 +1041,7 @@ func initRepository(e Engine, repoPath string, doer *User, repo *Repository, opt
 	}
 
 	// Init bare new repository.
-	if err = git.Init(repoPath, git.InitOptions{Bare: true}); err != nil {
+	if err = git.Init(repoPath, git.InitOptions{Bare: true, DefaultBranch: "main"}); err != nil {
 		return fmt.Errorf("init repository: %v", err)
 	} else if err = createDelegateHooks(repoPath); err != nil {
 		return fmt.Errorf("createDelegateHooks: %v", err)
