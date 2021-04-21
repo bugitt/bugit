@@ -173,7 +173,13 @@ func RegisterRoutes(m *macaron.Macaron) {
 
 	m.Group("/v1", func() {
 		// Handle preflight OPTIONS request
-		m.Options("/*", func() {})
+		m.Options("/*", func(c *context.APIContext) {
+			c.Header().Set("Content-Type", "application/json")
+			c.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Header().Set("Access-Control-Allow-Credentials", "false")
+			c.Header().Set("Access-Control-Allow-Headers", "Authorization,Content-Type")
+			c.Header().Set("Access-Control-Allow-Methods", "GET,POST,DELETE")
+		})
 
 		// Miscellaneous
 		m.Post("/markdown", bind(api.MarkdownOption{}), misc.Markdown)
