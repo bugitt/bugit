@@ -37,6 +37,7 @@ func (task *BuildTask) Run(ctx *CIContext) error {
 			ctx.owner.LowerName,
 			ctx.repo.LowerName,
 			ctx.commit[:5])
+		// TODO: 如果镜像已经存在，那么不用重复构建
 
 		// Build
 		sourceLog, isSuccessful, buildErr, err := BuildImage(config.Dockerfile, buildPath, []string{imageTag})
