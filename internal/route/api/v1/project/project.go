@@ -27,7 +27,7 @@ func GetAllProjects(c *context.APIContext) {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	c.JSONSuccess(projects)
 }
 
 func GetProjectsByCourse(c *context.APIContext) {
@@ -43,7 +43,7 @@ func GetProjectsByCourse(c *context.APIContext) {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		c.JSON(http.StatusOK, projects)
+		c.JSONSuccess(projects)
 	}
 	courseIDList := make([]int64, 0)
 	err = jsoniter.Unmarshal([]byte(courseListS), &courseIDList)
@@ -58,7 +58,7 @@ func GetProjectsByCourse(c *context.APIContext) {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	c.JSONSuccess(projects)
 }
 
 func CreateProject(c *context.APIContext, form CreateOption) {
@@ -110,5 +110,5 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, project)
+	c.JSONCors(http.StatusCreated, project)
 }
