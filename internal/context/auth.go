@@ -143,9 +143,9 @@ func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
 	if rePool == nil {
 		rePool = initRedis()
 	}
-	RedisConn := rePool.Get()
-	defer RedisConn.Close()
-	studentID, err := redis.String(RedisConn.Do("GET", token))
+	redisConn := rePool.Get()
+	defer redisConn.Close()
+	studentID, err := redis.String(redisConn.Do("GET", token))
 	if err != nil {
 		log.Error(err.Error())
 		return 0, false
