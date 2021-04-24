@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
+	"gopkg.in/yaml.v3"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
@@ -32,6 +33,7 @@ to make automatic initialization process more smoothly`,
 			subcmdSyncRepositoryHooks,
 			subcmdReinitMissingRepositories,
 			subcmdMigrageFromSqlite,
+			subcmdCIConfigExample,
 		},
 	}
 
@@ -141,6 +143,12 @@ to make automatic initialization process more smoothly`,
 			stringFlag("config, c", "", "Custom configuration file path"),
 		},
 	}
+
+	subcmdCIConfigExample = cli.Command{
+		Name:   "ci-config-example",
+		Usage:  "get ci config example",
+		Action: getCIConfigExample,
+	}
 )
 
 func runCreateUser(c *cli.Context) error {
@@ -218,5 +226,17 @@ func adminMigrateFromSqlite(c *cli.Context) error {
 	}
 
 	fmt.Print("migrate from sqlite successfully")
+	return nil
+}
+
+func getCIConfigExample(c *cli.Context) error {
+	config := &db.CIConfig{}
+	config.Validate = append(config.Validate, db.ValidTaskConfig{})
+	config.Build = append(config.Build, db.BuildTaskConfig{})
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(data))
 	return nil
 }
