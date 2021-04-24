@@ -10,6 +10,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
+// CreateOption 创建project时可以提供的参数
 type CreateOption struct {
 	Name       string `json:"projectName" binding:"Required"`
 	OrgName    string `json:"organizationName"`
