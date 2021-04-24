@@ -45,10 +45,15 @@ func ensureNS(ns string) error {
 	namespace := &apiv1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{Name: ns},
 	}
-	_, err = clientSet.CoreV1().Namespaces().Create(context.TODO(), namespace, metav1.CreateOptions{})
+	_, err = clientSet.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{})
 	if err != nil {
-		// 排除 namespace 已经存在的情况
-		if !checkErrNotFound(err) {
+		if kerrors.IsNotFound(err) {
+			// 没有找到就create
+			_, err = clientSet.CoreV1().Namespaces().Create(context.TODO(), namespace, metav1.CreateOptions{})
+			if err != nil {
+				return nil
+			}
+		} else {
 			return err
 		}
 	}
