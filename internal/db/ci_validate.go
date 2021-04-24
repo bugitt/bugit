@@ -54,7 +54,7 @@ type Linter interface {
 }
 
 func (task *ValidationTask) Run(ctx *CIContext) error {
-	config := ctx.config.Validation[task.Number-1]
+	config := ctx.config.Validate[task.Number-1]
 	config.Path = filepath.Join(ctx.path, config.Scope)
 	var (
 		linter Linter

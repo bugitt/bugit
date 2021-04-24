@@ -140,7 +140,7 @@ func (ptask *PipeTask) prepareDeployTask(context *CIContext) (*DeployTask, error
 
 func (ptask *PipeTask) Validation(ctx *CIContext) error {
 	_ = ptask.updateStatus(ValidStart)
-	configs := ptask.Pipeline.Config.Validation
+	configs := ptask.Pipeline.Config.Validate
 	for i := range configs {
 		task, err := ptask.prepareValidstaionTask(i + 1)
 		if err != nil {

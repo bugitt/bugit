@@ -37,12 +37,12 @@ func IsErrConfFileNotFound(err error) bool {
 }
 
 type CIConfig struct {
-	Version    string              `yaml:"version"`
-	Meta       Meta                `yaml:"meta"`
-	On         map[string][]string `yaml:"on"`
-	Validation []ValidTaskConfig   `yaml:"validation"`
-	Build      []BuildTaskConfig   `yaml:"build"`
-	Deploy     DeployTaskConfig    `yaml:"deploy"`
+	Version  string              `yaml:"version"`
+	Meta     Meta                `yaml:"meta"`
+	On       map[string][]string `yaml:"on"`
+	Validate []ValidTaskConfig   `yaml:"validate"`
+	Build    []BuildTaskConfig   `yaml:"build"`
+	Deploy   DeployTaskConfig    `yaml:"deploy"`
 }
 
 type Meta struct {
