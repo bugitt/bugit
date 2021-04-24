@@ -111,5 +111,5 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 		return
 	}
 
-	c.JSONCors(http.StatusCreated, project)
+	c.JSON(http.StatusCreated, project)
 }

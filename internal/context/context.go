@@ -138,20 +138,7 @@ func (c *Context) Success(name string) {
 
 // JSONSuccess responses JSON with status http.StatusOK.
 func (c *Context) JSONSuccess(data interface{}) {
-	c.Header().Set("Content-Type", "application/json")
-	c.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Header().Set("Access-Control-Allow-Credentials", "false")
-	c.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 	c.JSON(http.StatusOK, data)
-}
-
-// JSONSuccessCustom responses JSON with custom status.
-func (c *Context) JSONCors(status int, data interface{}) {
-	c.Header().Set("Content-Type", "application/json")
-	c.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Header().Set("Access-Control-Allow-Credentials", "false")
-	c.Header().Add("Access-Control-Allow-Headers", "Content-Type")
-	c.JSON(status, data)
 }
 
 // RawRedirect simply calls underlying Redirect method with no escape.
