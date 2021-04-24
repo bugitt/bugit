@@ -88,32 +88,6 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		return
 	}
 
-	// 删除之前存在的deployment
-	deploymentsClient := clientSet.AppsV1().Deployments(ns)
-	deletePolicy := metav1.DeletePropagationBackground
-	if err := deploymentsClient.Delete(context.TODO(), deployName, metav1.DeleteOptions{
-		PropagationPolicy: &deletePolicy,
-	}); err != nil {
-		if !checkErrNotFound(err) {
-			return err
-		}
-	}
-
-	// 等待deployment删除结束
-	err = waitForDone(ctx, time.Second, func() (bool, error) {
-		_, err := deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
-		if err != nil {
-			if checkErrNotFound(err) {
-				return true, nil
-			}
-			return false, err
-		}
-		return false, nil
-	})
-	if err != nil {
-		return
-	}
-
 	// describe pod
 	container := apiv1.Container{
 		Name:  validRepoName + "-pod",
@@ -201,13 +175,28 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		},
 	}
 
-	// create
-	_, err = deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
+	// 看看之前部署的deployment还存不存在
+	deploymentsClient := clientSet.AppsV1().Deployments(ns)
+	_, err = deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
 	if err != nil {
-		return
+		if kerrors.IsNotFound(err) {
+			// create
+			_, err = deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
+			if err != nil {
+				return
+			}
+		} else {
+			return err
+		}
+	} else {
+		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
+		_, err = deploymentsClient.Update(context.TODO(), deployment, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
-	// 等待创建成功
+	// TODO: 这里应该变为监听pod的状态
 	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
 		result, err := deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
 		if err != nil {
@@ -223,35 +212,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		return
 	}
 
-	// 部署 service
-
-	// 删除之前存在的service
-	serviceClient := clientSet.CoreV1().Services(ns)
-	if err := serviceClient.Delete(context.TODO(), serviceName, metav1.DeleteOptions{
-		PropagationPolicy: &deletePolicy,
-	}); err != nil {
-		if !checkErrNotFound(err) {
-			return err
-		}
-	}
-
-	// 等待service删除结束
-	err = waitForDone(ctx, time.Second, func() (bool, error) {
-		_, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
-		if err != nil {
-			if checkErrNotFound(err) {
-				return true, nil
-			}
-			return false, err
-		}
-		return false, nil
-	})
-	if err != nil {
-		return
-	}
-
 	// service 系列端口
-	// TODO：如果有旧的端口号，那么使用旧的端口号
 	var svcPorts []apiv1.ServicePort
 	for _, port := range ports {
 		p := apiv1.ServicePort{
@@ -276,6 +237,50 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 			Selector: svcLabels,
 			Ports:    svcPorts,
 		},
+	}
+
+	// 删除之前存在的service
+	serviceClient := clientSet.CoreV1().Services(ns)
+
+	// 先检查是不是存在之前的service
+	oldService, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
+	if err != nil {
+		if !kerrors.IsNotFound(err) {
+			return err
+		}
+	} else {
+		// 删除原来的service
+		deletePolicy := metav1.DeletePropagationBackground
+		if err := serviceClient.Delete(context.TODO(), serviceName, metav1.DeleteOptions{
+			PropagationPolicy: &deletePolicy,
+		}); err != nil {
+			return err
+		}
+
+		// 等待service删除结束
+		err = waitForDone(ctx, time.Second, func() (bool, error) {
+			_, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
+			if err != nil {
+				if checkErrNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			}
+			return false, nil
+		})
+		if err != nil {
+			return
+		}
+		// 如果有旧的端口号，那么使用旧的端口号
+		for i := range service.Spec.Ports {
+			nodePort := getSvcNodePortBySourcePort(oldService.Spec.Ports, service.Spec.Ports[i].Port)
+			if nodePort <= 0 {
+				nodePort = getSvcNodePortByName(oldService.Spec.Ports, service.Spec.Ports[i].Name)
+			}
+			if nodePort > 0 {
+				service.Spec.Ports[i].NodePort = nodePort
+			}
+		}
 	}
 
 	// create
@@ -319,6 +324,24 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	task.IP = nextIP()
 
 	return nil
+}
+
+func getSvcNodePortBySourcePort(ports []apiv1.ServicePort, sourcePort int32) int32 {
+	for _, v := range ports {
+		if v.Port == sourcePort {
+			return v.NodePort
+		}
+	}
+	return 0
+}
+
+func getSvcNodePortByName(ports []apiv1.ServicePort, name string) int32 {
+	for _, v := range ports {
+		if v.Name == name {
+			return v.NodePort
+		}
+	}
+	return 0
 }
 
 func checkErrNotFound(err error) bool {
