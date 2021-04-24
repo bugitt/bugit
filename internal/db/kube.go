@@ -205,7 +205,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
 		result, err := deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
 		if err != nil {
-			if checkErrNotFound(err) {
+			if kerrors.IsNotFound(err) {
 				return false, nil
 			}
 			return false, err
@@ -266,7 +266,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		err = waitForDone(ctx, time.Second, func() (bool, error) {
 			_, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
 			if err != nil {
-				if checkErrNotFound(err) {
+				if kerrors.IsNotFound(err) {
 					return true, nil
 				}
 				return false, err
@@ -298,7 +298,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
 		result, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
 		if err != nil {
-			if checkErrNotFound(err) {
+			if kerrors.IsNotFound(err) {
 				return false, nil
 			}
 			return false, err
@@ -347,11 +347,6 @@ func getSvcNodePortByName(ports []apiv1.ServicePort, name string) int32 {
 		}
 	}
 	return 0
-}
-
-func checkErrNotFound(err error) bool {
-	e, ok := err.(*kerrors.StatusError)
-	return ok && e.ErrStatus.Code/100 == 4
 }
 
 func waitForDone(ctx context.Context, atLeast time.Duration, judge func() (bool, error)) error {
