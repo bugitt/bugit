@@ -256,6 +256,15 @@ func MigrateFromSqlite(dbPath string) error {
 		values := reflect.MakeSlice(reflect.SliceOf(t), 0, valueMap.Len())
 		for _, k := range valueMap.MapKeys() {
 			v := valueMap.MapIndex(k)
+			el := v.Elem()
+			if el.Kind() == reflect.Struct {
+				id := el.FieldByName("ID")
+				if id.IsValid() && id.CanSet() {
+					id.SetInt(int64(0))
+				} else {
+					return fmt.Errorf("can not set id to 0: %s", t.String())
+				}
+			}
 			values = reflect.Append(values, v)
 		}
 
