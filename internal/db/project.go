@@ -66,6 +66,12 @@ func GetUserAllProjects(user *User) (ProjectList, error) {
 	})
 }
 
+func GetUsersAllProjectsByUserList(userIDList []int64) (ProjectList, error) {
+	projects := make([]*Project, 0)
+	err := x.Where("sender_id in (?)", userIDList).Find(&projects)
+	return projects, err
+}
+
 func (p *Project) LoadAttributes() error {
 	return p.loadAttributes(x)
 }
@@ -110,7 +116,6 @@ func (ps ProjectList) loadAttributes(e Engine) error {
 	return nil
 }
 
-// TODO： 避免多次查询
 func GetAllProjectsWithCoAndAttr(user *User) ([]*Project, error) {
 	projects, err := GetUserAllProjects(user)
 	if err != nil {
@@ -120,13 +125,23 @@ func GetAllProjectsWithCoAndAttr(user *User) ([]*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// 对org列表进行索引
+	orgMap := make(map[int64]*User)
+	orgIDList := make([]int64, 0, len(user.Orgs))
 	for _, org := range user.Orgs {
-		ps, err := GetUserAllProjects(org)
-		if err != nil {
-			return nil, err
-		}
-		projects = append(projects, ps...)
+		orgMap[org.ID] = org
+		orgIDList = append(orgIDList, org.ID)
 	}
+	ps, err := GetUsersAllProjectsByUserList(orgIDList)
+	if err != nil {
+		return nil, err
+	}
+	for i := range ps {
+		ps[i].Sender = orgMap[ps[i].SenderID]
+	}
+	projects = append(projects, ps...)
+
 	for i := range projects {
 		err = projects[i].LoadAttributes()
 		if err != nil {
