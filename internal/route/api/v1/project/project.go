@@ -12,13 +12,13 @@ import (
 
 // CreateOption 创建project时可以提供的参数
 type CreateOption struct {
-	Name       string `json:"projectName" binding:"Required"`
-	OrgName    string `json:"organizationName"`
-	ExpName    string `json:"expName" binding:"Required"`
-	ExpID      int64  `json:"expId" binding:"Required"`
-	CourseName string `json:"courseName" binding:"Required"`
-	CourseID   int64  `json:"courseId" binding:"Required"`
-	IsNewOrg   bool   `json:"isNewOrganization"`
+	Name       string `json:"projectName" form:"projectName" binding:"Required"`
+	OrgName    string `json:"organizationName" form:"organizationName"`
+	ExpName    string `json:"expName" form:"expName" binding:"Required"`
+	ExpID      int64  `json:"expId" form:"expId" binding:"Required"`
+	CourseName string `json:"courseName" form:"courseName" binding:"Required"`
+	CourseID   int64  `json:"courseId" form:"courseId" binding:"Required"`
+	IsNewOrg   bool   `json:"isNewOrganization" form:"isNewOrganization"`
 }
 
 func GetAllProjects(c *context.APIContext) {
