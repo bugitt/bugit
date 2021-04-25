@@ -288,6 +288,10 @@ func (repo *Repository) FullName() string {
 	return repo.MustOwner().Name + "/" + repo.Name
 }
 
+func (repo *Repository) DeployName() string {
+	return strings.Replace(repo.LowerName, "_", "-", -1)
+}
+
 func (repo *Repository) HTMLURL() string {
 	return conf.Server.ExternalURL + repo.FullName()
 }
