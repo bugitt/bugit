@@ -108,3 +108,49 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 
 	c.JSON(http.StatusCreated, project)
 }
+
+func ListMembers(c *context.APIContext) {
+	projectID := c.ParamsInt64("projectID")
+	if projectID <= 0 {
+		c.JSON(http.StatusBadRequest, "param error: can not parse projectID from this url")
+		return
+	}
+
+	// 先找到这个project可能属于的org
+	project := &db.Project{
+		ID: projectID,
+	}
+	err := db.GetProject(project)
+	if err != nil {
+		if db.IsProjectNotExist(err) {
+			c.JSON(http.StatusNotFound, "can not found this project")
+			return
+		}
+	}
+
+	// 如果该project不属于一个org，那么其相关的用户只有sender一个，直接判断权限，然后返回就好
+	if !project.Sender.IsOrganization() {
+		// 确认一下，该用户是否对该项目有权限
+		if project.SenderID != c.UserID() {
+			c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+			return
+		}
+		c.JSONSuccess([]*db.User{project.Sender})
+		return
+	}
+	org := project.Sender
+
+	// 检查该用户是否是该org的成员
+	if !org.IsOrgMember(c.UserID()) {
+		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+
+	err = org.GetMembers(1 << 30)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSONSuccess(org.Members)
+}
