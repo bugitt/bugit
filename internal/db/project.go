@@ -39,17 +39,14 @@ func GetUserProjects(opts *UserProjectOptions) (ProjectList, error) {
 	return projects, sess.Find(&projects)
 }
 
-func GetProjectByID(id int64) (*Project, error) {
-	project := &Project{
-		ID: id,
-	}
-	has, err := x.Where("id = ?", id).Get(project)
+func GetProject(project *Project) error {
+	has, err := x.Get(project)
 	if err != nil {
-		return nil, err
+		return err
 	} else if !has {
-		return nil, ErrProjectNotExist{project}
+		return ErrProjectNotExist{project}
 	}
-	return project, project.LoadAttributes()
+	return project.LoadAttributes()
 }
 
 func GetProjectsByUserAndCourse(senderID int64, courseIDList []int64) ([]*Project, error) {
