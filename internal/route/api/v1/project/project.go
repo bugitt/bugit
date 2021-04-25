@@ -18,7 +18,6 @@ type CreateOption struct {
 	ExpID      int64  `json:"expId" form:"expId" binding:"Required"`
 	CourseName string `json:"courseName" form:"courseName" binding:"Required"`
 	CourseID   int64  `json:"courseId" form:"courseId" binding:"Required"`
-	IsNewOrg   bool   `json:"isNewOrganization" form:"isNewOrganization"`
 }
 
 func GetAllProjects(c *context.APIContext) {
@@ -63,37 +62,33 @@ func GetProjectsByCourse(c *context.APIContext) {
 }
 
 func CreateProject(c *context.APIContext, form CreateOption) {
-	if form.IsNewOrg {
-		// 创建新的org
-		if form.OrgName == "" {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		if !c.User.CanCreateOrganization() {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		org := &db.User{
-			Name:     form.OrgName,
-			IsActive: true,
-			Type:     db.UserOrganization,
-		}
-		if err := db.CreateOrganization(org, c.User); err != nil {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		log.Trace("Organization created: %s", org.Name)
-	}
-
 	senderID := c.User.ID
 	if form.OrgName != "" {
 		user, err := db.GetUserByName(form.OrgName)
 		if err != nil {
 			log.Error(err.Error())
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, "error: get org")
 			return
 		}
-		if user != nil {
+		if user == nil {
+			// 创建新的org
+			if !c.User.CanCreateOrganization() {
+				c.JSON(http.StatusBadRequest, "error: this user can not create org")
+				return
+			}
+			org := &db.User{
+				Name:     form.OrgName,
+				IsActive: true,
+				Type:     db.UserOrganization,
+			}
+			if err := db.CreateOrganization(org, c.User); err != nil {
+				c.JSON(http.StatusBadRequest, "error: create org")
+				return
+			}
+			log.Trace("Organization created: %s", org.Name)
+
+			senderID = org.ID
+		} else {
 			senderID = user.ID
 		}
 	}
@@ -107,7 +102,7 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 	}
 	if err := db.CreateProject(project); err != nil {
 		log.Error(err.Error())
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, "please check for duplicate: (senderID, expID)")
 		return
 	}
 
