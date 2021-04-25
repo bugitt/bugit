@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -130,10 +131,13 @@ func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
 	return task, err
 }
 
-func (ptask *PipeTask) prepareDeployTask(context *CIContext) (*DeployTask, error) {
+func (ptask *PipeTask) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
 	task.PipeTaskID = ptask.ID
 	task.Status = BeforeStart
+	task.NameSpace = fmt.Sprintf("%d-%d", ctx.repo.ProjectID, ctx.owner.ID)
+	task.DeploymentName = ctx.repo.DeployName() + "-deployment"
+	task.ServiceName = ctx.repo.DeployName() + "-service"
 	_, err := x.Insert(task)
 	return task, err
 }

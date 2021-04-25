@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -18,6 +20,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 )
+
+type DeployContext struct {
+	*CIContext
+	*DeployTask
+
+	clientSet *kubernetes.Clientset
+	labels    map[string]string
+	svcLabels map[string]string
+	container *apiv1.Container
+}
 
 // nextIP 获取这次应该部署的到哪个IP上
 var nextIP = func() func() string {
@@ -60,166 +72,73 @@ func ensureNS(ns string) error {
 	return nil
 }
 
-func getNameSpace(ctx *CIContext) string {
-	return fmt.Sprintf("%d-%d", ctx.repo.ProjectID, ctx.owner.ID)
-}
-
 func Deploy(ctx *CIContext, task *DeployTask) (err error) {
-	// 前期准备
 	clientSet, err := getKubeClient()
 	if err != nil {
-		return
+		return err
 	}
-	var repNum int32 = 1
+	deployCtx := &DeployContext{
+		CIContext:  ctx,
+		DeployTask: task,
+		clientSet:  clientSet,
+		labels: map[string]string{
+			"app":     ctx.repo.DeployName(),
+			"project": strconv.FormatInt(ctx.repo.ProjectID, 10),
+			"ref":     ctx.refName,
+			"commit":  ctx.commit,
+		},
+		svcLabels: map[string]string{
+			"app":     ctx.repo.DeployName(),
+			"project": strconv.FormatInt(ctx.repo.ProjectID, 10),
+		},
+	}
 	config := ctx.config.Deploy
-	ns := getNameSpace(ctx)
-	validRepoName := strings.Replace(ctx.repo.LowerName, "_", "-", -1)
-	deployName := validRepoName + "-deployment"
-	serviceName := validRepoName + "-service"
-	labels := map[string]string{
-		"app":     validRepoName,
-		"project": ns,
-		"ref":     ctx.refName,
-		"commit":  ctx.commit,
-	}
-	svcLabels := map[string]string{
-		"app":     validRepoName,
-		"project": ns,
-	}
 
 	// ensure namespace
 	// TODO: 每个namespace中进行资源配额限制
-	if err = ensureNS(ns); err != nil {
+	if err = ensureNS(task.NameSpace); err != nil {
 		return
 	}
 
-	// describe pod
-	container := apiv1.Container{
-		Name:  validRepoName + "-pod",
-		Image: ctx.imageTag,
+	// describe container
+	deployCtx.container = getContainer(deployCtx)
+
+	// deploy container
+	if !config.Stateful {
+		err = deployDeployment(deployCtx)
+		if err != nil {
+			return err
+		}
 	}
 
-	// 端口
-	var ports []apiv1.ContainerPort
-	for i, port := range config.Ports {
-		p := apiv1.ContainerPort{}
-
-		// 处理端口名称
-		if port.Name != "" {
-			p.Name = port.Name
-		} else {
-			p.Name = fmt.Sprintf("port%d", i)
-		}
-
-		// 处理端口协议，默认为tcp
-		var protocol apiv1.Protocol
-		switch strings.ToLower(port.Protocol) {
-		case "udp":
-			protocol = apiv1.ProtocolTCP
-		case "sctp":
-			protocol = apiv1.ProtocolSCTP
-		default:
-			protocol = apiv1.ProtocolTCP
-		}
-		p.Protocol = protocol
-
-		//  处理端口号
-		p.ContainerPort = port.Port
-
-		ports = append(ports, p)
+	// 部署service
+	service, err := deployService(deployCtx)
+	if err != nil {
+		return err
 	}
-	container.Ports = ports
 
-	// 环境变量
-	var envs []apiv1.EnvVar
-	for k, v := range config.Envs {
-		envs = append(envs, apiv1.EnvVar{
-			Name:  k,
-			Value: v,
+	// 获取部署后的端口
+	deployPorts := make([]Port, 0, len(config.Ports))
+	for _, port := range service.Spec.Ports {
+		deployPorts = append(deployPorts, Port{
+			Name:     port.Name,
+			Port:     port.NodePort,
+			Protocol: string(port.Protocol),
 		})
 	}
-	container.Env = envs
 
-	// workingDir
-	if len(config.WorkingDir) > 0 {
-		container.WorkingDir = config.WorkingDir
-	}
+	task.Ports = deployPorts
+	task.StringPorts()
+	task.IP = nextIP()
 
-	// command
-	if len(config.Cmd.Command) > 0 {
-		container.Command = config.Cmd.Command
-	}
+	return nil
+}
 
-	// args
-	if len(config.Cmd.Args) > 0 {
-		container.Args = config.Cmd.Args
-	}
-
-	// TODO: 替换策略
-
-	// TODO: Stateful
-
-	// 定义 deployment
-	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: deployName,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &repNum,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: svcLabels,
-			},
-			Template: apiv1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{container},
-				},
-			},
-		},
-	}
-
-	// 看看之前部署的deployment还存不存在
-	deploymentsClient := clientSet.AppsV1().Deployments(ns)
-	_, err = deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
-	if err != nil {
-		if kerrors.IsNotFound(err) {
-			// create
-			_, err = deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
-			if err != nil {
-				return
-			}
-		} else {
-			return err
-		}
-	} else {
-		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
-		_, err = deploymentsClient.Update(context.TODO(), deployment, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
-	// TODO: 这里应该变为监听pod的状态
-	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
-		result, err := deploymentsClient.Get(context.TODO(), deployName, metav1.GetOptions{})
-		if err != nil {
-			if kerrors.IsNotFound(err) {
-				return false, nil
-			}
-			return false, err
-		}
-		// TODO: 这里只能保证当部署成功时能退出，如果部署失败，比如镜像没有拉取到，就要一直等到pipeline超时才能得到结果
-		return result.Status.AvailableReplicas == result.Status.ReadyReplicas && result.Status.AvailableReplicas == repNum, nil
-	})
-	if err != nil {
-		return
-	}
-
+func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 	// service 系列端口
+	serviceName := ctx.ServiceName
 	var svcPorts []apiv1.ServicePort
-	for _, port := range ports {
+	for _, port := range ctx.container.Ports {
 		p := apiv1.ServicePort{
 			Name:     port.Name,
 			Protocol: port.Protocol,
@@ -234,24 +153,24 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 	service := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   serviceName,
-			Labels: svcLabels,
+			Labels: ctx.svcLabels,
 		},
 
 		Spec: apiv1.ServiceSpec{
 			Type:     apiv1.ServiceTypeNodePort,
-			Selector: svcLabels,
+			Selector: ctx.svcLabels,
 			Ports:    svcPorts,
 		},
 	}
 
 	// 删除之前存在的service
-	serviceClient := clientSet.CoreV1().Services(ns)
+	serviceClient := ctx.clientSet.CoreV1().Services(ctx.NameSpace)
 
 	// 先检查是不是存在之前的service
 	oldService, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
-			return err
+			return nil, err
 		}
 	} else {
 		// 删除原来的service
@@ -259,7 +178,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		if err := serviceClient.Delete(context.TODO(), serviceName, metav1.DeleteOptions{
 			PropagationPolicy: &deletePolicy,
 		}); err != nil {
-			return err
+			return nil, err
 		}
 
 		// 等待service删除结束
@@ -304,31 +223,147 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 			return false, err
 		}
 		// 确保端口都映射上了
-		return result.Spec.ClusterIP != "" && len(result.Spec.Ports) == len(config.Ports), nil
+		return result.Spec.ClusterIP != "" && len(result.Spec.Ports) == len(ctx.config.Deploy.Ports), nil
 	})
 	if err != nil {
 		return
 	}
+	return serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
+}
 
-	// 获取部署后的端口
-	deployPorts := make([]Port, 0, len(config.Ports))
-	result, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
-	if err != nil {
-		return
+func deployDeployment(ctx *DeployContext) (err error) {
+	clientSet := ctx.clientSet
+	var repNum int32 = 1
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ctx.DeploymentName,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &repNum,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: ctx.svcLabels,
+			},
+			Template: apiv1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: ctx.labels,
+				},
+				Spec: apiv1.PodSpec{
+					Containers: []apiv1.Container{
+						*ctx.container,
+					},
+				},
+			},
+		},
 	}
-	for _, port := range result.Spec.Ports {
-		deployPorts = append(deployPorts, Port{
-			Name:     port.Name,
-			Port:     port.NodePort,
-			Protocol: string(port.Protocol),
+
+	// 看看之前部署的deployment还存不存在
+	deploymentsClient := clientSet.AppsV1().Deployments(ctx.NameSpace)
+	_, err = deploymentsClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
+	if err != nil {
+		if kerrors.IsNotFound(err) {
+			// create
+			_, err = deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
+			if err != nil {
+				return
+			}
+		} else {
+			return err
+		}
+	} else {
+		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
+		_, err = deploymentsClient.Update(context.TODO(), deployment, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO: 这里应该变为监听pod的状态
+	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
+		result, err := deploymentsClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
+		if err != nil {
+			if kerrors.IsNotFound(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		// TODO: 这里只能保证当部署成功时能退出，如果部署失败，比如镜像没有拉取到，就要一直等到pipeline超时才能得到结果
+		return result.Status.AvailableReplicas == result.Status.ReadyReplicas && result.Status.AvailableReplicas == repNum, nil
+	})
+	return
+}
+
+func getContainer(ctx *DeployContext) *apiv1.Container {
+	container := &apiv1.Container{
+		Name:  ctx.repo.DeployName() + "-pod",
+		Image: ctx.imageTag,
+	}
+
+	config := ctx.config.Deploy
+
+	// 端口
+	container.Ports = getContainerPorts(config.Ports)
+
+	// 环境变量
+	var envs []apiv1.EnvVar
+	for k, v := range config.Envs {
+		envs = append(envs, apiv1.EnvVar{
+			Name:  k,
+			Value: v,
 		})
 	}
+	container.Env = envs
 
-	task.Ports = deployPorts
-	task.StringPorts()
-	task.IP = nextIP()
+	// workingDir
+	if len(config.WorkingDir) > 0 {
+		container.WorkingDir = config.WorkingDir
+	}
 
-	return nil
+	// command
+	if len(config.Cmd.Command) > 0 {
+		container.Command = config.Cmd.Command
+	}
+
+	// args
+	if len(config.Cmd.Args) > 0 {
+		container.Args = config.Cmd.Args
+	}
+
+	// TODO: 替换策略
+
+	// TODO: Stateful
+	return container
+}
+
+func getContainerPorts(dbPorts []Port) []apiv1.ContainerPort {
+	var ports []apiv1.ContainerPort
+	for i, port := range dbPorts {
+		p := apiv1.ContainerPort{}
+
+		// 处理端口名称
+		if port.Name != "" {
+			p.Name = port.Name
+		} else {
+			p.Name = fmt.Sprintf("port%d", i)
+		}
+
+		// 处理端口协议，默认为tcp
+		var protocol apiv1.Protocol
+		switch strings.ToLower(port.Protocol) {
+		case "udp":
+			protocol = apiv1.ProtocolTCP
+		case "sctp":
+			protocol = apiv1.ProtocolSCTP
+		default:
+			protocol = apiv1.ProtocolTCP
+		}
+		p.Protocol = protocol
+
+		//  处理端口号
+		p.ContainerPort = port.Port
+
+		ports = append(ports, p)
+	}
+	return ports
 }
 
 func getSvcNodePortBySourcePort(ports []apiv1.ServicePort, sourcePort int32) int32 {

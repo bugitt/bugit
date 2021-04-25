@@ -31,12 +31,15 @@ type DeployTaskConfig struct {
 }
 
 type DeployTask struct {
-	SourceLog string `xorm:"TEXT" json:"source_log"`
-	IP        string
-	Ports     []Port `xorm:"-" gorm:"-"`
-	PortsS    string `xorm:"TEXT 'ports_s'" json:"ports_s"`
-	BasicTask `xorm:"extends"`
-	BaseModel `xorm:"extends"`
+	SourceLog      string `xorm:"TEXT" json:"source_log"`
+	IP             string
+	Ports          []Port `xorm:"-" gorm:"-"`
+	PortsS         string `xorm:"TEXT 'ports_s'" json:"ports_s"`
+	NameSpace      string
+	DeploymentName string
+	ServiceName    string
+	BasicTask      `xorm:"extends"`
+	BaseModel      `xorm:"extends"`
 }
 
 func (task *DeployTask) GetURLs() []string {
