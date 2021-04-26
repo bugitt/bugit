@@ -34,31 +34,16 @@ func GetAllProjects(c *context.APIContext) {
 }
 
 func GetProjectsByCourse(c *context.APIContext) {
-	courseListS := c.Query("courseIds")
-	var (
-		projects []*db.Project
-		err      error
-	)
-	if courseListS == "-1" {
-		projects, err = db.GetUserAllProjects(c.User)
-		if err != nil {
-			log.Error(err.Error())
-			c.Status(http.StatusInternalServerError)
-			return
-		}
-		c.JSONSuccess(projects)
-	}
-	courseIDList := make([]int64, 0)
-	err = jsoniter.Unmarshal([]byte(courseListS), &courseIDList)
+	courseIDList, err := getCourseIDListByToken(c.Data["Token"].(string))
 	if err != nil {
 		log.Error(err.Error())
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	projects, err = db.GetProjectsByUserAndCourse(c.UserID(), courseIDList)
+	projects, err := db.GetProjectsByCourseIDList(courseIDList)
 	if err != nil {
 		log.Error(err.Error())
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSONSuccess(projects)
@@ -68,7 +53,7 @@ func CreateProject(c *context.APIContext, form CreateOption) {
 	senderID := c.User.ID
 	if form.OrgName != "" {
 		user, err := db.GetUserByName(form.OrgName)
-		if err != nil {
+		if err != nil && !db.IsErrUserNotExist(err) {
 			log.Error(err.Error())
 			c.JSON(http.StatusInternalServerError, "error: get org")
 			return
@@ -160,7 +145,7 @@ func ListMembers(c *context.APIContext) {
 
 func getCourseIDListByToken(token string) ([]int64, error) {
 	resp, err := httplib.Get("http://vlab.beihangsoft.cn/api/user/getCoursesByUser").
-		Header("Authorization", "4efd14aa-74ad-44d8-a633-57a66708bb13").
+		Header("Authorization", token).
 		Response()
 	if err != nil {
 		return nil, err

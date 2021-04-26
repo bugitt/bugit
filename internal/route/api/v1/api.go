@@ -203,7 +203,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 		}, reqToken())
 		m.Group("/user/projects", func() {
 			m.Get("", project.GetAllProjects)
-			m.Get("/by/course", project.GetProjectsByCourse)
+			m.Get("/by/courses", project.GetProjectsByCourse)
 		}, reqToken())
 
 		m.Group("/projects/:projectID", func() {

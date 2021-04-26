@@ -49,9 +49,9 @@ func GetProject(project *Project) error {
 	return project.LoadAttributes()
 }
 
-func GetProjectsByUserAndCourse(senderID int64, courseIDList []int64) ([]*Project, error) {
-	var data []*Project = make([]*Project, 0)
-	_, err := x.Where("sender_id = ?", senderID).And("course_id in (?)", courseIDList).Get(&data)
+func GetProjectsByCourseIDList(courseIDList []int64) ([]*Project, error) {
+	data := make([]*Project, 0)
+	err := x.In("course_id", courseIDList).Find(&data)
 	return data, err
 }
 
