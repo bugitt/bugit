@@ -1,6 +1,8 @@
 package project
 
 import (
+	"errors"
+	"io/ioutil"
 	"net/http"
 
 	jsoniter "github.com/json-iterator/go"
@@ -8,6 +10,7 @@ import (
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
 )
 
 // CreateOption 创建project时可以提供的参数
@@ -153,4 +156,31 @@ func ListMembers(c *context.APIContext) {
 	}
 
 	c.JSONSuccess(org.Members)
+}
+
+func getCourseIDListByToken(token string) ([]int64, error) {
+	resp, err := httplib.Get("http://vlab.beihangsoft.cn/api/user/getCoursesByUser").
+		Header("Authorization", "4efd14aa-74ad-44d8-a633-57a66708bb13").
+		Response()
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	type CloudResp struct {
+		Code int     `json:"code"`
+		Msg  string  `json:"msg"`
+		Data []int64 `json:"data"`
+	}
+	cloudResp := &CloudResp{}
+	err = jsoniter.Unmarshal(body, cloudResp)
+	if err != nil {
+		return nil, err
+	}
+	if cloudResp.Code != 1001 {
+		return nil, errors.New("error verifying user information")
+	}
+	return cloudResp.Data, nil
 }
