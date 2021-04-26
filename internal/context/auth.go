@@ -187,8 +187,10 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 				auths := strings.Fields(auHead)
 				if len(auths) == 2 && auths[0] == "token" {
 					tokenSHA = auths[1]
+					c.Data["Token"] = auths[1]
 				} else if len(auths) == 1 {
 					// 从Redis中获取权限校验信息
+					c.Data["Token"] = auths[0]
 					return redisAuthUserID(auths[0])
 				}
 			}
