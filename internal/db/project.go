@@ -73,6 +73,25 @@ func (p *Project) LoadAttributes() error {
 	return p.loadAttributes(x)
 }
 
+func (p *Project) GetMembers() (members []*User, org *User, err error) {
+	err = p.LoadAttributes()
+	if err != nil {
+		return
+	}
+	members = make([]*User, 0)
+	if !p.Sender.IsOrganization() {
+		members = append(members, p.Sender)
+		return
+	}
+	org = p.Sender
+	err = org.GetMembers(1 << 30)
+	if err != nil {
+		return
+	}
+	members = org.Members
+	return
+}
+
 // TODO: 防止多次查询
 func (p *Project) loadAttributes(e Engine) (err error) {
 	// Get User
