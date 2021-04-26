@@ -91,6 +91,11 @@ func (c *APIContext) SetLinkHeader(total, pageSize int) {
 	}
 }
 
+// Token get token from APIContext
+func (c *APIContext) Token() string {
+	return c.Data["Token"].(string)
+}
+
 func APIContexter() macaron.Handler {
 	return func(ctx *Context) {
 		c := &APIContext{

@@ -34,7 +34,7 @@ func GetAllProjects(c *context.APIContext) {
 }
 
 func GetProjectsByCourse(c *context.APIContext) {
-	courseIDList, err := getCourseIDListByToken(c.Data["Token"].(string))
+	courseIDList, err := getCourseIDListByToken(c.Token())
 	if err != nil {
 		log.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, err.Error())
@@ -123,7 +123,7 @@ func ListMembers(c *context.APIContext) {
 		return
 	}
 
-	authOK, err := authForAccessProject(project, c.UserID(), c.Data["Token"].(string))
+	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
