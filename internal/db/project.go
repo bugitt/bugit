@@ -98,7 +98,6 @@ func (p *Project) GetRepos() ([]*Repository, error) {
 	return repos, err
 }
 
-// TODO: 防止多次查询
 func (p *Project) loadAttributes(e Engine) (err error) {
 	// Get User
 	if p.Sender == nil {
