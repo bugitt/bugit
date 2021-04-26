@@ -120,8 +120,15 @@ func ListMembers(c *context.APIContext) {
 	if !project.Sender.IsOrganization() {
 		// 确认一下，该用户是否对该项目有权限
 		if project.SenderID != c.UserID() {
-			c.JSON(http.StatusForbidden, "no permission to read the content of this project")
-			return
+			admin, err := checkProjectCloudAdmin(project, c.Data["Token"].(string))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, err.Error())
+				return
+			}
+			if !admin {
+				c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+				return
+			}
 		}
 		c.JSONSuccess([]*db.User{project.Sender})
 		return
@@ -130,8 +137,15 @@ func ListMembers(c *context.APIContext) {
 
 	// 检查该用户是否是该org的成员
 	if !org.IsOrgMember(c.UserID()) {
-		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
-		return
+		admin, err := checkProjectCloudAdmin(project, c.Data["Token"].(string))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+		if !admin {
+			c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+			return
+		}
 	}
 
 	err = org.GetMembers(1 << 30)
@@ -168,4 +182,17 @@ func getCourseIDListByToken(token string) ([]int64, error) {
 		return nil, errors.New("error verifying user information")
 	}
 	return cloudResp.Data, nil
+}
+
+func checkProjectCloudAdmin(project *db.Project, token string) (bool, error) {
+	courseIDList, err := getCourseIDListByToken(token)
+	if err != nil {
+		return false, err
+	}
+	for _, courseID := range courseIDList {
+		if project.CourseID == courseID {
+			return true, nil
+		}
+	}
+	return false, nil
 }
