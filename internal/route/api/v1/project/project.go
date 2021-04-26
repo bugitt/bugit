@@ -117,28 +117,18 @@ func ListMembers(c *context.APIContext) {
 	}
 
 	// 获取该project中的成员
-	members, org, err := project.GetMembers()
+	members, err := project.GetMembers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	// 下面进行一系列的权限校验
-	// 1. 该project本身就不属于一个org，而是个人的project的Sender应该就是发出请求的用户
-	// 2. 该project属于一个org，那么发出请求的用户得是该org的一名成员
-	if org == nil && project.SenderID == c.UserID() ||
-		org != nil && org.IsOrgMember(c.UserID()) {
-		c.JSONSuccess(members)
-		return
-	}
-
-	// 3. 发出请求的用户是一名管理员
-	admin, err := checkProjectCloudAdmin(project, c.Data["Token"].(string))
+	authOK, err := authForAccessProject(project, c.UserID(), c.Data["Token"].(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	if !admin {
+	if !authOK {
 		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
 		return
 	}
@@ -170,6 +160,21 @@ func getCourseIDListByToken(token string) ([]int64, error) {
 		return nil, errors.New("error verifying user information")
 	}
 	return cloudResp.Data, nil
+}
+
+func authForAccessProject(project *db.Project, userID int64, token string) (bool, error) {
+	// 如果该project是个人的项目
+	if userID == project.SenderID {
+		return true, nil
+	}
+
+	// 如果该project是组织的项目
+	if org := project.Sender; org.IsOrganization() && org.IsOrgMember(userID) {
+		return true, nil
+	}
+
+	// 如果是管理员
+	return checkProjectCloudAdmin(project, token)
 }
 
 func checkProjectCloudAdmin(project *db.Project, token string) (bool, error) {

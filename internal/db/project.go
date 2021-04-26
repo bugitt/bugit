@@ -73,7 +73,7 @@ func (p *Project) LoadAttributes() error {
 	return p.loadAttributes(x)
 }
 
-func (p *Project) GetMembers() (members []*User, org *User, err error) {
+func (p *Project) GetMembers() (members []*User, err error) {
 	err = p.LoadAttributes()
 	if err != nil {
 		return
@@ -83,7 +83,7 @@ func (p *Project) GetMembers() (members []*User, org *User, err error) {
 		members = append(members, p.Sender)
 		return
 	}
-	org = p.Sender
+	org := p.Sender
 	err = org.GetMembers(1 << 30)
 	if err != nil {
 		return
