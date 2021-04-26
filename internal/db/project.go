@@ -65,7 +65,7 @@ func GetUserAllProjects(user *User) (ProjectList, error) {
 
 func GetUsersAllProjectsByUserList(userIDList []int64) (ProjectList, error) {
 	projects := make([]*Project, 0)
-	err := x.Where("sender_id in (?)", userIDList).Find(&projects)
+	err := x.In("sender_id", userIDList).Find(&projects)
 	return projects, err
 }
 
