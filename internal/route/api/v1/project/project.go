@@ -135,6 +135,44 @@ func ListMembers(c *context.APIContext) {
 	c.JSONSuccess(members)
 }
 
+func ListRepos(c *context.APIContext) {
+	projectID := c.ParamsInt64("projectID")
+	if projectID <= 0 {
+		c.JSON(http.StatusBadRequest, "param error: can not parse projectID from this url")
+		return
+	}
+
+	// 先找到这个project
+	project := &db.Project{
+		ID: projectID,
+	}
+	err := db.GetProject(project)
+	if err != nil {
+		if db.IsProjectNotExist(err) {
+			c.JSON(http.StatusNotFound, "can not found this project")
+			return
+		}
+	}
+
+	// 获取该project中的成员
+	repos, err := project.GetRepos()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !authOK {
+		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+	c.JSONSuccess(repos)
+}
+
 func getCourseIDListByToken(token string) ([]int64, error) {
 	resp, err := httplib.Get("http://vlab.beihangsoft.cn/api/user/getCoursesByUser").
 		Header("Authorization", token).

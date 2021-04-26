@@ -92,6 +92,12 @@ func (p *Project) GetMembers() (members []*User, err error) {
 	return
 }
 
+func (p *Project) GetRepos() ([]*Repository, error) {
+	repos := make([]*Repository, 0)
+	err := x.Where("project_id = ?", p.ID).Find(&repos)
+	return repos, err
+}
+
 // TODO: 防止多次查询
 func (p *Project) loadAttributes(e Engine) (err error) {
 	// Get User
