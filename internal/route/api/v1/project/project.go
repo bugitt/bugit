@@ -116,13 +116,6 @@ func ListMembers(c *context.APIContext) {
 		}
 	}
 
-	// 获取该project中的成员
-	members, err := project.GetMembers()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
@@ -130,6 +123,13 @@ func ListMembers(c *context.APIContext) {
 	}
 	if !authOK {
 		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+
+	// 获取该project中的成员
+	members, err := project.GetMembers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSONSuccess(members)
@@ -154,13 +154,6 @@ func ListRepos(c *context.APIContext) {
 		}
 	}
 
-	// 获取该project中的成员
-	repos, err := project.GetRepos()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
@@ -168,6 +161,13 @@ func ListRepos(c *context.APIContext) {
 	}
 	if !authOK {
 		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+
+	// 获取该project中的成员
+	repos, err := project.GetRepos()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSONSuccess(repos)
