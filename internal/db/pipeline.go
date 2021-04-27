@@ -85,8 +85,7 @@ type PipeTask struct {
 	Stage      PipeStage
 	IsSucceed  bool
 	ErrType    CIErrType
-	SrcErrMsg  string `xorm:"text"`
-	CusErrMsg  string `xorm:"text"`
+	ErrMsg     string `xorm:"text"`
 	ImageTag   string
 	BeginUnix  int64 // 开始时间戳
 	EndUnix    int64 // 结束时间戳
@@ -264,17 +263,21 @@ func (ptask *PipeTask) Run() {
 	select {
 	case err = <-done:
 	case <-ctx.Done():
-		err = ctx.Err()
+		err = &CIError{
+			Type: TimeoutErrType,
+			err:  ctx.Err(),
+		}
 	}
 
-	// TODO: 对返回的错误进行统一处理
 	// 保证打上结束的时间戳
-	_ = ptask.endTime()
 	if err == nil {
 		err = ptask.success()
+	} else {
+		log.Error("pipe CI error: %s", err.Error())
+		err = ptask.fail(err)
 	}
 	if err != nil {
-		log.Error("pipe CI error: %s", err.Error())
+		log.Error("update ptask error: err")
 	}
 }
 
@@ -285,17 +288,26 @@ func (ptask *PipeTask) beginTime() error {
 	return err
 }
 
-func (ptask *PipeTask) endTime() error {
+func (ptask *PipeTask) success() error {
+	ptask.IsSucceed = true
 	ptask.EndUnix = time.Now().Unix()
-	_, err := x.ID(ptask.ID).Update(ptask)
+	row, err := x.ID(ptask.ID).Cols("is_succeed", "end_unix").Update(ptask)
+	if err == nil && row != 1 {
+		err = errors.New("set ptask success failed")
+	}
 	return err
 }
 
-func (ptask *PipeTask) success() error {
-	ptask.IsSucceed = true
-	row, err := x.ID(ptask.ID).Cols("is_succeed").Update(ptask)
+func (ptask *PipeTask) fail(sourceErr error) error {
+	ptask.IsSucceed = false
+	ptask.EndUnix = time.Now().Unix()
+	ptask.ErrMsg = sourceErr.Error()
+	if ciErr, ok := sourceErr.(*CIError); ok {
+		ptask.ErrType = ciErr.Type
+	}
+	row, err := x.ID(ptask.ID).Cols("is_succeed", "end_unix", "err_msg", "err_type").Update(ptask)
 	if err == nil && row != 1 {
-		err = errors.New("set ptask success failed")
+		err = errors.New("update ptask failed")
 	}
 	return err
 }

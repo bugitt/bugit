@@ -1,9 +1,12 @@
 package db
 
-type CIError interface {
-	Type() CIErrType
-	SpecMsg() string
-	Source() string
+type CIError struct {
+	Type CIErrType
+	err  error
+}
+
+func (ciErr *CIError) Error() string {
+	return ciErr.err.Error()
 }
 
 type CIErrType int
@@ -11,6 +14,7 @@ type CIErrType int
 const (
 	InternalErrType CIErrType = 500
 	UnknownErrType  CIErrType = 501
+	TimeoutErrType  CIErrType = 502
 
 	ValidateErrType CIErrType = 100
 
