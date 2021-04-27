@@ -87,6 +87,7 @@ type PipeTask struct {
 	ErrType    CIErrType
 	ErrMsg     string `xorm:"text"`
 	ImageTag   string
+	Status     RunStatus
 	BeginUnix  int64 // 开始时间戳
 	EndUnix    int64 // 结束时间戳
 	BaseModel  `xorm:"extends"`
@@ -215,6 +216,7 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 		SenderID:   pusher.ID,
 		ImageTag:   pipeline.ImageTag,
 		Stage:      NotStart,
+		Status:     BeforeStart,
 	}
 	return createPipeTask(x, pipeTask)
 }
@@ -243,6 +245,16 @@ func (ptask *PipeTask) Run() {
 	defer cancel()
 
 	var err error
+
+	defer func() {
+		if err != nil {
+			err = ptask.fail(err)
+		}
+		if err != nil {
+			log.Error("update ptask error: err")
+		}
+	}()
+
 	// prepare attributes
 	if err = ptask.loadAttributes(); err != nil {
 		return
@@ -274,15 +286,12 @@ func (ptask *PipeTask) Run() {
 		err = ptask.success()
 	} else {
 		log.Error("pipe CI error: %s", err.Error())
-		err = ptask.fail(err)
-	}
-	if err != nil {
-		log.Error("update ptask error: err")
 	}
 }
 
 func (ptask *PipeTask) begin() error {
 	ptask.BeginUnix = time.Now().Unix()
+	ptask.Status = Running
 	_, err := x.ID(ptask.ID).Update(ptask)
 	return err
 }
@@ -290,7 +299,8 @@ func (ptask *PipeTask) begin() error {
 func (ptask *PipeTask) success() error {
 	ptask.IsSucceed = true
 	ptask.EndUnix = time.Now().Unix()
-	row, err := x.ID(ptask.ID).Cols("is_succeed", "end_unix").Update(ptask)
+	ptask.Status = Finished
+	row, err := x.ID(ptask.ID).Cols("is_succeed", "status", "end_unix").Update(ptask)
 	if err == nil && row != 1 {
 		err = errors.New("set ptask success failed")
 	}
@@ -304,7 +314,8 @@ func (ptask *PipeTask) fail(sourceErr error) error {
 	if ciErr, ok := sourceErr.(*CIError); ok {
 		ptask.ErrType = ciErr.Type
 	}
-	row, err := x.ID(ptask.ID).Cols("is_succeed", "end_unix", "err_msg", "err_type").Update(ptask)
+	ptask.Status = Finished
+	row, err := x.ID(ptask.ID).Cols("is_succeed", "status", "end_unix", "err_msg", "err_type").Update(ptask)
 	if err == nil && row != 1 {
 		err = errors.New("update ptask failed")
 	}
