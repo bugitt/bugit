@@ -219,7 +219,7 @@ func (repo *Repository) AfterSet(colName string, _ xorm.Cell) {
 	case "default_branch":
 		// FIXME: use db migration to solve all at once.
 		if len(repo.DefaultBranch) == 0 {
-			repo.DefaultBranch = "master"
+			repo.DefaultBranch = "main"
 		}
 	case "num_closed_issues":
 		repo.NumOpenIssues = repo.NumIssues - repo.NumClosedIssues
@@ -1080,7 +1080,7 @@ func initRepository(e Engine, repoPath string, doer *User, repo *Repository, opt
 		repo.IsBare = true
 	}
 
-	repo.DefaultBranch = "master"
+	repo.DefaultBranch = "main"
 	if err = updateRepository(e, repo, false); err != nil {
 		return fmt.Errorf("updateRepository: %v", err)
 	}
