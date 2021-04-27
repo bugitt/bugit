@@ -248,7 +248,7 @@ func (ptask *PipeTask) Run() {
 		return
 	}
 
-	if err = ptask.beginTime(); err != nil {
+	if err = ptask.begin(); err != nil {
 		return
 	}
 
@@ -281,8 +281,7 @@ func (ptask *PipeTask) Run() {
 	}
 }
 
-// TODO: 对task进行统一的接口处理，包括处理success failed 等等
-func (ptask *PipeTask) beginTime() error {
+func (ptask *PipeTask) begin() error {
 	ptask.BeginUnix = time.Now().Unix()
 	_, err := x.ID(ptask.ID).Update(ptask)
 	return err
