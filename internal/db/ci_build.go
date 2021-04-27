@@ -2,14 +2,12 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	log "unknwon.dev/clog/v2"
 )
 
@@ -32,15 +30,8 @@ func (task *BuildTask) Run(ctx *CIContext) error {
 	buildPath := filepath.Join(ctx.path, config.Scope)
 	switch strings.ToLower(config.Type) {
 	case "docker":
-		imageTag := fmt.Sprintf("%s/%s/%s:%s",
-			conf.Docker.Registry,
-			ctx.owner.LowerName,
-			ctx.repo.LowerName,
-			ctx.commit[:5])
-		// TODO: 如果镜像已经存在，那么不用重复构建
-
 		// Build
-		sourceLog, isSuccessful, buildErr, err := BuildImage(config.Dockerfile, buildPath, []string{imageTag})
+		sourceLog, isSuccessful, buildErr, err := BuildImage(config.Dockerfile, buildPath, []string{ctx.imageTag})
 		if err != nil {
 			log.Error(err.Error())
 		}
@@ -52,8 +43,6 @@ func (task *BuildTask) Run(ctx *CIContext) error {
 		} else {
 			task.BuildErrString = ""
 		}
-		// 设置镜像tag
-		ctx.imageTag = imageTag
 	}
 	return nil
 }

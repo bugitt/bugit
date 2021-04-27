@@ -66,6 +66,7 @@ type Pipeline struct {
 	UUID         string
 	RefName      string
 	Commit       string
+	ImageTag     string
 	gitCommit    *git.Commit `xorm:"-" json:"-"`
 	ConfigString string      `xorm:"text"`
 	Config       *CIConfig   `xorm:"-" json:"-"`
@@ -213,6 +214,7 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 		PipelineID: pipeline.ID,
 		RepoID:     pipeline.RepoID,
 		SenderID:   pusher.ID,
+		ImageTag:   pipeline.ImageTag,
 		Stage:      NotStart,
 	}
 	return createPipeTask(x, pipeTask)
@@ -324,11 +326,17 @@ func (ptask *PipeTask) loadAttributes() error {
 }
 
 func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
+	imageTag := fmt.Sprintf("%s/%s/%s:%s",
+		conf.Docker.Registry,
+		repo.MustOwner().LowerName,
+		repo.LowerName,
+		commit.ID.String()[:5])
 	pipeline := &Pipeline{
 		RepoID:       repo.ID,
 		PusherID:     pusher.ID,
 		RefName:      refName,
 		Commit:       commit.ID.String(),
+		ImageTag:     imageTag,
 		ConfigString: string(configS),
 	}
 	id, err := createPipeline(x, pipeline)

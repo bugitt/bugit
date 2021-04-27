@@ -9,11 +9,12 @@ import (
 func prepareCICtx(ptask *PipeTask, c context.Context) (*CIContext, error) {
 	repo := ptask.Pipeline.repoDB
 	ctx := &CIContext{
-		commit:  ptask.Pipeline.Commit,
-		config:  ptask.Pipeline.Config,
-		repo:    repo,
-		refName: ptask.Pipeline.RefName,
-		Context: c,
+		commit:   ptask.Pipeline.Commit,
+		config:   ptask.Pipeline.Config,
+		repo:     repo,
+		refName:  ptask.Pipeline.RefName,
+		Context:  c,
+		imageTag: ptask.ImageTag,
 	}
 	if repo.Owner == nil {
 		if err := repo.GetOwner(); err != nil {
