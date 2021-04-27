@@ -11,26 +11,15 @@ import (
 var CIQueue = sync.NewUniqueQueue(1000)
 
 func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName string) (bool, error) {
-	var fileContent []byte
-	var err error
-	for _, filename := range conf.Devops.Filename {
-		if fileContent, err = commit.ReadFileSimple(filename); err != nil {
-			continue
-		} else {
-			break
+	ciConfig, fileContent, err := getCIConfigFromCommit(commit)
+	if err != nil {
+		return false, err
 		}
-	}
-
-	if len(fileContent) <= 0 {
+	if ciConfig == nil {
 		// TODO: 无法解析config的时候是不是要给用户提示？
 		return false, errors.New("can not parse config")
 	}
 
-	ciConfig, err := ParseCIConfig(fileContent)
-	if err != nil {
-		return false, err
-	}
-	log.Trace("%#v", ciConfig)
 	shouldCI := ciConfig.ShouldCIOnPush(refName)
 	if !shouldCI {
 		return false, nil
@@ -52,6 +41,26 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 
 	go CIQueue.Add(repo.ID)
 	return true, nil
+}
+
+func getCIConfigFromCommit(commit *git.Commit) (*CIConfig, []byte, error) {
+	var fileContent []byte
+	var err error
+	for _, filename := range conf.Devops.Filename {
+		if fileContent, err = commit.ReadFileSimple(filename); err != nil {
+			continue
+		} else {
+			break
+		}
+	}
+	if len(fileContent) <= 0 {
+		return nil, nil, nil
+	}
+	ciConfig, err := ParseCIConfig(fileContent)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ciConfig, fileContent, nil
 }
 
 func ci() {
