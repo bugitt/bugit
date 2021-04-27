@@ -221,6 +221,33 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 	return createPipeTask(x, pipeTask)
 }
 
+func IsPipelineRunning(repoID int64, commit string) (bool, error) {
+	pipeline := &Pipeline{
+		RepoID: repoID,
+		Commit: commit,
+	}
+	has, err := x.Get(pipeline)
+	if err != nil {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+
+	// 查找最新的pipeTask
+	pipeTask := &PipeTask{
+		PipelineID: pipeline.ID,
+	}
+	has, err = x.OrderBy("created_unix desc").Get(pipeTask)
+	if err != nil {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+	return pipeTask.Status == BeforeStart || pipeTask.Status == Running, nil
+}
+
 func createPipeTask(e Engine, p *PipeTask) error {
 	p.UUID = gouuid.NewV4().String()
 	_, err := e.Insert(p)
@@ -348,12 +375,25 @@ func (ptask *PipeTask) loadAttributes() error {
 }
 
 func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
+	// 先检查一下数据库中是不是已经存在旧有的pipeline了
+	pipeline := &Pipeline{
+		RepoID: repo.ID,
+		Commit: commit.ID.String(),
+	}
+	has, err := x.Get(pipeline)
+	if err != nil {
+		return nil, err
+	}
+	if has {
+		return pipeline, nil
+	}
+
 	imageTag := fmt.Sprintf("%s/%s/%s:%s",
 		conf.Docker.Registry,
 		repo.MustOwner().LowerName,
 		repo.LowerName,
 		commit.ID.String()[:5])
-	pipeline := &Pipeline{
+	pipeline = &Pipeline{
 		RepoID:       repo.ID,
 		PusherID:     pusher.ID,
 		RefName:      refName,

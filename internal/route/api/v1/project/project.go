@@ -116,7 +116,7 @@ func ListMembers(c *context.APIContext) {
 		}
 	}
 
-	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
+	authOK, err := authForAccessProject(c, project)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -154,7 +154,7 @@ func ListRepos(c *context.APIContext) {
 		}
 	}
 
-	authOK, err := authForAccessProject(project, c.UserID(), c.Token())
+	authOK, err := authForAccessProject(c, project)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -178,6 +178,64 @@ func ListRepos(c *context.APIContext) {
 		}
 	}
 	c.JSONSuccess(repos)
+}
+
+func CreateDeploy(c *context.APIContext, opt db.DeployOption) {
+	projectID := c.ParamsInt64("projectID")
+	if projectID <= 0 {
+		c.JSON(http.StatusBadRequest, "param error: can not parse projectID from this url")
+		return
+	}
+
+	// 先找到这个project
+	project := &db.Project{
+		ID: projectID,
+	}
+	err := db.GetProject(project)
+	if err != nil {
+		if db.IsProjectNotExist(err) {
+			c.JSON(http.StatusNotFound, "can not found this project")
+			return
+		}
+	}
+
+	authOK, err := authForAccessProject(c, project)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !authOK {
+		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+
+	opt.Repo, err = db.GetRepositoryByID(opt.RepoID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	authOK, err = authForAccessRepo(c, opt.Repo, project)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !authOK {
+		c.JSON(http.StatusForbidden, "no permission to deploy this repo, at least write permission is required")
+		return
+	}
+
+	// 好了，终于可以触发部署了
+	err = db.CreateDeploy(&opt)
+	if err != nil {
+		if db.IsErrNoNeedDeploy(err) || db.IsErrNoValidCIConfig(err) {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func getCourseIDListByToken(token string) ([]int64, error) {
@@ -207,30 +265,60 @@ func getCourseIDListByToken(token string) ([]int64, error) {
 	return cloudResp.Data, nil
 }
 
-func authForAccessProject(project *db.Project, userID int64, token string) (bool, error) {
+func authForAccessProject(c *context.APIContext, project *db.Project) (bool, error) {
 	// 如果该project是个人的项目
-	if userID == project.SenderID {
+	if c.UserID() == project.SenderID {
 		return true, nil
 	}
 
 	// 如果该project是组织的项目
-	if org := project.Sender; org.IsOrganization() && org.IsOrgMember(userID) {
+	if org := project.Sender; org.IsOrganization() && org.IsOrgMember(c.UserID()) {
 		return true, nil
 	}
 
 	// 如果是管理员
-	return checkProjectCloudAdmin(project, token)
+	return checkProjectCloudAdmin(c, project)
 }
 
-func checkProjectCloudAdmin(project *db.Project, token string) (bool, error) {
-	courseIDList, err := getCourseIDListByToken(token)
+func authForAccessRepo(c *context.APIContext, repo *db.Repository, project *db.Project) (bool, error) {
+	// 普通用户的鉴权
+	accessMode := db.Perms.AccessMode(c.UserID(), repo.ID,
+		db.AccessModeOptions{
+			OwnerID: repo.OwnerID,
+			Private: repo.IsPrivate,
+		},
+	)
+	if accessMode >= db.AccessModeWrite {
+		return true, nil
+	}
+
+	// 如果是管理员的话
+	ok, err := checkProjectCloudAdmin(c, project)
+	if err != nil {
+		return false, err
+	}
+	return ok && repo.ProjectID == project.ID, nil
+}
+
+// checkProjectCloudAdmin 该操作非常耗时，请谨慎调用
+func checkProjectCloudAdmin(c *context.APIContext, project *db.Project) (ok bool, err error) {
+	if c.IsProjectAdmin != context.ProjectAdminNotSure {
+		return c.IsProjectAdmin == context.ProjectAdminTrue, nil
+	}
+	courseIDList, err := getCourseIDListByToken(c.Token())
 	if err != nil {
 		return false, err
 	}
 	for _, courseID := range courseIDList {
 		if project.CourseID == courseID {
-			return true, nil
+			ok = true
+			break
 		}
 	}
-	return false, nil
+	if ok {
+		c.IsProjectAdmin = context.ProjectAdminTrue
+	} else {
+		c.IsProjectAdmin = context.ProjectAdminFalse
+	}
+	return
 }

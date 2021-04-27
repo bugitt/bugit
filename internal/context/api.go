@@ -17,6 +17,14 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
 )
 
+type IsProjectAdmin int
+
+const (
+	ProjectAdminNotSure IsProjectAdmin = iota
+	ProjectAdminTrue
+	ProjectAdminFalse
+)
+
 type APIContext struct {
 	*Context // TODO: Reduce to only needed fields instead of full shadow
 
@@ -24,6 +32,8 @@ type APIContext struct {
 	BaseURL string
 
 	Org *APIOrganization
+
+	IsProjectAdmin IsProjectAdmin
 }
 
 // FIXME: move this constant to github.com/gogs/go-gogs-client

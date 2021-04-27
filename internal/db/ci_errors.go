@@ -1,5 +1,7 @@
 package db
 
+import "fmt"
+
 type CIError struct {
 	Type CIErrType
 	err  error
@@ -26,3 +28,31 @@ const (
 
 	DeployErrType CIErrType = 600
 )
+
+type ErrNoNeedDeploy struct {
+	Reason string
+}
+
+func (err *ErrNoNeedDeploy) Error() string {
+	return err.Reason
+}
+
+func IsErrNoNeedDeploy(err error) bool {
+	_, ok := err.(*ErrNoNeedDeploy)
+	return ok
+}
+
+type ErrNoValidCIConfig struct {
+	RepoName string
+	Branch   string
+	Commit   string
+}
+
+func (err *ErrNoValidCIConfig) Error() string {
+	return fmt.Sprintf("can not parse valid CIConfig, repo: %s, branch: %s, commit: %s", err.RepoName, err.Branch, err.Commit)
+}
+
+func IsErrNoValidCIConfig(err error) bool {
+	_, ok := err.(*ErrNoValidCIConfig)
+	return ok
+}
