@@ -147,14 +147,19 @@ func NewRepoContext() {
 
 // Repository contains information of a repository.
 type Repository struct {
-	ID              int64
-	OwnerID         int64  `xorm:"UNIQUE(s)" gorm:"UNIQUE_INDEX:s"`
-	Owner           *User  `xorm:"-" gorm:"-" json:"-"`
-	LowerName       string `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s"`
-	Name            string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
-	Description     string `xorm:"VARCHAR(512)" gorm:"TYPE:VARCHAR(512)"`
-	Website         string
-	DefaultBranch   string
+	ID             int64
+	OwnerID        int64  `xorm:"UNIQUE(s)" gorm:"UNIQUE_INDEX:s"`
+	Owner          *User  `xorm:"-" gorm:"-" json:"-"`
+	LowerName      string `xorm:"UNIQUE(s) INDEX NOT NULL" gorm:"UNIQUE_INDEX:s"`
+	Name           string `xorm:"INDEX NOT NULL" gorm:"NOT NULL"`
+	Description    string `xorm:"VARCHAR(512)" gorm:"TYPE:VARCHAR(512)"`
+	Website        string
+	DefaultBranch  string
+	SimpleBranches []struct {
+		Name        string
+		IsDefault   bool
+		IsProtected bool
+	} `xorm:"-" gorm:"-" json:"Branches"`
 	Size            int64 `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	UseCustomAvatar bool
 	ProjectID       int64 `xorm:"INDEX NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`

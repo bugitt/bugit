@@ -170,6 +170,13 @@ func ListRepos(c *context.APIContext) {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
+	for i := range repos {
+		err = repos[i].LoadBranches()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 	c.JSONSuccess(repos)
 }
 

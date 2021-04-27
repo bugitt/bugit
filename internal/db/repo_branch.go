@@ -77,6 +77,22 @@ func (repo *Repository) GetBranches() ([]*Branch, error) {
 	return GetBranchesByPath(repo.RepoPath())
 }
 
+func (repo *Repository) LoadBranches() (err error) {
+	branches, err := repo.GetBranches()
+	for _, branch := range branches {
+		repo.SimpleBranches = append(repo.SimpleBranches, struct {
+			Name        string
+			IsDefault   bool
+			IsProtected bool
+		}{
+			Name:        branch.Name,
+			IsDefault:   repo.DefaultBranch == branch.Name,
+			IsProtected: branch.IsProtected,
+		})
+	}
+	return
+}
+
 func (br *Branch) GetCommit() (*git.Commit, error) {
 	gitRepo, err := git.Open(br.RepoPath)
 	if err != nil {
