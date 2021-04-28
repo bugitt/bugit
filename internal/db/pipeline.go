@@ -376,25 +376,12 @@ func (ptask *PipeTask) loadAttributes() error {
 }
 
 func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
-	// 先检查一下数据库中是不是已经存在旧有的pipeline了
-	pipeline := &Pipeline{
-		RepoID: repo.ID,
-		Commit: commit.ID.String(),
-	}
-	has, err := x.Get(pipeline)
-	if err != nil {
-		return nil, err
-	}
-	if has {
-		return pipeline, nil
-	}
-
 	imageTag := fmt.Sprintf("%s/%s/%s:%s",
 		conf.Docker.Registry,
 		repo.MustOwner().LowerName,
 		repo.LowerName,
 		commit.ID.String()[:5])
-	pipeline = &Pipeline{
+	pipeline := &Pipeline{
 		RepoID:       repo.ID,
 		PusherID:     pusher.ID,
 		RefName:      refName,
@@ -412,6 +399,7 @@ func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pushe
 }
 
 func createPipeline(e Engine, p *Pipeline) (int64, error) {
+	p.UUID = gouuid.NewV4().String()
 	// 先检查一下是不是已经创建过相同的pipeline配置了
 	oldPipe := &Pipeline{
 		RepoID: p.RepoID,
@@ -422,11 +410,12 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 		return -1, err
 	}
 	if has {
-		return oldPipe.ID, nil
-	}
-
-	p.UUID = gouuid.NewV4().String()
+		// 如果有旧的，就更新一下
+		p.ID = oldPipe.ID
+		_, err = e.ID(p.ID).Update(p)
+	} else {
 	_, err = e.Insert(p)
+	}
 	if err != nil {
 		return -1, err
 	}
