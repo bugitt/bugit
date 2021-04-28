@@ -225,6 +225,7 @@ func CreateDeploy(c *context.APIContext, opt db.DeployOption) {
 	}
 
 	// 好了，终于可以触发部署了
+	opt.Pusher = c.User
 	err = db.CreateDeploy(&opt)
 	if err != nil {
 		if db.IsErrNoNeedDeploy(err) || db.IsErrNoValidCIConfig(err) {
