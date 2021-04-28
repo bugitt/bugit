@@ -221,7 +221,7 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 	return createPipeTask(x, pipeTask)
 }
 
-func GetLatestPipeTask(repoID int64, commit string) (*PipeTask, error) {
+func GetPipeline(repoID int64, commit string) (*Pipeline, error) {
 	pipeline := &Pipeline{
 		RepoID: repoID,
 		Commit: commit,
@@ -233,12 +233,15 @@ func GetLatestPipeTask(repoID int64, commit string) (*PipeTask, error) {
 	if !has {
 		return nil, nil
 	}
+	return pipeline, nil
+}
 
-	// 查找最新的pipeTask
+// GetLatestPipeTask 查找最新的pipeTask
+func GetLatestPipeTask(pipelineID int64) (*PipeTask, error) {
 	pipeTask := &PipeTask{
-		PipelineID: pipeline.ID,
+		PipelineID: pipelineID,
 	}
-	has, err = x.OrderBy("created_unix desc").Get(pipeTask)
+	has, err := x.OrderBy("created_unix desc").Get(pipeTask)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +252,14 @@ func GetLatestPipeTask(repoID int64, commit string) (*PipeTask, error) {
 }
 
 func IsPipelineRunning(repoID int64, commit string) (bool, error) {
-	ptask, err := GetLatestPipeTask(repoID, commit)
+	pipeline, err := GetPipeline(repoID, commit)
+	if err != nil {
+		return false, err
+	}
+	if pipeline == nil {
+		return false, nil
+	}
+	ptask, err := GetLatestPipeTask(pipeline.ID)
 	if err != nil {
 		return false, err
 	}
