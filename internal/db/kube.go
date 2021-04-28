@@ -275,7 +275,7 @@ func deployDeployment(ctx *DeployContext) (err error) {
 
 func waitForPodsDone(ctx *DeployContext) error {
 	return waitForDone(ctx, 5*time.Second, func() (bool, error) {
-		pods, err := listPods(ctx)
+		pods, err := listPods(ctx.labels, ctx.NameSpace)
 		if err != nil {
 			return false, err
 		}
@@ -336,14 +336,14 @@ func getContainer(ctx *DeployContext) *apiv1.Container {
 	return container
 }
 
-func listPods(ctx *DeployContext) ([]v1.Pod, error) {
+func listPods(labels map[string]string, namespace string) ([]v1.Pod, error) {
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: ctx.labels,
+		MatchLabels: labels,
 	})
 	if err != nil {
 		return nil, err
 	}
-	podList, err := clientSet.CoreV1().Pods(ctx.NameSpace).List(context.TODO(), metav1.ListOptions{
+	podList, err := clientSet.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: selector.String(),
 	})
 	if err != nil {
