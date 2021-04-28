@@ -24,7 +24,6 @@ type DeployContext struct {
 	*CIContext
 	*DeployTask
 
-	clientSet *kubernetes.Clientset
 	labels    map[string]string
 	svcLabels map[string]string
 	container *apiv1.Container
@@ -39,6 +38,12 @@ var nextIP = func() func() string {
 		return conf.Devops.KubeIP[i]
 	}
 }()
+
+var clientSet *kubernetes.Clientset
+
+func init() {
+	clientSet, _ = getKubeClient()
+}
 
 func getKubeClient() (*kubernetes.Clientset, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube/config"))
@@ -73,14 +78,9 @@ func ensureNS(ns string) error {
 }
 
 func Deploy(ctx *CIContext, task *DeployTask) (err error) {
-	clientSet, err := getKubeClient()
-	if err != nil {
-		return err
-	}
 	deployCtx := &DeployContext{
 		CIContext:  ctx,
 		DeployTask: task,
-		clientSet:  clientSet,
 		repNum:     int32(1),
 		labels:     GetPodLabels(ctx.repo, ctx.refName, ctx.commit),
 		svcLabels:  GetSvcLabels(ctx.repo),
@@ -158,7 +158,7 @@ func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 	}
 
 	// 删除之前存在的service
-	serviceClient := ctx.clientSet.CoreV1().Services(ctx.NameSpace)
+	serviceClient := clientSet.CoreV1().Services(ctx.NameSpace)
 
 	// 先检查是不是存在之前的service
 	oldService, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
@@ -226,7 +226,6 @@ func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 }
 
 func deployDeployment(ctx *DeployContext) (err error) {
-	clientSet := ctx.clientSet
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: ctx.DeploymentName,
@@ -344,7 +343,7 @@ func listPods(ctx *DeployContext) ([]v1.Pod, error) {
 	if err != nil {
 		return nil, err
 	}
-	podList, err := ctx.clientSet.CoreV1().Pods(ctx.NameSpace).List(context.TODO(), metav1.ListOptions{
+	podList, err := clientSet.CoreV1().Pods(ctx.NameSpace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: selector.String(),
 	})
 	if err != nil {
