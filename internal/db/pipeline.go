@@ -221,17 +221,17 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 	return createPipeTask(x, pipeTask)
 }
 
-func IsPipelineRunning(repoID int64, commit string) (bool, error) {
+func GetLatestPipeTask(repoID int64, commit string) (*PipeTask, error) {
 	pipeline := &Pipeline{
 		RepoID: repoID,
 		Commit: commit,
 	}
 	has, err := x.Get(pipeline)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	if !has {
-		return false, nil
+		return nil, nil
 	}
 
 	// 查找最新的pipeTask
@@ -240,12 +240,23 @@ func IsPipelineRunning(repoID int64, commit string) (bool, error) {
 	}
 	has, err = x.OrderBy("created_unix desc").Get(pipeTask)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	if !has {
+		return nil, nil
+	}
+	return pipeTask, nil
+}
+
+func IsPipelineRunning(repoID int64, commit string) (bool, error) {
+	ptask, err := GetLatestPipeTask(repoID, commit)
+	if err != nil {
+		return false, err
+	}
+	if ptask == nil {
 		return false, nil
 	}
-	return pipeTask.Status == BeforeStart || pipeTask.Status == Running, nil
+	return ptask.Status == BeforeStart || ptask.Status == Running, nil
 }
 
 func createPipeTask(e Engine, p *PipeTask) error {
