@@ -236,6 +236,21 @@ func GetPipeline(repoID int64, commit string) (*Pipeline, error) {
 	return pipeline, nil
 }
 
+// GetLatestPipeline 获取最新的Pipeline
+func GetLatestPipeline(repoID int64) (*Pipeline, error) {
+	pipeline := &Pipeline{
+		RepoID: repoID,
+	}
+	has, err := x.OrderBy("updated_unix desc").Get(pipeline)
+	if err != nil {
+		return nil, err
+	}
+	if !has {
+		return nil, nil
+	}
+	return pipeline, nil
+}
+
 // GetLatestPipeTask 查找最新的pipeTask
 func GetLatestPipeTask(pipelineID int64) (*PipeTask, error) {
 	pipeTask := &PipeTask{
