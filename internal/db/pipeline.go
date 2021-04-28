@@ -294,10 +294,18 @@ func (ptask *PipeTask) Run() {
 	// work
 	done := make(chan error)
 	go func() {
-		switch ptask.Pipeline.Config.Version {
-		case "0.0.1":
-			done <- ptask.CI001(ctx)
-		}
+		done <- func() (err error) {
+			defer func() {
+				if panicErr := recover(); panicErr != nil {
+					err = fmt.Errorf("panic occurred: %#v", panicErr)
+				}
+			}()
+			switch ptask.Pipeline.Config.Version {
+			case "0.0.1":
+				err = ptask.CI001(ctx)
+			}
+			return err
+		}()
 	}()
 	select {
 	case err = <-done:
@@ -414,7 +422,7 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 		p.ID = oldPipe.ID
 		_, err = e.ID(p.ID).Update(p)
 	} else {
-	_, err = e.Insert(p)
+		_, err = e.Insert(p)
 	}
 	if err != nil {
 		return -1, err
