@@ -310,6 +310,7 @@ func (ptask *PipeTask) Run() {
 
 	// 保证打上结束的时间戳
 	if err == nil {
+		log.Info("pipe CI success: %d", ptask.ID)
 		err = ptask.success()
 	} else {
 		log.Error("pipe CI error: %s", err.Error())
