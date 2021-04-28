@@ -180,6 +180,54 @@ func ListRepos(c *context.APIContext) {
 	c.JSONSuccess(repos)
 }
 
+func GetDeploy(c *context.APIContext) {
+	projectID := c.ParamsInt64("projectID")
+	if projectID <= 0 {
+		c.JSON(http.StatusBadRequest, "param error: can not parse projectID from this url")
+		return
+	}
+
+	// 先找到这个project
+	project := &db.Project{
+		ID: projectID,
+	}
+	err := db.GetProject(project)
+	if err != nil {
+		if db.IsProjectNotExist(err) {
+			c.JSON(http.StatusNotFound, "can not found this project")
+			return
+		}
+	}
+
+	authOK, err := authForAccessProject(c, project)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !authOK {
+		c.JSON(http.StatusForbidden, "no permission to read the content of this project")
+		return
+	}
+
+	// 获取该project中的成员
+	repos, err := project.GetRepos()
+	deploys := make([]*db.DeployDes, 0, len(repos))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	for _, repo := range repos {
+		ds, err := db.GetDeploy(repo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+		deploys = append(deploys, ds)
+	}
+
+	c.JSONSuccess(deploys)
+}
+
 func CreateDeploy(c *context.APIContext, opt db.DeployOption) {
 	projectID := c.ParamsInt64("projectID")
 	if projectID <= 0 {

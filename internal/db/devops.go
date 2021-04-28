@@ -197,7 +197,8 @@ type DeployDes struct {
 	Ports      []Port
 }
 
-func GetDeploy(repoID int64) (re *DeployDes, err error) {
+func GetDeploy(repo *Repository) (re *DeployDes, err error) {
+	repoID := repo.ID
 	pipeline, err := GetLatestPipeline(repoID)
 	if err != nil {
 		return
@@ -212,10 +213,6 @@ func GetDeploy(repoID int64) (re *DeployDes, err error) {
 	}
 	if ptask == nil {
 		err = &ErrPipeNotFound{repoID}
-		return
-	}
-	repo, err := GetRepositoryByID(repoID)
-	if err != nil {
 		return
 	}
 

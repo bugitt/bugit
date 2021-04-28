@@ -211,6 +211,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 			m.Get("/repos", project.ListRepos)
 			m.Group("/deploy", func() {
 				m.Post("", bind(db.DeployOption{}), project.CreateDeploy)
+				m.Get("", project.GetDeploy)
 			})
 		}, reqToken())
 
