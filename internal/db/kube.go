@@ -29,6 +29,7 @@ type DeployContext struct {
 	labels    map[string]string
 	svcLabels map[string]string
 	container *apiv1.Container
+	repNum    int32
 }
 
 // nextIP 获取这次应该部署的到哪个IP上
@@ -81,6 +82,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		CIContext:  ctx,
 		DeployTask: task,
 		clientSet:  clientSet,
+		repNum:     int32(1),
 		labels: map[string]string{
 			"app":     ctx.repo.DeployName(),
 			"project": strconv.FormatInt(ctx.repo.ProjectID, 10),
@@ -126,9 +128,10 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 			Protocol: string(port.Protocol),
 		})
 	}
-
 	task.Ports = deployPorts
 	task.StringPorts()
+
+	// 获取恰当的IP
 	task.IP = nextIP()
 
 	return nil
@@ -233,13 +236,12 @@ func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 
 func deployDeployment(ctx *DeployContext) (err error) {
 	clientSet := ctx.clientSet
-	var repNum int32 = 1
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: ctx.DeploymentName,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &repNum,
+			Replicas: &ctx.repNum,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ctx.svcLabels,
 			},
@@ -277,19 +279,29 @@ func deployDeployment(ctx *DeployContext) (err error) {
 		}
 	}
 
-	// TODO: 这里应该变为监听pod的状态
-	err = waitForDone(ctx, 5*time.Second, func() (bool, error) {
-		result, err := deploymentsClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
+	err = waitForPodsDone(ctx)
+	return
+}
+
+func waitForPodsDone(ctx *DeployContext) error {
+	return waitForDone(ctx, 5*time.Second, func() (bool, error) {
+		pods, err := listPods(ctx)
 		if err != nil {
-			if kerrors.IsNotFound(err) {
-				return false, nil
-			}
 			return false, err
 		}
-		// TODO: 这里只能保证当部署成功时能退出，如果部署失败，比如镜像没有拉取到，就要一直等到pipeline超时才能得到结果
-		return result.Status.AvailableReplicas == result.Status.ReadyReplicas && result.Status.AvailableReplicas == repNum, nil
+		if len(pods) != int(ctx.repNum) {
+			return false, nil
+		}
+		cntOK := 0
+		for _, pod := range pods {
+			if phase := pod.Status.Phase; phase == apiv1.PodRunning || phase == apiv1.PodSucceeded {
+				cntOK++
+			} else if phase != apiv1.PodPending {
+				return false, fmt.Errorf("pod(%s) failed: %s", pod.Name, pod.Status.Message)
+			}
+		}
+		return cntOK == int(ctx.repNum), nil
 	})
-	return
 }
 
 func getContainer(ctx *DeployContext) *apiv1.Container {
@@ -332,6 +344,22 @@ func getContainer(ctx *DeployContext) *apiv1.Container {
 
 	// TODO: Stateful
 	return container
+}
+
+func listPods(ctx *DeployContext) ([]v1.Pod, error) {
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: ctx.labels,
+	})
+	if err != nil {
+		return nil, err
+	}
+	podList, err := ctx.clientSet.CoreV1().Pods(ctx.NameSpace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: selector.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return podList.Items, nil
 }
 
 func getContainerPorts(dbPorts []Port) []apiv1.ContainerPort {
