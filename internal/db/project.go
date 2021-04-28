@@ -50,8 +50,12 @@ func GetProject(project *Project) error {
 }
 
 func GetProjectsByCourseIDList(courseIDList []int64) ([]*Project, error) {
-	data := make([]*Project, 0)
+	data := make(ProjectList, 0)
 	err := x.In("course_id", courseIDList).Find(&data)
+	if err != nil {
+		return nil, err
+	}
+	err = data.LoadAttributes()
 	return data, err
 }
 
