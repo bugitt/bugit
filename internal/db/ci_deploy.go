@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -93,4 +94,20 @@ func (task *DeployTask) failed() error {
 func (task *DeployTask) StringPorts() {
 	bytes, _ := jsoniter.Marshal(task.Ports)
 	task.PortsS = string(bytes)
+}
+
+func GetPodLabels(repo *Repository, branch, commit string) map[string]string {
+	return map[string]string{
+		"app":     repo.DeployName(),
+		"project": strconv.FormatInt(repo.ProjectID, 10),
+		"ref":     branch,
+		"commit":  commit,
+	}
+}
+
+func GetSvcLabels(repo *Repository) map[string]string {
+	return map[string]string{
+		"app":     repo.DeployName(),
+		"project": strconv.FormatInt(repo.ProjectID, 10),
+	}
 }

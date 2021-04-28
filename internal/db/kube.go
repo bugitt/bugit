@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -83,16 +82,8 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		DeployTask: task,
 		clientSet:  clientSet,
 		repNum:     int32(1),
-		labels: map[string]string{
-			"app":     ctx.repo.DeployName(),
-			"project": strconv.FormatInt(ctx.repo.ProjectID, 10),
-			"ref":     ctx.refName,
-			"commit":  ctx.commit,
-		},
-		svcLabels: map[string]string{
-			"app":     ctx.repo.DeployName(),
-			"project": strconv.FormatInt(ctx.repo.ProjectID, 10),
-		},
+		labels:     GetPodLabels(ctx.repo, ctx.refName, ctx.commit),
+		svcLabels:  GetSvcLabels(ctx.repo),
 	}
 	config := ctx.config.Deploy
 
