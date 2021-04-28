@@ -96,6 +96,13 @@ func (task *DeployTask) StringPorts() {
 	task.PortsS = string(bytes)
 }
 
+func (task *DeployTask) GetPorts() []Port {
+	ports := make([]Port, 0)
+	_ = jsoniter.Unmarshal([]byte(task.PortsS), &ports)
+	task.Ports = ports
+	return ports
+}
+
 func GetPodLabels(repo *Repository, branch, commit string) map[string]string {
 	return map[string]string{
 		"app":     repo.DeployName(),

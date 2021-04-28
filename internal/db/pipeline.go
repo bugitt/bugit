@@ -419,6 +419,22 @@ func (ptask *PipeTask) loadAttributes() error {
 	return nil
 }
 
+func (ptask *PipeTask) GetDeployTask() (dtask *DeployTask, err error) {
+	dtask = &DeployTask{
+		BasicTask: BasicTask{
+			PipeTaskID: ptask.ID,
+		},
+	}
+	has, err := x.OrderBy("created_unix desc").Get(dtask)
+	if err != nil {
+		return
+	}
+	if !has {
+		return nil, nil
+	}
+	return
+}
+
 func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
 	imageTag := fmt.Sprintf("%s/%s/%s:%s",
 		conf.Docker.Registry,

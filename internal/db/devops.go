@@ -169,3 +169,95 @@ func CreateDeploy(opt *DeployOption) (err error) {
 	go CIQueue.Add(opt.Repo.ID)
 	return nil
 }
+
+// DeployDes 描述一个project中的一个仓库最新的部署情况
+type DeployDes struct {
+	// 总体描述
+	RepoID       int64
+	RepoName     string
+	Branch       string
+	Commit       string
+	Status       RunStatus
+	IsSuccessful bool
+	IsHealthy    bool
+	ErrMsg       string
+	BeginUnix    int64
+	EndUnix      int64
+
+	// 具体的部署情况
+	ImageTag   string
+	IP         string
+	HasDeploy  bool
+	Namespace  string
+	Deployment string
+	Service    string
+	PodLabels  map[string]string
+	DepLabels  map[string]string
+	SvcLabels  map[string]string
+	Ports      []Port
+}
+
+func GetDeploy(repoID int64) (re *DeployDes, err error) {
+	pipeline, err := GetLatestPipeline(repoID)
+	if err != nil {
+		return
+	}
+	if pipeline == nil {
+		err = &ErrPipeNotFound{repoID}
+		return
+	}
+	ptask, err := GetLatestPipeTask(pipeline.ID)
+	if err != nil {
+		return
+	}
+	if ptask == nil {
+		err = &ErrPipeNotFound{repoID}
+		return
+	}
+	repo, err := GetRepositoryByID(repoID)
+	if err != nil {
+		return
+	}
+
+	re = &DeployDes{
+		RepoID:       repoID,
+		RepoName:     repo.Name,
+		Branch:       pipeline.RefName,
+		Commit:       pipeline.Commit,
+		Status:       ptask.Status,
+		IsSuccessful: ptask.IsSucceed,
+		ErrMsg:       ptask.ErrMsg,
+		BeginUnix:    ptask.BeginUnix,
+		EndUnix:      ptask.EndUnix,
+
+		ImageTag: ptask.ImageTag,
+	}
+
+	dtask, err := ptask.GetDeployTask()
+	if err != nil {
+		return
+	}
+	if dtask == nil {
+		re.HasDeploy = false
+		re.IsHealthy = re.IsSuccessful
+		return
+	}
+
+	// 下面处理部署部分的内容
+	re.Namespace = dtask.NameSpace
+	re.IP = dtask.IP
+	re.Deployment = dtask.DeploymentName
+	re.Service = dtask.ServiceName
+	re.Ports = dtask.GetPorts()
+	re.PodLabels = GetPodLabels(repo, pipeline.RefName, pipeline.Commit)
+	re.DepLabels = GetSvcLabels(repo)
+	re.SvcLabels = re.DepLabels
+
+	// 检查已经部署的各个resource是否 working well
+	ok, err := CheckKubeHealthy(re.PodLabels, re.Namespace, re.Service)
+	if err != nil {
+		return
+	}
+	re.IsHealthy = ok
+	return
+}

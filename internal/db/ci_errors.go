@@ -56,3 +56,16 @@ func IsErrNoValidCIConfig(err error) bool {
 	_, ok := err.(*ErrNoValidCIConfig)
 	return ok
 }
+
+type ErrPipeNotFound struct {
+	RepoID int64
+}
+
+func (err *ErrPipeNotFound) Error() string {
+	return fmt.Sprintf("can not found deployment for this repo(%d)", err.RepoID)
+}
+
+func IsErrPipeNotFound(err error) bool {
+	_, ok := err.(*ErrPipeNotFound)
+	return ok
+}

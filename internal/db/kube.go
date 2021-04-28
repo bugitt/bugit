@@ -336,6 +336,31 @@ func getContainer(ctx *DeployContext) *apiv1.Container {
 	return container
 }
 
+// CheckKubeHealthy 检查已经部署的各个resource是否 working well
+func CheckKubeHealthy(labels map[string]string, namespace, svcName string) (bool, error) {
+	pods, err := listPods(labels, namespace)
+	if err != nil {
+		return false, err
+	}
+	podOK := false
+	for _, pod := range pods {
+		if phase := pod.Status.Phase; phase == apiv1.PodRunning || phase == apiv1.PodSucceeded {
+			podOK = true
+			break
+		}
+	}
+	if !podOK {
+		return false, nil
+	}
+
+	serviceClient := clientSet.CoreV1().Services(namespace)
+	_, err = serviceClient.Get(context.TODO(), svcName, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func listPods(labels map[string]string, namespace string) ([]v1.Pod, error) {
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: labels,
