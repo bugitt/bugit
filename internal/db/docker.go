@@ -89,10 +89,15 @@ func PushImage(tag string) (sourceLog string, isSuccessful bool, buildErr Docker
 		RegistryAuth:  authStr,
 		PrivilegeFunc: nil,
 	})
+	log.Info("image tag: %s", tag)
 	if err != nil {
-		log.Error("image push error - %s", err)
+		log.Error("image push error - %s", err.Error())
 	}
-	defer resp.Close()
+	defer func() {
+		if resp != nil {
+			resp.Close()
+		}
+	}()
 
 	// 处理输出
 	var output bytes.Buffer
