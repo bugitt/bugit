@@ -296,7 +296,6 @@ func runWeb(c *cli.Context) error {
 				m.Get("/followers", user.Followers)
 				m.Get("/following", user.Following)
 				m.Get("/stars", user.Stars)
-				m.Get("/project/:name", user.Followers)
 			}, context.InjectParamsUser())
 
 			m.Get("/attachments/:uuid", func(c *context.Context) {
