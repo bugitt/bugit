@@ -58,11 +58,12 @@ func IsErrNoValidCIConfig(err error) bool {
 }
 
 type ErrPipeNotFound struct {
-	RepoID int64
+	RepoID   int64
+	RepoName string
 }
 
 func (err *ErrPipeNotFound) Error() string {
-	return fmt.Sprintf("can not found deployment for this repo(%d)", err.RepoID)
+	return fmt.Sprintf("can not found deployment for this repo(%d, %s)", err.RepoID, err.RepoName)
 }
 
 func IsErrPipeNotFound(err error) bool {

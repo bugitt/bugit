@@ -198,13 +198,23 @@ type DeployDes struct {
 }
 
 func GetDeploy(repo *Repository) (re *DeployDes, err error) {
+	defer func() {
+		if err != nil && IsErrPipeNotFound(err) {
+			re = &DeployDes{
+				RepoID:   repo.ID,
+				RepoName: repo.Name,
+				ErrMsg:   err.Error(),
+			}
+			err = nil
+		}
+	}()
 	repoID := repo.ID
 	pipeline, err := GetLatestPipeline(repoID)
 	if err != nil {
 		return
 	}
 	if pipeline == nil {
-		err = &ErrPipeNotFound{repoID}
+		err = &ErrPipeNotFound{repoID, repo.Name}
 		return
 	}
 	ptask, err := GetLatestPipeTask(pipeline.ID)
@@ -212,7 +222,7 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 		return
 	}
 	if ptask == nil {
-		err = &ErrPipeNotFound{repoID}
+		err = &ErrPipeNotFound{repoID, repo.Name}
 		return
 	}
 
