@@ -41,6 +41,8 @@ type Context struct {
 
 	Repo *Repository
 	Org  *Organization
+
+	Project *Project
 }
 
 // RawTitle sets the "Title" field in template data.
