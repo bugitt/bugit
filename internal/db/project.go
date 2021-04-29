@@ -2,6 +2,11 @@ package db
 
 import (
 	"fmt"
+	"io/ioutil"
+
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 )
 
 type ProjectStatus int
@@ -189,4 +194,31 @@ func GetAllProjectsWithCoAndAttr(user *User) ([]*Project, error) {
 		}
 	}
 	return projects, nil
+}
+
+func GetCourseIDListByToken(token string) ([]int64, error) {
+	resp, err := httplib.Get("http://vlab.beihangsoft.cn/api/user/getCoursesByUser").
+		Header("Authorization", token).
+		Response()
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	type CloudResp struct {
+		Code int     `json:"code"`
+		Msg  string  `json:"msg"`
+		Data []int64 `json:"data"`
+	}
+	cloudResp := &CloudResp{}
+	err = jsoniter.Unmarshal(body, cloudResp)
+	if err != nil {
+		return nil, err
+	}
+	if cloudResp.Code != 1001 {
+		return nil, errors.New("error verifying user information")
+	}
+	return cloudResp.Data, nil
 }

@@ -230,6 +230,11 @@ func (c *Context) ServeContent(name string, r io.ReadSeeker, params ...interface
 	http.ServeContent(c.Resp, c.Req.Request, name, modtime, r)
 }
 
+// Token get token from APIContext
+func (c *Context) Token() string {
+	return c.Data["Token"].(string)
+}
+
 // Contexter initializes a classic context for a request.
 func Contexter() macaron.Handler {
 	return func(ctx *macaron.Context, l i18n.Locale, cache cache.Cache, sess session.Store, f *session.Flash, x csrf.CSRF) {
