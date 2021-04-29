@@ -13,6 +13,14 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
 )
 
+const (
+	HomeView = "project/home"
+)
+
+func Home(c *context.Context) {
+	c.Success(HomeView)
+}
+
 // CreateOption 创建project时可以提供的参数
 type CreateOption struct {
 	Name       string `json:"projectName" form:"projectName" binding:"Required"`

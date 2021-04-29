@@ -53,6 +53,7 @@
 // ../../../templates/org/team/repositories.tmpl (1.852kB)
 // ../../../templates/org/team/sidebar.tmpl (1.895kB)
 // ../../../templates/org/team/teams.tmpl (1.576kB)
+// ../../../templates/project/home.tmpl (56B)
 // ../../../templates/repo/bare.tmpl (2.612kB)
 // ../../../templates/repo/branch_dropdown.tmpl (1.912kB)
 // ../../../templates/repo/branches/all.tmpl (1.418kB)
@@ -1275,6 +1276,26 @@ func orgTeamTeamsTmpl() (*asset, error) {
 
 	info := bindataFileInfo{name: "org/team/teams.tmpl", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5b, 0x30, 0xdf, 0xd1, 0x9, 0x14, 0x5e, 0x53, 0x6, 0x72, 0x6f, 0xa, 0x97, 0x9, 0x71, 0x45, 0xc0, 0x18, 0xcc, 0xf1, 0x69, 0x48, 0xa7, 0x44, 0x14, 0x88, 0x11, 0xf2, 0xf7, 0xd0, 0x3b, 0x19}}
+	return a, nil
+}
+
+var _projectHomeTmpl = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xaa\xae\x2e\x49\xcd\x2d\xc8\x49\x2c\x49\x55\x50\x4a\x4a\x2c\x4e\xd5\xcf\x48\x4d\x4c\x51\x52\xd0\xab\xad\xe5\xe2\xc2\x90\x4b\xcb\xcf\x2f\x49\x2d\x02\xcb\x02\x02\x00\x00\xff\xff\xaf\xe7\xb8\x6c\x38\x00\x00\x00"
+
+func projectHomeTmplBytes() ([]byte, error) {
+	return bindataRead(
+		_projectHomeTmpl,
+		"project/home.tmpl",
+	)
+}
+
+func projectHomeTmpl() (*asset, error) {
+	bytes, err := projectHomeTmplBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "project/home.tmpl", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4a, 0xf0, 0x2b, 0x52, 0x2d, 0xd0, 0xb7, 0xcd, 0x59, 0xb1, 0x9d, 0xfc, 0x19, 0x51, 0xc8, 0x21, 0x6f, 0xbe, 0x58, 0xef, 0xac, 0x3d, 0x97, 0xe9, 0xa4, 0x32, 0x97, 0xb9, 0x82, 0x63, 0x96, 0x20}}
 	return a, nil
 }
 
@@ -3342,6 +3363,7 @@ var _bindata = map[string]func() (*asset, error){
 	"org/team/repositories.tmpl":                   orgTeamRepositoriesTmpl,
 	"org/team/sidebar.tmpl":                        orgTeamSidebarTmpl,
 	"org/team/teams.tmpl":                          orgTeamTeamsTmpl,
+	"project/home.tmpl":                            projectHomeTmpl,
 	"repo/bare.tmpl":                               repoBareTmpl,
 	"repo/branch_dropdown.tmpl":                    repoBranch_dropdownTmpl,
 	"repo/branches/all.tmpl":                       repoBranchesAllTmpl,
@@ -3570,6 +3592,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"sidebar.tmpl": {orgTeamSidebarTmpl, map[string]*bintree{}},
 			"teams.tmpl": {orgTeamTeamsTmpl, map[string]*bintree{}},
 		}},
+	}},
+	"project": {nil, map[string]*bintree{
+		"home.tmpl": {projectHomeTmpl, map[string]*bintree{}},
 	}},
 	"repo": {nil, map[string]*bintree{
 		"bare.tmpl": {repoBareTmpl, map[string]*bintree{}},
