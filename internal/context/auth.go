@@ -193,6 +193,13 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 					c.Data["Token"] = auths[0]
 					return redisAuthUserID(auths[0])
 				}
+				// 还是不行的话，尝试从URL中拿到校验信息
+				token := c.QueryTrim("Authorization")
+				if len(token) > 0 {
+					// 从Redis中获取权限校验信息
+					c.Data["Token"] = auths[0]
+					return redisAuthUserID(auths[0])
+				}
 			}
 		}
 
