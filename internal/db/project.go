@@ -49,6 +49,21 @@ func GetProject(project *Project) error {
 	return project.LoadAttributes()
 }
 
+func GetProjectByID(id int64) (*Project, error) {
+	project := &Project{}
+	has, err := x.ID(id).Get(project)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrProjectNotExist{project}
+	}
+	err = project.LoadAttributes()
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
+}
+
 func GetProjectsByCourseIDList(courseIDList []int64) ([]*Project, error) {
 	data := make(ProjectList, 0)
 	err := x.In("course_id", courseIDList).Find(&data)
