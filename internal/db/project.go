@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -132,6 +133,10 @@ func (p *Project) loadAttributes(e Engine) (err error) {
 	}
 
 	return nil
+}
+
+func (p *Project) HomeLink() string {
+	return fmt.Sprintf("%s/project/%d", conf.Server.Subpath, p.ID)
 }
 
 func (ps ProjectList) LoadAttributes() error {
