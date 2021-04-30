@@ -621,7 +621,7 @@ func runWeb(c *cli.Context) error {
 		// ***** BEGIN: Project *****
 		m.Group("/project/:projectID", func() {
 			m.Get("", project.Home)
-		}, reqSignIn, context.ProjectAssignment(), context.AuthProjectUser())
+		}, reqSignIn, context.AuthProjectUser(), context.ProjectAssignment())
 		// ***** END: Project *****
 
 		// **********************

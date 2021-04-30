@@ -1,3 +1,109 @@
 {{template "base/head" .}}
+<div class="organization profile">
+	<div class="ui container">
+		<div class="ui grid">
+			<div class="ui sixteen wide column">
+                <div class="ui items">
+                    <div class="item">
+                        <div class="image">
+                            <img class="ui left" id="org-avatar" src="https://cdn.loheagn.com/project_default.png"/>
+                        </div>
+                        <div class="middle aligned content">
+                            <div class="ui header">
+                                {{.Project.Name}}
+                            </div>
+                            <div class="description">
+                                <p>
+                                    {{if .Project.Sender}}由&nbsp;<a href="{{.SenderProfileLink}}">@{{.Project.Sender.Name}}</a>&nbsp;{{end}}
+                                    创建于&nbsp;{{TimeSince .Created .i18n.Lang}}&nbsp;
+                                </p>
+                                <p>
+                                    归属于&nbsp;{{.Project.CourseName}}&nbsp;的&nbsp;{{.Project.ExpString}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+		    </div>
+        </div>
+	</div>
 
+	<div class="ui divider"></div>
+
+	<div class="ui container">
+		{{/* <div class="ui grid">
+			<div class="ui eleven wide column">
+				{{if .IsOrganizationOwner}}
+					<div class="text right">
+						<a class="ui green button" href="{{AppSubURL}}/repo/create?org={{.Org.ID}}"><i class="octicon octicon-repo-create"></i> {{.i18n.Tr "new_repo"}}</a>
+					</div>
+					<div class="ui divider"></div>
+				{{end}}
+				{{template "explore/repo_list" .}}
+				{{template "explore/page" .}}
+			</div>
+
+			<div class="ui five wide column">
+				<div class="ui top attached header">
+					<strong>{{.i18n.Tr "org.people"}}</strong>
+					{{if .IsOrganizationMember}}
+						<div class="ui right">
+							<a class="text grey" href="{{.OrgLink}}/members">{{.Org.NumMembers}} <span class="octicon octicon-chevron-right"></span></a>
+						</div>
+					{{end}}
+				</div>
+				<div class="ui attached segment members">
+					{{$isMember := .IsOrganizationMember}}
+					{{range .Members}}
+						{{if or $isMember (.IsPublicMember $.Org.ID)}}
+							<a href="{{.HomeLink}}" title="{{.Name}}{{if .FullName}} ({{.FullName}}){{end}}"><img class="ui avatar" src="{{.RelAvatarLink}}"></a>
+						{{end}}
+					{{end}}
+				</div>
+				{{if .IsOrganizationOwner}}
+					<div class="ui bottom attached segment">
+						<a class="ui blue small button" href="{{.OrgLink}}/invitations/new">{{.i18n.Tr "org.invite_someone"}}</a>
+					</div>
+				{{end}}
+
+				{{if .IsOrganizationMember}}
+					<div class="ui top attached header">
+						<strong>{{.i18n.Tr "org.teams"}}</strong>
+						<div class="ui right">
+							<a class="text grey" href="{{.OrgLink}}/teams"><span>{{.Org.NumTeams}}</span> <span class="octicon octicon-chevron-right"></span></a>
+						</div>
+					</div>
+					<div class="ui attached table segment teams">
+						{{range .Teams}}
+							<div class="item">
+								<a href="{{$.OrgLink}}/teams/{{.LowerName}}"><strong class="team-name">{{.Name}}</strong></a>
+								<p class="text grey">{{.NumMembers}} {{$.i18n.Tr "org.lower_members"}} · {{.NumRepos}} {{$.i18n.Tr "org.lower_repositories"}}</p>
+							</div>
+						{{end}}
+					</div>
+					{{if .IsOrganizationOwner}}
+						<div class="ui bottom attached segment">
+							<a class="ui blue small button" href="{{.OrgLink}}/teams/new">{{.i18n.Tr "org.create_new_team"}}</a>
+						</div>
+					{{end}}
+				{{end}}
+
+				<!-- 展示 Project 列表 -->
+				{{if .ShowProjects}}
+					<div class="ui top attached header">
+						<strong>{{.i18n.Tr "org.projects"}}</strong>
+					</div>
+					<div class="ui attached table segment teams">
+						{{range .Projects}}
+							<div class="item">
+								<a href="{{AppSubURL}}/{{.Sender.Name}}/project/{{.Name}}"><strong class="team-name">{{.Name}}</strong></a>
+								<p class="text grey">{{$.i18n.Tr "org.repo_updated"}} {{TimeSince .Updated $.i18n.Lang}}</p>							</div>
+						{{end}}
+					</div>
+				{{end}}
+
+			</div>
+		</div> */}}
+	</div>
+</div>
 {{template "base/footer" .}}

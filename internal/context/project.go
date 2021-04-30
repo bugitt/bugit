@@ -2,7 +2,9 @@ package context
 
 import (
 	"net/http"
+	"time"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 	"gopkg.in/macaron.v1"
 )
@@ -16,8 +18,9 @@ const (
 )
 
 type Project struct {
-	Project        *db.Project
-	IsProjectAdmin IsProjectAdmin
+	Project           *db.Project
+	SenderProfileLink string
+	IsProjectAdmin    IsProjectAdmin
 }
 
 func AuthProjectUser() macaron.Handler {
@@ -48,7 +51,11 @@ func AuthProjectUser() macaron.Handler {
 
 func ProjectAssignment() macaron.Handler {
 	return func(c *Context) {
-
+		_ = c.Project.Project.LoadAttributes()
+		c.Project.SenderProfileLink = conf.Server.Subpath + "/" + c.Project.Project.Sender.Name
+		c.Data["Project"] = c.Project.Project
+		c.Data["SenderProfileLink"] = c.Project.SenderProfileLink
+		c.Data["Created"] = time.Unix(c.Project.Project.CreatedUnix, 0)
 	}
 }
 
