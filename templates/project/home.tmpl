@@ -33,6 +33,21 @@
 	<div class="ui container">
 		<div class="ui grid">
 			<div class="ui eleven wide column">
+                <div class="ui secondary pointing menu">
+					<a class="{{if eq .TabName "" "repo"}}active{{end}} item" href="{{.Project.HomeLink}}">
+						<i class="octicon octicon-repo"></i> {{.i18n.Tr "project.repos"}}
+					</a>
+                    <a class="{{if eq .TabName "pipeline"}}active{{end}} item" href="{{.Project.HomeLink}}?tab=pipeline">
+                        <i class="octicon octicon-rocket"></i><span> </span>{{.i18n.Tr "project.pipelines"}}
+                    </a>
+				</div>
+
+                {{if eq .TabName "" "repo"}}
+					{{template "explore/repo_list" .}}
+					{{template "explore/page" .}}
+				{{else if eq .TabName "pipeline"}}
+					
+				{{end}}
             </div>
 
             <div class="ui five wide column">
