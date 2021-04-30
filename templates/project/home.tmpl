@@ -14,11 +14,11 @@
                             </div>
                             <div class="description">
                                 <p>
-                                    {{if .Project.Sender}}由&nbsp;<a href="{{.Project.Sender.HomeLink}}">@{{.Project.Sender.Name}}</a>&nbsp;{{end}}
-                                    创建于&nbsp;{{TimeSince .Created .i18n.Lang}}&nbsp;
+                                    归属于&nbsp;{{.Project.CourseName}}&nbsp;的&nbsp;{{.Project.ExpString}}
                                 </p>
                                 <p>
-                                    归属于&nbsp;{{.Project.CourseName}}&nbsp;的&nbsp;{{.Project.ExpString}}
+                                    {{if .Project.Sender}}由&nbsp;<a href="{{.Project.Sender.HomeLink}}">@{{.Project.Sender.Name}}</a>&nbsp;{{end}}
+                                    创建于&nbsp;{{TimeSince .Created .i18n.Lang}}&nbsp;
                                 </p>
                             </div>
                         </div>
@@ -38,7 +38,7 @@
 						<i class="octicon octicon-repo"></i> {{.i18n.Tr "project.repos"}}
 					</a>
                     <a class="{{if eq .TabName "pipeline"}}active{{end}} item" href="{{.Project.HomeLink}}?tab=pipeline">
-                        <i class="octicon octicon-rocket"></i><span> </span>{{.i18n.Tr "project.pipelines"}}
+                        <i class="octicon octicon-rocket"></i>&nbsp;{{.i18n.Tr "project.pipelines"}}
                     </a>
 				</div>
 
@@ -46,7 +46,7 @@
 					{{template "explore/repo_list" .}}
 					{{template "explore/page" .}}
 				{{else if eq .TabName "pipeline"}}
-					
+					{{template "explore/pipe_list" .}}
 				{{end}}
             </div>
 
