@@ -20,6 +20,7 @@ const (
 type Project struct {
 	Project           *db.Project
 	SenderProfileLink string
+	Members           []*db.User
 	IsProjectAdmin    IsProjectAdmin
 }
 
@@ -51,11 +52,19 @@ func AuthProjectUser() macaron.Handler {
 
 func ProjectAssignment() macaron.Handler {
 	return func(c *Context) {
+		var err error
 		_ = c.Project.Project.LoadAttributes()
 		c.Project.SenderProfileLink = conf.Server.Subpath + "/" + c.Project.Project.Sender.Name
+		c.Project.Members, err = c.Project.Project.GetMembers()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		c.Data["Project"] = c.Project.Project
-		c.Data["SenderProfileLink"] = c.Project.SenderProfileLink
 		c.Data["Created"] = time.Unix(c.Project.Project.CreatedUnix, 0)
+		c.Data["NumMembers"] = len(c.Project.Members)
+		c.Data["Members"] = c.Project.Members
 	}
 }
 
