@@ -134,7 +134,7 @@ func GetDeploy(c *context.APIContext) {
 	}
 	for _, repo := range repos {
 		ds, err := db.GetDeploy(repo)
-		if err != nil {
+		if err != nil && !db.IsErrPipeNotFound(err) {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}

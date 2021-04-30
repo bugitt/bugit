@@ -205,7 +205,6 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 				RepoName: repo.Name,
 				ErrMsg:   err.Error(),
 			}
-			err = nil
 		}
 	}()
 	repoID := repo.ID
