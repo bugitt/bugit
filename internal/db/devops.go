@@ -183,6 +183,7 @@ type DeployDes struct {
 	ErrMsg       string
 	BeginUnix    int64
 	EndUnix      int64
+	Pusher       *User
 
 	// 具体的部署情况
 	ImageTag   string
@@ -225,6 +226,11 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 		return
 	}
 
+	pusher, err := GetUserByID(pipeline.PusherID)
+	if err != nil {
+		return nil, err
+	}
+
 	re = &DeployDes{
 		RepoID:       repoID,
 		RepoName:     repo.Name,
@@ -235,6 +241,7 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 		ErrMsg:       ptask.ErrMsg,
 		BeginUnix:    ptask.BeginUnix,
 		EndUnix:      ptask.EndUnix,
+		Pusher:       pusher,
 
 		ImageTag: ptask.ImageTag,
 	}

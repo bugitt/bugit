@@ -14,12 +14,15 @@ func Home(c *context.Context) {
 	tab := c.Query("tab")
 	c.Data["TabName"] = tab
 	if tab == "" || tab == "repo" {
-		repos, err := c.Project.Project.GetRepos()
+		c.Data["Repos"] = c.Project.Repos
+	} else if tab == "pipeline" {
+		// TODO: 后续考虑不用一次加载完
+		depList, err := c.Project.Project.GetDeployList(c.Project.Repos...)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
-		c.Data["Repos"] = repos
+		c.Data["DepList"] = depList
 	}
 	c.Success(HomeView)
 }

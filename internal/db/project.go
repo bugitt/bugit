@@ -227,3 +227,24 @@ func GetCourseIDListByToken(token string) ([]int64, error) {
 	}
 	return cloudResp.Data, nil
 }
+
+func (p *Project) GetDeployList(repos ...*Repository) ([]*DeployDes, error) {
+	var err error
+	if len(repos) <= 0 {
+		repos, err = p.GetRepos()
+		if err != nil {
+			return nil, err
+		}
+	}
+	deps := make([]*DeployDes, 0, len(repos))
+	for _, repo := range repos {
+		des, err := GetDeploy(repo)
+		if err != nil && !IsErrPipeNotFound(err) {
+			return nil, err
+		}
+		if !IsErrPipeNotFound(err) {
+			deps = append(deps, des)
+		}
+	}
+	return deps, err
+}

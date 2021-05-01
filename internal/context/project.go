@@ -21,6 +21,7 @@ type Project struct {
 	Project           *db.Project
 	SenderProfileLink string
 	Members           []*db.User
+	Repos             []*db.Repository
 	IsProjectAdmin    IsProjectAdmin
 }
 
@@ -56,6 +57,11 @@ func ProjectAssignment() macaron.Handler {
 		_ = c.Project.Project.LoadAttributes()
 		c.Project.SenderProfileLink = conf.Server.Subpath + "/" + c.Project.Project.Sender.Name
 		c.Project.Members, err = c.Project.Project.GetMembers()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+		c.Project.Repos, err = c.Project.Project.GetRepos()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
