@@ -243,7 +243,7 @@ func (p *Project) GetDeployList(repos ...*Repository) ([]*DeployDes, error) {
 	}
 
 	ptasks, err := GetPipeTasksByProject(p.ID)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 	// 排个序，最新创建的在最前面
