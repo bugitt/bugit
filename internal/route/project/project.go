@@ -22,7 +22,7 @@ func Home(c *context.Context) {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
-		c.Data["DepList"] = depList
+		c.Data["PipeList"] = depList
 	}
 	c.Success(HomeView)
 }
