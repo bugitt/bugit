@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/httplib"
@@ -230,15 +231,44 @@ func GetCourseIDListByToken(token string) ([]int64, error) {
 
 func (p *Project) GetDeployList(repos ...*Repository) ([]*DeployDes, error) {
 	var err error
+	repoMap := make(map[int64]*Repository)
 	if len(repos) <= 0 {
 		repos, err = p.GetRepos()
 		if err != nil {
 			return nil, err
 		}
 	}
-	deps := make([]*DeployDes, 0, len(repos))
 	for _, repo := range repos {
-		des, err := GetDeploy(repo)
+		repoMap[repo.ID] = repo
+	}
+
+	ptasks, err := GetPipeTasksByProject(p.ID)
+	if err == nil {
+		return nil, err
+	}
+	// 排个序，最新创建的在最前面
+	sort.Slice(ptasks, func(i, j int) bool { return ptasks[i].CreatedUnix > ptasks[j].CreatedUnix })
+
+	pipelineIDList := make([]int64, 0, len(ptasks))
+	for _, ptask := range ptasks {
+		pipelineIDList = append(pipelineIDList, ptask.PipelineID)
+	}
+
+	pipeList, err := GetPipelinesByIDList(pipelineIDList)
+	if err != nil {
+		return nil, err
+	}
+	pipeMap := make(map[int64]*Pipeline)
+	for _, p := range pipeList {
+		pipeMap[p.ID] = p
+	}
+	deps := make([]*DeployDes, 0, len(repos))
+
+	for _, task := range ptasks {
+		des, err := DescribePipeTask(pipeMap[task.PipelineID], task, repoMap[task.RepoID])
+		if err != nil {
+			return nil, err
+		}
 		if err != nil && !IsErrPipeNotFound(err) {
 			return nil, err
 		}

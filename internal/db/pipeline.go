@@ -61,6 +61,7 @@ type Pipeline struct {
 	ID           int64
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
 	RepoID       int64
+	ProjectID    int64
 	repoDB       *Repository     `xorm:"-" json:"-"`
 	gitRepo      *git.Repository `xorm:"-" json:"-"`
 	UUID         string
@@ -79,6 +80,7 @@ type PipeTask struct {
 	RepoID     int64
 	UUID       string
 	PipelineID int64
+	ProjectID  int64
 	Pipeline   *Pipeline `xorm:"-" json:"-"`
 	SenderID   int64     // 表示是谁触发了这次pipeline的执行
 	SenderTime int64     // 触发执行时的时间戳
@@ -217,8 +219,33 @@ func preparePipeTask(pipeline *Pipeline, pusher *User) error {
 		ImageTag:   pipeline.ImageTag,
 		Stage:      NotStart,
 		Status:     BeforeStart,
+		ProjectID:  pipeline.ProjectID,
 	}
 	return createPipeTask(x, pipeTask)
+}
+
+func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
+	ps := make([]*Pipeline, 0)
+	err := x.Where("repo_id = ?", repoID).Find(&ps)
+	return ps, err
+}
+
+func GetPipelinesByRepoList(repoIDs []int64) ([]*Pipeline, error) {
+	ps := make([]*Pipeline, 0)
+	err := x.In("repo_id", repoIDs).Find(&ps)
+	return ps, err
+}
+
+func GetPipelinesByIDList(ids []int64) ([]*Pipeline, error) {
+	ps := make([]*Pipeline, 0)
+	err := x.In("id", ids).Find(&ps)
+	return ps, err
+}
+
+func GetPipeTasksByProject(projectID int64) ([]*PipeTask, error) {
+	ps := make([]*PipeTask, 0)
+	err := x.Where("project_id = ?", projectID).Find(&ps)
+	return ps, err
 }
 
 func GetPipeline(repoID int64, commit string) (*Pipeline, error) {
@@ -448,6 +475,7 @@ func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pushe
 		Commit:       commit.ID.String(),
 		ImageTag:     imageTag,
 		ConfigString: string(configS),
+		ProjectID:    repo.ProjectID,
 	}
 	id, err := createPipeline(x, pipeline)
 	if err != nil {

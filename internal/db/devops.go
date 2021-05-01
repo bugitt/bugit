@@ -184,6 +184,8 @@ type DeployDes struct {
 	BeginUnix    int64
 	EndUnix      int64
 	Pusher       *User
+	// 流水线任务创建的时间
+	CreatedUnix int64
 
 	// 具体的部署情况
 	ImageTag   string
@@ -198,32 +200,15 @@ type DeployDes struct {
 	Ports      []Port
 }
 
-func GetDeploy(repo *Repository) (re *DeployDes, err error) {
-	defer func() {
-		if err != nil && IsErrPipeNotFound(err) {
-			re = &DeployDes{
-				RepoID:   repo.ID,
-				RepoName: repo.Name,
-				ErrMsg:   err.Error(),
-			}
+func DescribePipeTask(pipeline *Pipeline, ptask *PipeTask, repos ...*Repository) (re *DeployDes, err error) {
+	var repo *Repository
+	if len(repos) <= 0 {
+		repo, err = GetRepositoryByID(pipeline.RepoID)
+		if err != nil {
+			return
 		}
-	}()
-	repoID := repo.ID
-	pipeline, err := GetLatestPipeline(repoID)
-	if err != nil {
-		return
-	}
-	if pipeline == nil {
-		err = &ErrPipeNotFound{repoID, repo.Name}
-		return
-	}
-	ptask, err := GetLatestPipeTask(pipeline.ID)
-	if err != nil {
-		return
-	}
-	if ptask == nil {
-		err = &ErrPipeNotFound{repoID, repo.Name}
-		return
+	} else {
+		repo = repos[0]
 	}
 
 	pusher, err := GetUserByID(pipeline.PusherID)
@@ -232,7 +217,7 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 	}
 
 	re = &DeployDes{
-		RepoID:       repoID,
+		RepoID:       repo.ID,
 		RepoName:     repo.Name,
 		Branch:       pipeline.RefName,
 		Commit:       pipeline.Commit,
@@ -242,6 +227,7 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 		BeginUnix:    ptask.BeginUnix,
 		EndUnix:      ptask.EndUnix,
 		Pusher:       pusher,
+		CreatedUnix:  ptask.CreatedUnix,
 
 		ImageTag: ptask.ImageTag,
 	}
@@ -273,4 +259,35 @@ func GetDeploy(repo *Repository) (re *DeployDes, err error) {
 	}
 	re.IsHealthy = ok
 	return
+}
+
+func GetDeployByRepo(repo *Repository) (re *DeployDes, err error) {
+	defer func() {
+		if err != nil && IsErrPipeNotFound(err) {
+			re = &DeployDes{
+				RepoID:   repo.ID,
+				RepoName: repo.Name,
+				ErrMsg:   err.Error(),
+			}
+		}
+	}()
+	repoID := repo.ID
+	pipeline, err := GetLatestPipeline(repoID)
+	if err != nil {
+		return
+	}
+	if pipeline == nil {
+		err = &ErrPipeNotFound{repoID, repo.Name}
+		return
+	}
+	ptask, err := GetLatestPipeTask(pipeline.ID)
+	if err != nil {
+		return
+	}
+	if ptask == nil {
+		err = &ErrPipeNotFound{repoID, repo.Name}
+		return
+	}
+
+	return DescribePipeTask(pipeline, ptask, repo)
 }
