@@ -88,7 +88,7 @@
 					<div class="ui attached table segment teams">
 						{{range .Projects}}
 							<div class="item">
-								<a href="{{AppSubURL}}/{{.Sender.Name}}/project/{{.Name}}"><strong class="team-name">{{.Name}}</strong></a>
+								<a href="{{AppSubURL}}/project/{{.ID}}"><strong class="team-name">{{.Name}}</strong></a>
 								<p class="text grey">{{$.i18n.Tr "org.repo_updated"}} {{TimeSince .Updated $.i18n.Lang}}</p>							</div>
 						{{end}}
 					</div>

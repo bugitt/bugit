@@ -131,7 +131,7 @@
 						<ul class="repo-owner-name-list">
 							{{range .Projects}}
 								<li>
-									<a href="{{AppSubURL}}/{{$.ContextUser.Name}}/project/{{.Name}}">
+									<a href="{{AppSubURL}}/project/{{.ID}}">
 										<i class="octicon octicon-beaker"></i>
 										<strong class="text truncate item-name">&nbsp;{{.Name}}</strong>
 									</a>
@@ -156,7 +156,7 @@
 							<ul id="collaborative-repo-list">
 								{{range .CollaborativeProjects}}
 									<li>
-										<a href="{{AppSubURL}}/{{.Sender.Name}}/project/{{.Name}}">
+										<a href="{{AppSubURL}}/project/{{.ID}}">
 											<i class="octicon octicon-beaker"></i>
 											<span class="text truncate owner-and-repo">
 												<span class="text truncate owner-name">&nbsp;{{.Sender.Name}}</span> / <strong>{{.Name}}</strong>
