@@ -1,3 +1,103 @@
-<div class="feeds">
-    keke
+<div class="ui large feed">
+{{range .PipeList}}
+  <div class="event">
+    <div class="label">
+      <img src="{{.Pusher.AvatarLink}}">
+    </div>
+    <div class="content">
+      <div class="date">
+        {{if .IsSuccessful}}
+          <i class="green check icon"></i>
+        {{else if eq .Status 3}}
+          <i class="red times icon"></i>
+        {{else}}
+          <i class="yellow circle outline icon"></i>
+        {{end}}
+        {{TimeSince .Created $.i18n.Lang}}
+      </div>
+      <div class="summary">
+        <a href="{{.Pusher.HomeLink}}">
+          {{.Pusher.Name}}
+        </a>
+        启动了
+        <a rel="nofollow" href="{{.Repo.Link}}">
+          {{.Repo.FullName}}
+        </a>
+        的分支
+        <a rel="nofollow" href="{{.BranchURL}}">
+          {{.Branch}}
+        </a>
+        基于提交
+        <a rel="nofollow" class="ui sha label" href="{{.CommitURL}}">
+          {{.PrettyCommit}}
+        </a>
+        的构建
+      </div>
+      <div class="meta">
+        开始于
+        {{TimeFormat .BeginUnix}}
+        {{if eq .Status 3}}
+        &nbsp;&nbsp;&nbsp;结束于
+        {{TimeFormat .EndUnix}}
+        {{end}}
+      </div>
+      <div class="extra text">
+        <div class="ui list">
+          {{/* 处理当前流水线所处的状态 */}}
+          {{if not .IsSuccessful}}
+          状态：
+          {{.StageString}}
+          {{end}}
+
+          {{/* 处理镜像相关 */}}
+          {{if ge .Stage 11}}{{if .ImageTag}}
+          <div class="item">
+          镜像：
+          {{.ImageTag}}
+          </div>
+          {{end}}{{end}}
+
+          {{/* 处理错误日志 */}}
+          {{if .ErrMsg}}
+          <div class="item">
+            错误日志：
+            {{.ErrMsg}}
+          </div>
+          {{end}}
+
+          {{/* 处理部署相关 */}}
+          <div class="item">
+          服务运行状态：
+          {{if .IsHealthy}}
+          <i class="green circle icon"></i>
+          {{else}}
+          <i class="red circle icon"></i>
+          {{end}}
+          </div>
+
+          {{if .Ports}}
+          {{$ip := .IP}}
+          <div class="item">
+            <div class="ui bulleted list">
+              
+            {{range .Ports}}
+              <div class="item">
+                {{.Protocol}}
+                {{.Name}}
+                <a>
+                {{$ip}}:{{.Port}}
+                </a>
+              </div>
+            {{end}}
+
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+      <div class="ui divider">
+      </div>
+    </div>
+  </div>
+  {{end}}
 </div>

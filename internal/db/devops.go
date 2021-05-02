@@ -1,6 +1,9 @@
 package db
 
 import (
+	"fmt"
+	"time"
+
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
@@ -173,11 +176,17 @@ func CreateDeploy(opt *DeployOption) (err error) {
 // DeployDes 描述一个project中的一个仓库最新的部署情况
 type DeployDes struct {
 	// 总体描述
+	Repo         *Repository `json:"-"`
 	RepoID       int64
 	RepoName     string
 	Branch       string
+	BranchURL    string
 	Commit       string
+	CommitURL    string
+	PrettyCommit string
 	Status       RunStatus
+	Stage        PipeStage
+	StageString  string
 	IsSuccessful bool
 	IsHealthy    bool
 	ErrMsg       string
@@ -186,6 +195,7 @@ type DeployDes struct {
 	Pusher       *User
 	// 流水线任务创建的时间
 	CreatedUnix int64
+	Created     time.Time `json:"-"`
 
 	// 具体的部署情况
 	ImageTag   string
@@ -217,17 +227,24 @@ func DescribePipeTask(pipeline *Pipeline, ptask *PipeTask, repos ...*Repository)
 	}
 
 	re = &DeployDes{
+		Repo:         repo,
 		RepoID:       repo.ID,
 		RepoName:     repo.Name,
 		Branch:       pipeline.RefName,
+		BranchURL:    fmt.Sprintf("%s/src/%s", repo.Link(), pipeline.RefName),
 		Commit:       pipeline.Commit,
+		CommitURL:    fmt.Sprintf("%s/commit/%s", repo.Link(), pipeline.Commit),
+		PrettyCommit: pipeline.Commit[:10],
 		Status:       ptask.Status,
+		Stage:        ptask.Stage,
+		StageString:  PrettyStage(ptask.Stage),
 		IsSuccessful: ptask.IsSucceed,
 		ErrMsg:       ptask.ErrMsg,
 		BeginUnix:    ptask.BeginUnix,
 		EndUnix:      ptask.EndUnix,
 		Pusher:       pusher,
 		CreatedUnix:  ptask.CreatedUnix,
+		Created:      time.Unix(ptask.CreatedUnix, 0),
 
 		ImageTag: ptask.ImageTag,
 	}

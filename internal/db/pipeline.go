@@ -34,19 +34,19 @@ type CIContext struct {
 type PipeStage int
 
 const (
-	NotStart PipeStage = iota + 1
-	LoadRepoStart
-	LoadRepoEnd
-	ValidStart
-	ValidEnd
-	BuildStart
-	BuildEnd
-	TestStart
-	TestEnd
-	PushStart
-	PushEnd
-	DeployStart
-	DeployEnd
+	NotStart      PipeStage = iota + 1 // 1
+	LoadRepoStart                      // 2
+	LoadRepoEnd                        // 3
+	ValidStart                         // 4
+	ValidEnd                           // 5
+	BuildStart                         // 6
+	BuildEnd                           // 7
+	TestStart                          // 8
+	TestEnd                            // 9
+	PushStart                          // 10
+	PushEnd                            // 11
+	DeployStart                        // 12
+	DeployEnd                          // 13
 )
 
 type RunStatus int
@@ -309,6 +309,39 @@ func IsPipelineRunning(repoID int64, commit string) (bool, error) {
 		return false, nil
 	}
 	return ptask.Status == BeforeStart || ptask.Status == Running, nil
+}
+
+func PrettyStage(stage PipeStage) string {
+	des := ""
+	switch stage {
+	case DeployEnd:
+		des = "已部署完成"
+	case DeployStart:
+		des = "正在部署中……"
+	case PushEnd:
+		des = "推送镜像已完成"
+	case PushStart:
+		des = "正在推送镜像中……"
+	case TestEnd:
+		des = "已完成测试"
+	case TestStart:
+		des = "正在测试中……"
+	case BuildEnd:
+		des = "镜像构建完成"
+	case BuildStart:
+		des = "镜像构建中……"
+	case ValidEnd:
+		des = "静态代码检查已完成"
+	case ValidStart:
+		des = "静态代码检查中……"
+	case LoadRepoEnd:
+		des = "仓库文件准备完成……"
+	case LoadRepoStart:
+		des = "准备仓库文件中……"
+	case NotStart:
+		des = "等待开始……"
+	}
+	return des
 }
 
 func createPipeTask(e Engine, p *PipeTask) error {

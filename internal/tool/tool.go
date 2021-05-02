@@ -241,6 +241,10 @@ func computeTimeDiff(diff int64) (int64, string) {
 	return diff, diffStr
 }
 
+func TimeFormat(unix int64) string {
+	return time.Unix(unix, 0).Format("2006-01-02 15:04:05")
+}
+
 // TimeSincePro calculates the time interval and generate full user-friendly string.
 func TimeSincePro(then time.Time) string {
 	now := time.Now()

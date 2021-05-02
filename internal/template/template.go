@@ -79,6 +79,7 @@ func FuncMap() []template.FuncMap {
 			"Str2HTML":         Str2HTML,
 			"NewLine2br":       NewLine2br,
 			"TimeSince":        tool.TimeSince,
+			"TimeFormat":       tool.TimeFormat,
 			"RawTimeSince":     tool.RawTimeSince,
 			"FileSize":         tool.FileSize,
 			"Subtract":         tool.Subtract,
