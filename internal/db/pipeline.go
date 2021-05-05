@@ -165,19 +165,17 @@ func (ptask *PipeTask) Validation(ctx *CIContext) error {
 
 func (ptask *PipeTask) Build(ctx *CIContext) error {
 	_ = ptask.updateStatus(BuildStart)
-	configs := ptask.Pipeline.Config.Build
-	for i := range configs {
-		task, err := ptask.prepareBuildTask(ctx, i+1)
-		if err != nil {
-			return err
-		}
-		_ = task.start()
-		if err = task.Run(ctx); err != nil {
-			_ = task.failed()
-			return err
-		}
-		_ = task.success()
+	task, err := ptask.prepareBuildTask(ctx, 1)
+	if err != nil {
+		return err
 	}
+	_ = task.start()
+	if err = task.Run(ctx); err != nil {
+		_ = task.failed()
+		return err
+	}
+	_ = task.success()
+
 	return ptask.updateStatus(BuildEnd)
 }
 

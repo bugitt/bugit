@@ -17,6 +17,12 @@ type BuildTaskConfig struct {
 	Scope          string `yaml:"scope"`
 }
 
+type TestTaskConfig struct {
+	BaseTaskConfig `yaml:",inline"`
+	WorkingDir     string `yaml:"workingDir"`
+	Cmd            Cmd    `yaml:"cmd"`
+}
+
 type BuildTask struct {
 	SourceLog      string `xorm:"TEXT" json:"source_log"`
 	ImageTag       string
@@ -26,7 +32,7 @@ type BuildTask struct {
 }
 
 func (task *BuildTask) Run(ctx *CIContext) error {
-	config := ctx.config.Build[task.Number-1]
+	config := ctx.config.Build
 	buildPath := filepath.Join(ctx.path, config.Scope)
 	switch strings.ToLower(config.Type) {
 	case "docker":

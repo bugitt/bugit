@@ -41,7 +41,8 @@ type CIConfig struct {
 	Meta     Meta                `yaml:"meta"`
 	On       map[string][]string `yaml:"on"`
 	Validate []ValidTaskConfig   `yaml:"validate"`
-	Build    []BuildTaskConfig   `yaml:"build"`
+	Build    BuildTaskConfig     `yaml:"build"`
+	Test     []TestTaskConfig    `yaml:"test"`
 	Deploy   DeployTaskConfig    `yaml:"deploy"`
 }
 
