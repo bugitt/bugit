@@ -58,7 +58,8 @@ const (
 )
 
 type Pipeline struct {
-	ID           int64
+	ID int64
+	// TODO 这里的pusherID应该属于PipeTask
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
 	RepoID       int64
 	ProjectID    int64
