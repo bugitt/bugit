@@ -233,6 +233,7 @@ func getCIConfigExample(c *cli.Context) error {
 	config := &db.CIConfig{}
 	config.Validate = append(config.Validate, db.ValidTaskConfig{})
 	config.Test = append(config.Test, db.TestTaskConfig{})
+	config.Deploy.Ports = append(config.Deploy.Ports, db.Port{})
 	data, err := yaml.Marshal(config)
 	if err != nil {
 		return err
