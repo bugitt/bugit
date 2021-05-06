@@ -14,6 +14,11 @@ func Home(c *context.Context) {
 	tab := c.Query("tab")
 	c.Data["TabName"] = tab
 	if tab == "" || tab == "repo" {
+		err := c.Project.Repos.LoadAttributes()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
 		c.Data["Repos"] = c.Project.Repos
 	} else if tab == "pipeline" {
 		// TODO: 后续考虑不用一次加载完

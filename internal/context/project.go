@@ -21,7 +21,7 @@ type Project struct {
 	Project           *db.Project
 	SenderProfileLink string
 	Members           []*db.User
-	Repos             []*db.Repository
+	Repos             db.RepositoryList
 	IsProjectAdmin    IsProjectAdmin
 }
 
