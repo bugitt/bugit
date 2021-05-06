@@ -221,7 +221,7 @@ func DescribePipeTask(pipeline *Pipeline, ptask *PipeTask, repos ...*Repository)
 		repo = repos[0]
 	}
 
-	pusher, err := GetUserByID(pipeline.PusherID)
+	pusher, err := GetUserByID(ptask.SenderID)
 	if err != nil {
 		return nil, err
 	}
