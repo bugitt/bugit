@@ -137,21 +137,24 @@ func initRedis() *redis.Pool {
 }
 
 func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
-	if conf.CloudAPI.SupperDebug {
-		return 1, true
-	}
-	if rePool == nil {
-		rePool = initRedis()
-	}
-	redisConn := rePool.Get()
-	defer redisConn.Close()
-	studentID, err := redis.String(redisConn.Do("GET", token))
-	if err != nil {
-		log.Error(err.Error())
-		return 0, false
-	}
-	if len(studentID) <= 0 {
-		return 0, false
+	var studentID string
+	var err error
+	if conf.CloudAPI.SupperDebug && len(token) < 12 {
+		studentID = token
+	} else {
+		if rePool == nil {
+			rePool = initRedis()
+		}
+		redisConn := rePool.Get()
+		defer redisConn.Close()
+		studentID, err = redis.String(redisConn.Do("GET", token))
+		if err != nil {
+			log.Error(err.Error())
+			return 0, false
+		}
+		if len(studentID) <= 0 {
+			return 0, false
+		}
 	}
 	studentID = strings.Trim(studentID, "\"")
 	log.Info("get user from cloud: %s", studentID)
