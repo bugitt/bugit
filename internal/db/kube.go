@@ -46,7 +46,13 @@ func init() {
 }
 
 func getKubeClient() (*kubernetes.Clientset, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube/config"))
+	kubeconfig := conf.Devops.KubeConfig
+	if kubeconfig == "" {
+		kubeconfig = filepath.Join(homedir.HomeDir(), ".kube/config")
+	} else {
+		kubeconfig, _ = filepath.Abs(kubeconfig)
+	}
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
