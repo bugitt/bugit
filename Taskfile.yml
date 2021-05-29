@@ -39,12 +39,12 @@ tasks:
         '
         -tags '{{.TAGS}}'
         -trimpath -o gogs-deploy
-      - scp ./gogs-deploy loheagn-bugit:/home/buaa/gogs-tmp
-      - ssh loheagn-bugit "sudo systemctl stop bugit"
-      - ssh loheagn-bugit "sudo mv /home/git/bugit/gogs /home/git/bugit/gogs.old"
-      - ssh loheagn-bugit "sudo mv /home/buaa/gogs-tmp /home/git/bugit/gogs"
-      - ssh loheagn-bugit "sudo chmod a+x /home/git/bugit/gogs"
-      - ssh loheagn-bugit "sudo systemctl start bugit"
+      - scp ./gogs-deploy kmaster:/root/gogs-tmp
+      - ssh kmaster "systemctl stop bugit"
+      - ssh kmaster "mv /home/git/bugit/gogs /home/git/bugit/gogs.old"
+      - ssh kmaster "mv /root/gogs-tmp /home/git/bugit/gogs"
+      - ssh kmaster "chmod a+x /home/git/bugit/gogs"
+      - ssh kmaster "systemctl start bugit"
     vars:
       PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
       BUILD_TIME:
