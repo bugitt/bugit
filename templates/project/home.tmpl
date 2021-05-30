@@ -46,6 +46,39 @@
 					{{template "explore/repo_list" .}}
 					{{template "explore/page" .}}
 				{{else if eq .TabName "pipeline"}}
+                    <div class="text right">
+						<a class="ui green button" id="create_deploy_button">{{.i18n.Tr "new_deploy"}}</a>
+					</div>
+					<div class="ui divider"></div>
+
+
+
+<div class="ui modal" id="create_deploy_box">
+  <i class="close icon"></i>
+  <div class="header">
+    Profile Picture
+  </div>
+  <div class="image content">
+    <div class="ui medium image">
+      <img src="https://semantic-ui.com/images/avatar2/large/rachel.png">
+    </div>
+    <div class="description">
+      <div class="ui header">We've auto-chosen a profile image for you.</div>
+      <p>We've grabbed the following image from the <a href="https://www.gravatar.com" target="_blank">gravatar</a> image associated with your registered e-mail address.</p>
+      <p>Is it okay to use this photo?</p>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui black deny button">
+      Nope
+    </div>
+    <div class="ui positive right labeled icon button">
+      Yep, that's me
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
 					{{template "explore/pipe_list" .}}
 				{{end}}
             </div>
