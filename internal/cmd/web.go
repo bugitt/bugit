@@ -40,6 +40,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/admin"
 	apiv1 "git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/deploy"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/dev"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/lfs"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/org"
@@ -631,6 +632,14 @@ func runWeb(c *cli.Context) error {
 
 		}, reqSignIn)
 		// ***** END: Project *****
+
+		// ***** BEGIN: Deploy *****
+		m.Group("/deploy", func() {
+			m.Group("", func() {
+				m.Post("/create", deploy.CreatePost)
+			})
+		}, reqSignIn)
+		// ***** END: Deploy *****
 
 		// **********************
 		// ----- API routes -----

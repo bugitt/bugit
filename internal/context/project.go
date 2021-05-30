@@ -71,6 +71,7 @@ func ProjectAssignment() macaron.Handler {
 		c.Data["Created"] = time.Unix(c.Project.Project.CreatedUnix, 0)
 		c.Data["NumMembers"] = len(c.Project.Members)
 		c.Data["Members"] = c.Project.Members
+		c.Data["Repos"] = c.Project.Repos
 	}
 }
 
