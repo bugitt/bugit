@@ -108,6 +108,11 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		if err != nil {
 			return err
 		}
+	} else {
+		err = deployStatefulSet(deployCtx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// 部署service
@@ -270,6 +275,55 @@ func deployDeployment(ctx *DeployContext) (err error) {
 	} else {
 		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
 		_, err = deploymentsClient.Update(context.TODO(), deployment, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	err = waitForPodsDone(ctx)
+	return
+}
+
+func deployStatefulSet(ctx *DeployContext) (err error) {
+	ctx.repNum = 1
+	statefulSet := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ctx.DeploymentName,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas: &ctx.repNum,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: ctx.svcLabels,
+			},
+			Template: apiv1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: ctx.labels,
+				},
+				Spec: apiv1.PodSpec{
+					Containers: []apiv1.Container{
+						*ctx.container,
+					},
+				},
+			},
+		},
+	}
+
+	// 看看之前部署的deployment还存不存在
+	statefulSetClient := clientSet.AppsV1().StatefulSets(ctx.NameSpace)
+	_, err = statefulSetClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
+	if err != nil {
+		if kerrors.IsNotFound(err) {
+			// create
+			_, err = statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
+			if err != nil {
+				return
+			}
+		} else {
+			return err
+		}
+	} else {
+		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
+		_, err = statefulSetClient.Update(context.TODO(), statefulSet, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
