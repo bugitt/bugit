@@ -619,9 +619,17 @@ func runWeb(c *cli.Context) error {
 		// ***** END: Repository *****
 
 		// ***** BEGIN: Project *****
-		m.Group("/project/:projectID", func() {
-			m.Get("", project.Home)
-		}, reqSignIn, context.AuthProjectUser(), context.ProjectAssignment())
+		m.Group("/project", func() {
+			m.Group("", func() {
+				m.Get("/create", project.Create)
+				m.Post("/create", bindIgnErr(form.CreateOrg{}), org.CreatePost)
+			})
+
+			m.Group("/:projectID", func() {
+				m.Get("", project.Home)
+			}, context.AuthProjectUser(), context.ProjectAssignment())
+
+		}, reqSignIn)
 		// ***** END: Project *****
 
 		// **********************

@@ -8,6 +8,7 @@ import (
 
 const (
 	HomeView = "project/home"
+	CREATE   = "project/create"
 )
 
 func Home(c *context.Context) {
@@ -30,4 +31,9 @@ func Home(c *context.Context) {
 		c.Data["PipeList"] = depList
 	}
 	c.Success(HomeView)
+}
+
+func Create(c *context.Context) {
+	c.Title("new_org")
+	c.Success(CREATE)
 }

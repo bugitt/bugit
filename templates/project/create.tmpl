@@ -1,0 +1,30 @@
+{{template "base/head" .}}
+<div class="organization new org">
+	<div class="ui middle very relaxed page grid">
+		<div class="column">
+			<form class="ui form" action="{{.Link}}" method="post">
+				{{.CSRFTokenHTML}}
+				<h3 class="ui top attached header">
+					{{.i18n.Tr "new_project"}}
+				</h3>
+				<div class="ui attached segment">
+					{{template "base/alert" .}}
+					<div class="inline required field {{if .Err_OrgName}}error{{end}}">
+						<label for="project_name">{{.i18n.Tr "project.project_name_holder"}}</label>
+						<input id="project_name" name="project_name" value="{{.project_name}}" autofocus required>
+					</div>
+
+					<div class="inline field">
+						<label></label>
+						<button class="ui green button">
+							{{.i18n.Tr "project.create_project"}}
+						</button>
+						<a class="ui button" href="{{AppSubURL}}/">{{.i18n.Tr "cancel"}}</a>
+					</div>
+				</div>
+                {{/* TODO: 添加其他选项 */}}
+			</form>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
