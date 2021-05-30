@@ -9,7 +9,7 @@
 				</h3>
 				<div class="ui attached segment">
 					{{template "base/alert" .}}
-					<div class="inline required field {{if .Err_OrgName}}error{{end}}">
+					<div class="inline required field {{if .Err_Project}}error{{end}}">
 						<label for="project_name">{{.i18n.Tr "project.project_name_holder"}}</label>
 						<input id="project_name" name="project_name" value="{{.project_name}}" autofocus required>
 					</div>

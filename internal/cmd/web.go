@@ -622,7 +622,7 @@ func runWeb(c *cli.Context) error {
 		m.Group("/project", func() {
 			m.Group("", func() {
 				m.Get("/create", project.Create)
-				m.Post("/create", bindIgnErr(form.CreateOrg{}), org.CreatePost)
+				m.Post("/create", bindIgnErr(form.CreateProject{}), project.CreatePost)
 			})
 
 			m.Group("/:projectID", func() {
