@@ -291,7 +291,8 @@ func deployStatefulSet(ctx *DeployContext) (err error) {
 			Name: ctx.DeploymentName,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: &ctx.repNum,
+			Replicas:    &ctx.repNum,
+			ServiceName: ctx.ServiceName,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ctx.svcLabels,
 			},
@@ -308,25 +309,42 @@ func deployStatefulSet(ctx *DeployContext) (err error) {
 		},
 	}
 
-	// 看看之前部署的deployment还存不存在
+	// 看看之前部署的StatefulSet还存不存在
 	statefulSetClient := clientSet.AppsV1().StatefulSets(ctx.NameSpace)
 	_, err = statefulSetClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
 	if err != nil {
-		if kerrors.IsNotFound(err) {
-			// create
-			_, err = statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
-			if err != nil {
-				return
-			}
-		} else {
+		if !kerrors.IsNotFound(err) {
 			return err
 		}
 	} else {
-		// 否则，原来的deployment跑的好好的，那么就只需要更新就行
-		_, err = statefulSetClient.Update(context.TODO(), statefulSet, metav1.UpdateOptions{})
+		// 删除原来的statefulSet
+		deletePolicy := metav1.DeletePropagationBackground
+		if err := statefulSetClient.Delete(context.TODO(), ctx.DeploymentName, metav1.DeleteOptions{
+			PropagationPolicy: &deletePolicy,
+		}); err != nil {
+			return err
+		}
+
+		// 等待statefulSet删除结束
+		err = waitForDone(ctx, time.Second, func() (bool, error) {
+			_, err := statefulSetClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
+			if err != nil {
+				if kerrors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			}
+			return false, nil
+		})
 		if err != nil {
 			return err
 		}
+	}
+
+	// create
+	_, err = statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
+	if err != nil {
+		return
 	}
 
 	err = waitForPodsDone(ctx)
