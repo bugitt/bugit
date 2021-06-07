@@ -4,13 +4,10 @@ go 1.16
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/Microsoft/hcsshim v0.8.15 // indirect
 	github.com/aofei/cameron v1.1.6
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/bugitt/git-module v1.2.2
-	github.com/containerd/continuity v0.0.0-20210315143101-93e15499afd5 // indirect
-	github.com/docker/docker v20.10.5+incompatible
-	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/docker v20.10.7+incompatible
 	github.com/editorconfig/editorconfig-core-go/v2 v2.3.9
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-macaron/binding v1.1.1
@@ -18,7 +15,7 @@ require (
 	github.com/go-macaron/captcha v0.2.0
 	github.com/go-macaron/cors v0.0.0-20210206180111-00b7f53a9308
 	github.com/go-macaron/csrf v0.0.0-20190812063352-946f6d303a4c
-	github.com/go-macaron/gzip v0.0.0-20160222043647-cad1c6580a07
+	github.com/go-macaron/gzip v0.0.0-20200329073552-98214d7a897e
 	github.com/go-macaron/i18n v0.6.0
 	github.com/go-macaron/session v0.0.0-20190805070824-1a3cdc6f5659
 	github.com/go-macaron/toolbox v0.0.0-20190813233741-94defb8383c6
@@ -31,19 +28,17 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.10
+	github.com/loheagn/cloud v0.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
-	github.com/moby/sys/mount v0.2.0 // indirect
-	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
-	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/msteinert/pam v0.0.0-20190215180659-f29b9f28d6f9
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niklasfasching/go-org v0.1.9
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.2.0
-	github.com/prometheus/client_golang v1.8.0
+	github.com/prometheus/client_golang v1.10.0
 	github.com/russross/blackfriday v1.6.0
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/satori/go.uuid v1.2.0
@@ -55,9 +50,8 @@ require (
 	github.com/unknwon/i18n v0.0.0-20190805065654-5c6446a380b6
 	github.com/unknwon/paginater v0.0.0-20170405233947-45e5d631308e
 	github.com/urfave/cli v1.22.5
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
-	golang.org/x/sys v0.0.0-20210315160823-c6e025ad8005 // indirect
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/text v0.3.4
 	gopkg.in/DATA-DOG/go-sqlmock.v2 v2.0.0-20180914054222-c19298f520d0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
@@ -72,11 +66,10 @@ require (
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/driver/sqlserver v1.0.5
 	gorm.io/gorm v1.20.12
-	gotest.tools/v3 v3.0.3 // indirect
-	k8s.io/api v0.20.5
-	k8s.io/apimachinery v0.20.5
-	k8s.io/client-go v0.20.5
-	unknwon.dev/clog/v2 v2.1.2
+	k8s.io/api v0.21.1
+	k8s.io/apimachinery v0.21.1
+	k8s.io/client-go v0.21.1
+	unknwon.dev/clog/v2 v2.2.0
 	xorm.io/builder v0.3.6
 	xorm.io/core v0.7.2
 	xorm.io/xorm v0.8.0

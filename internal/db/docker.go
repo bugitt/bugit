@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/loheagn/cloud/docker"
 )
 
 type DockerBuildError struct {
@@ -26,12 +27,9 @@ type DockerBuildErrorDetail struct {
 }
 
 func getDockerCli() (*client.Client, error) {
-	host := conf.Docker.DockerService
-	cli, err := client.NewClientWithOpts(client.WithHost(host))
-	if err == nil {
-		return cli, err
-	}
-	return client.NewClientWithOpts(client.FromEnv)
+	return docker.GetClient(&docker.InitOption{
+		Host: conf.Docker.DockerService,
+	})
 }
 
 func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog string, isSuccessful bool, buildErr DockerBuildError, err error) {
