@@ -17,7 +17,7 @@ import (
 	"github.com/loheagn/cloud/docker"
 )
 
-type DockerBuildError struct {
+type DockerError struct {
 	Error       string                 `json:"error"`
 	ErrorDetail DockerBuildErrorDetail `json:"errorDetail"`
 }
@@ -32,7 +32,7 @@ func getDockerCli() (*client.Client, error) {
 	})
 }
 
-func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog string, isSuccessful bool, buildErr DockerBuildError, err error) {
+func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog string, isSuccessful bool, buildErr DockerError, err error) {
 	cli, err := getDockerCli()
 	if err != nil {
 		return
@@ -68,7 +68,7 @@ func BuildImage(dockerFilePath, contextPath string, tags []string) (sourceLog st
 	return
 }
 
-func PushImage(tag string) (sourceLog string, isSuccessful bool, buildErr DockerBuildError, err error) {
+func PushImage(tag string) (sourceLog string, isSuccessful bool, buildErr DockerError, err error) {
 	cli, err := getDockerCli()
 	if err != nil {
 		return
@@ -111,7 +111,7 @@ func PushImage(tag string) (sourceLog string, isSuccessful bool, buildErr Docker
 	return
 }
 
-func readDockerOutput(rd io.Reader, output io.Writer) (buildErr DockerBuildError, err error) {
+func readDockerOutput(rd io.Reader, output io.Writer) (buildErr DockerError, err error) {
 	var lastLine string
 	scanner := bufio.NewScanner(rd)
 	for scanner.Scan() {
@@ -121,7 +121,7 @@ func readDockerOutput(rd io.Reader, output io.Writer) (buildErr DockerBuildError
 		log.Info(string(scanner.Bytes()))
 	}
 
-	buildErr = DockerBuildError{}
+	buildErr = DockerError{}
 	_ = json.Unmarshal([]byte(lastLine), &buildErr)
 	if err = scanner.Err(); err != nil {
 		return
