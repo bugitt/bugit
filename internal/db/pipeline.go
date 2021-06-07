@@ -123,6 +123,7 @@ func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTa
 	task.PipeTaskID = ptask.ID
 	task.Number = index
 	task.Status = BeforeStart
+	task.ImageTag = context.imageTag
 	_, err := x.Insert(task)
 	return task, err
 }
