@@ -28,6 +28,7 @@ type DeployContext struct {
 	svcLabels map[string]string
 	container *apiv1.Container
 	repNum    int32
+	stateful  bool
 }
 
 // nextIP 获取这次应该部署的到哪个IP上
@@ -47,6 +48,7 @@ func init() {
 
 func getKubeClient() (*kubernetes.Clientset, error) {
 	kubeconfig := conf.Devops.KubeConfig
+
 	if kubeconfig == "" {
 		kubeconfig = filepath.Join(homedir.HomeDir(), ".kube/config")
 	} else {
@@ -90,6 +92,7 @@ func Deploy(ctx *CIContext, task *DeployTask) (err error) {
 		repNum:     int32(1),
 		labels:     GetPodLabels(ctx.repo, ctx.refName, ctx.commit),
 		svcLabels:  GetSvcLabels(ctx.repo),
+		stateful:   ctx.config.Deploy.Stateful,
 	}
 	config := ctx.config.Deploy
 
