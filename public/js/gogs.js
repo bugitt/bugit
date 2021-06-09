@@ -1817,3 +1817,8 @@ $(function () {
     closable: true
   });
 });
+
+// 激活menu tab
+$('.menu .item')
+  .tab()
+  ;
