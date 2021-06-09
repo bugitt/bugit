@@ -14,6 +14,21 @@
           <i class="yellow circle outline icon"></i>
         {{end}}
         {{TimeSince .Created $.i18n.Lang}}
+
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button class="ui positive button" id="deploy_detail_button">详情</button>
+<div class="ui modal" id="deploy_detail_box">
+  <i class="close icon"></i>
+
+  {{/* header */}}
+  <div class="header">
+    {{$.i18n.Tr "deploy.deploy_detail"}}
+  </div>
+
+<div class="content">
+</div>
+
+</div>
       </div>
       <div class="summary">
         <a href="{{.Pusher.HomeLink}}">

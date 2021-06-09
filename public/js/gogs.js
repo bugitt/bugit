@@ -1807,3 +1807,13 @@ $(function () {
     closable: true
   });
 });
+
+// 查看部署详情
+$(function () {
+  $("#deploy_detail_button").click(function () {
+    $("#deploy_detail_box").modal('show');
+  });
+  $("#deploy_detail_box").modal({
+    closable: true
+  });
+});
