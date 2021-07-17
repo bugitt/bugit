@@ -16,12 +16,11 @@ const (
 
 type ValidTaskConfig struct {
 	BaseTaskConfig `yaml:",inline"`
-	Lang           string   `yaml:"lang"`
-	Scope          string   `yaml:"scope"`
-	Enable         []string `yaml:"enable"`
-	Disable        []string `yaml:"disable"`
-	Threshold      int      `yaml:"threshold"`
-	Path           string   `yaml:"-"`
+	Lang           string `yaml:"lang"`
+	Scope          string `yaml:"scope"`
+	WorkDir        string `yaml:"workDir"`
+	Skip           bool   `yaml:"skip"`
+	Path           string `yaml:"-"`
 }
 
 type ValidationTask struct {
@@ -90,9 +89,9 @@ func (task *ValidationTask) Run(ctx *CIContext) error {
 		}
 		cnt++
 	}
-	if cnt <= config.Threshold {
-		return nil
-	}
+	// if cnt <= config.Threshold {
+	// 	return nil
+	// }
 	return errors.New("to many warnings")
 }
 

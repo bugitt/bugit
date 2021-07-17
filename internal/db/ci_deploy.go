@@ -43,6 +43,14 @@ type DeployTask struct {
 	BaseModel      `xorm:"extends"`
 }
 
+type GetCITaskDepDetail interface {
+	IsSingle() bool
+	IsSuccessful() bool
+	GetDisplayName() string
+	GetInternalName() string
+	GetSourceLog() string
+}
+
 func (task *DeployTask) GetURLs() []string {
 	urls := make([]string, len(task.Ports))
 	for _, port := range task.Ports {

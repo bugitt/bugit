@@ -44,14 +44,14 @@ func golangciLint(config *ValidTaskConfig) (Linter, error) {
 		"--out-format",
 		"json",
 	}
-	if len(config.Disable) > 0 {
-		args = append(args, "--disable")
-		args = append(args, config.Disable...)
-	}
-	if len(config.Enable) > 0 {
-		args = append(args, "--enable")
-		args = append(args, config.Enable...)
-	}
+	// if len(config.Disable) > 0 {
+	// 	args = append(args, "--disable")
+	// 	args = append(args, config.Disable...)
+	// }
+	// if len(config.Enable) > 0 {
+	// 	args = append(args, "--enable")
+	// 	args = append(args, config.Enable...)
+	// }
 	cmd := exec.Command("golangci-lint", args...)
 	cmd.Dir = config.Path
 	var output bytes.Buffer
