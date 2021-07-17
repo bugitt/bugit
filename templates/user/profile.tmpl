@@ -89,13 +89,6 @@
 						<i class="octicon octicon-repo"></i> {{.i18n.Tr "user.repositories"}}
 					</a>
 					<a class="item">
-					{{if .ShowProjects}}
-						<a class="{{if eq .TabName "project"}}active{{end}} item" href="{{.Owner.HomeLink}}?tab=project">
-							<i class="octicon octicon-beaker"></i> {{.i18n.Tr "user.projects"}}
-						</a>
-					{{end}}
-					</a>
-					<a class="item">
 						<a class="{{if eq .TabName "activity"}}active{{end}} item" href="{{.Owner.HomeLink}}?tab=activity">
 							<i class="octicon octicon-rss"></i> {{.i18n.Tr "user.activity"}}
 						</a>
@@ -109,11 +102,6 @@
 					<div class="feeds">
 						{{template "user/dashboard/feeds" .}}
 					</div>
-				{{else if .ShowProjects}}
-					{{if eq .TabName "project"}}
-						{{template "explore/project_list" .}}
-						{{template "explore/page" .}}
-					{{end}}
 				{{end}}
 			</div>
 		</div>

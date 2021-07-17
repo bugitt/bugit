@@ -39,22 +39,6 @@
 						<span class="help">{{.i18n.Tr "repo.repo_name_helper" | Safe}}</span>
 					</div>
 
-					<!-- 选择 Project 的下拉列表 -->
-					<div class="inline field {{if .Err_Project}}error{{end}}">
-						<label>{{.i18n.Tr "repo.project"}}</label>
-						<div class="ui search selection dropdown">
-							<input type="hidden" name="project_id">
-							<i class="dropdown icon"></i>
-							<div class="default text"></div>
-							<div class="menu">
-								<div class="item" data-value="0">{{.i18n.Tr "repo.remove_project"}}</div>
-								{{range	.Projects}}
-									<div class="item" data-value="{{.ID}}"><i class="octicon octicon-beaker"></i>&nbsp;{{.Name}}</div>
-								{{end}}
-							</div>
-						</div>
-					</div>
-
 					<div class="inline field">
 						<label>{{.i18n.Tr "repo.visibility"}}</label>
 						<div class="ui checkbox">
