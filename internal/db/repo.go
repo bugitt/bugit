@@ -162,7 +162,6 @@ type Repository struct {
 	} `xorm:"-" gorm:"-" json:"Branches"`
 	Size            int64 `xorm:"NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 	UseCustomAvatar bool
-	ProjectID       int64 `xorm:"INDEX NOT NULL DEFAULT 0" gorm:"NOT NULL;DEFAULT:0"`
 
 	// Counters
 	NumWatches          int
@@ -701,25 +700,6 @@ func IsRepositoryExist(u *User, repoName string) (bool, error) {
 	return isRepositoryExist(x, u, repoName)
 }
 
-func isProjectAppropriate(e Engine, u *User, projectID int64) (bool, error) {
-	if projectID <= 0 {
-		return true, nil
-	}
-	has, err := e.Get(&Project{ID: projectID, SenderID: u.ID})
-	return has, err
-}
-
-func IsProjectAppropriate(u *User, projectID int64) error {
-	ok, err := isProjectAppropriate(x, u, projectID)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return ErrProjectNotAppropriate{}
-	}
-	return nil
-}
-
 // CloneLink represents different types of clone URLs of repository.
 type CloneLink struct {
 	SSH   string
@@ -958,7 +938,6 @@ func initRepoCommit(tmpPath string, sig *git.Signature) (err error) {
 
 type CreateRepoOptions struct {
 	Name        string
-	ProjectID   int64
 	Description string
 	Gitignores  string
 	License     string
@@ -1115,14 +1094,6 @@ func createRepository(e *xorm.Session, doer, owner *User, repo *Repository) (err
 		return ErrRepoAlreadyExist{args: errutil.Args{"ownerID": owner.ID, "name": repo.Name}}
 	}
 
-	has, err = isProjectAppropriate(e, owner, repo.ProjectID)
-	if err != nil {
-		return fmt.Errorf("ErrProjectNotAppropriate: %v", err)
-	} else if !has {
-		// 如果要创建repo的用户根本不拥有这个project
-		return ErrProjectNotAppropriate{}
-	}
-
 	if _, err = e.Insert(repo); err != nil {
 		return err
 	}
@@ -1181,7 +1152,6 @@ func CreateRepository(doer, owner *User, opts CreateRepoOptions) (_ *Repository,
 		OwnerID:      owner.ID,
 		Owner:        owner,
 		Name:         opts.Name,
-		ProjectID:    opts.ProjectID,
 		LowerName:    strings.ToLower(opts.Name),
 		Description:  opts.Description,
 		IsPrivate:    opts.IsPrivate,

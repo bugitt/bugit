@@ -20,7 +20,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/admin"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/misc"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/org"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/project"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/repo"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1/user"
 )
@@ -198,22 +197,20 @@ func RegisterRoutes(m *macaron.Macaron) {
 		m.Post("/markdown/raw", misc.MarkdownRaw)
 
 		// Projects
-		m.Group("/project", func() {
-			m.Post("", bind(project.CreateOption{}), project.CreateProject)
-		}, reqToken())
-		m.Group("/user/projects", func() {
-			m.Get("", project.GetAllProjects)
-			m.Get("/by/courses", project.GetProjectsByCourse)
-		}, reqToken())
+		// m.Group("/project", func() {
+		// 	m.Post("", bind(project.CreateOption{}), project.CreateProject)
+		// }, reqToken())
+		// m.Group("/user/projects", func() {
+		// 	m.Get("", project.GetAllProjects)
+		// 	m.Get("/by/courses", project.GetProjectsByCourse)
+		// }, reqToken())
 
-		m.Group("/projects/:projectID", func() {
-			m.Get("/members", project.ListMembers)
-			m.Get("/repos", project.ListRepos)
-			m.Group("/deploy", func() {
-				m.Post("", bind(db.DeployOption{}), project.CreateDeploy)
-				m.Get("", project.GetDeploy)
-			})
-		}, reqToken(), context.AuthProjectUser())
+		// m.Group("/projects/:projectID", func() {
+		// 	m.Group("/deploy", func() {
+		// 		m.Post("", bind(db.DeployOption{}), project.CreateDeploy)
+		// 		m.Get("", project.GetDeploy)
+		// 	})
+		// }, reqToken(), context.AuthProjectUser())
 
 		// Users
 		m.Group("/users", func() {

@@ -12,7 +12,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/project"
 	"github.com/unknwon/com"
 	"github.com/unknwon/paginater"
 )
@@ -160,16 +159,6 @@ func Dashboard(c *context.Context) {
 	}
 	c.Data["MirrorCount"] = len(mirrors)
 	c.Data["Mirrors"] = mirrors
-
-	// Get projects
-	_, collaborativeProjects, err := project.GetUsersAllProjects(ctxUser)
-	if err != nil {
-		c.Error(err, "get all projects error")
-		return
-	}
-	c.Data["Projects"] = ctxUser.Projects
-	c.Data["ProjectCount"] = len(ctxUser.Projects)
-	c.Data["CollaborativeProjects"] = collaborativeProjects
 
 	c.Success(DASHBOARD)
 }
@@ -420,26 +409,6 @@ func showOrgProfile(c *context.Context) {
 	c.Data["Members"] = org.Members
 
 	c.Data["Teams"] = org.Teams
-
-	showProjects := c.IsLogged && c.Org.IsMember
-	c.Data["ShowProjects"] = showProjects
-	if showProjects {
-		projects, err := db.GetUserProjects(&db.UserProjectOptions{
-			SenderID: c.User.ID,
-			Page:     page,
-			PageSize: c.User.NumProjects,
-		})
-		if err != nil {
-			c.Error(err, "get user projects")
-			return
-		}
-		err = projects.LoadAttributes()
-		if err != nil {
-			c.Error(err, "load project attributes")
-			return
-		}
-		c.Data["Projects"] = projects
-	}
 
 	c.Success(ORG_HOME)
 }

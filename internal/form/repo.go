@@ -25,7 +25,6 @@ import (
 type CreateRepo struct {
 	UserID      int64  `binding:"Required"`
 	RepoName    string `binding:"Required;AlphaDashDot;MaxSize(100)"`
-	ProjectID   int64
 	Private     bool
 	Unlisted    bool
 	Description string `binding:"MaxSize(512)"`

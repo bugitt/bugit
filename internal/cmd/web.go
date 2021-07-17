@@ -44,7 +44,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/dev"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/lfs"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/org"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/project"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/repo"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/user"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/template"
@@ -618,20 +617,6 @@ func runWeb(c *cli.Context) error {
 			m.Get("/watchers", repo.Watchers)
 		}, ignSignIn, context.RepoAssignment(), context.RepoRef())
 		// ***** END: Repository *****
-
-		// ***** BEGIN: Project *****
-		m.Group("/project", func() {
-			m.Group("", func() {
-				m.Get("/create", project.Create)
-				m.Post("/create", bindIgnErr(form.CreateProject{}), project.CreatePost)
-			})
-
-			m.Group("/:projectID", func() {
-				m.Get("", project.Home)
-			}, context.AuthProjectUser(), context.ProjectAssignment())
-
-		}, reqSignIn)
-		// ***** END: Project *****
 
 		// ***** BEGIN: Deploy *****
 		m.Group("/deploy", func() {

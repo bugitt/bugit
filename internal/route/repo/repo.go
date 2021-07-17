@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/project"
 	"github.com/unknwon/com"
 	log "unknwon.dev/clog/v2"
 
@@ -84,13 +83,6 @@ func Create(c *context.Context) {
 	}
 	c.Data["ContextUser"] = ctxUser
 
-	// Get Projects
-	err := setUserAllProjects(ctxUser, c)
-	if err != nil {
-		c.Error(err, "get all projects error")
-		return
-	}
-
 	c.Success(CREATE)
 }
 
@@ -130,16 +122,8 @@ func CreatePost(c *context.Context, f form.CreateRepo) {
 		return
 	}
 
-	// Get Projects
-	err := setUserAllProjects(ctxUser, c)
-	if err != nil {
-		c.Error(err, "get all projects error")
-		return
-	}
-
 	repo, err := db.CreateRepository(c.User, ctxUser, db.CreateRepoOptions{
 		Name:        f.RepoName,
-		ProjectID:   f.ProjectID,
 		Description: f.Description,
 		Gitignores:  f.Gitignores,
 		License:     f.License,
@@ -357,15 +341,4 @@ func Download(c *context.Context) {
 	}
 
 	c.ServeFile(archivePath, c.Repo.Repository.Name+"-"+refName+ext)
-}
-
-func setUserAllProjects(ctxUser *db.User, c *context.Context) error {
-	// Get Projects
-	projects, collaborativeProjects, err := project.GetUsersAllProjects(ctxUser)
-	if err != nil {
-		return err
-	}
-	projects = append(projects, collaborativeProjects...)
-	c.Data["Projects"] = projects
-	return nil
 }

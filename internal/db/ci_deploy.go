@@ -114,7 +114,7 @@ func (task *DeployTask) GetPorts() []Port {
 func GetPodLabels(repo *Repository, branch, commit string) map[string]string {
 	return map[string]string{
 		"app":     repo.DeployName(),
-		"project": strconv.FormatInt(repo.ProjectID, 10),
+		"project": strconv.FormatInt(repo.OwnerID, 10),
 		"ref":     branch,
 		"commit":  commit,
 	}
@@ -123,6 +123,6 @@ func GetPodLabels(repo *Repository, branch, commit string) map[string]string {
 func GetSvcLabels(repo *Repository) map[string]string {
 	return map[string]string{
 		"app":     repo.DeployName(),
-		"project": strconv.FormatInt(repo.ProjectID, 10),
+		"project": strconv.FormatInt(repo.OwnerID, 10),
 	}
 }

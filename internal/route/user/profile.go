@@ -60,30 +60,6 @@ func Profile(c *context.Context, puser *context.ParamsUser) {
 		if c.Written() {
 			return
 		}
-	case "project":
-		if !showProjects {
-			break
-		}
-		page := c.QueryInt("page")
-		if page <= 0 {
-			page = 1
-		}
-		projects, err := db.GetUserProjects(&db.UserProjectOptions{
-			SenderID: c.User.ID,
-			Page:     page,
-			PageSize: conf.UI.User.RepoPagingNum,
-		})
-		if err != nil {
-			c.Error(err, "get user projects")
-			return
-		}
-		err = projects.LoadAttributes()
-		if err != nil {
-			c.Error(err, "load project attributes")
-			return
-		}
-		c.Data["Projects"] = projects
-		c.Data["Page"] = paginater.New(c.User.NumProjects, conf.UI.User.RepoPagingNum, page, 5)
 	default:
 		page := c.QueryInt("page")
 		if page <= 0 {

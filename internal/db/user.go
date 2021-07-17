@@ -62,7 +62,6 @@ type User struct {
 	OwnedOrgs   []*User       `xorm:"-" gorm:"-" json:"-"`
 	Orgs        []*User       `xorm:"-" gorm:"-" json:"-"`
 	Repos       []*Repository `xorm:"-" gorm:"-" json:"-"`
-	Projects    ProjectList   `xorm:"-" gorm:"-" json:"-"`
 	Location    string
 	Website     string
 	Rands       string `xorm:"VARCHAR(10)" gorm:"TYPE:VARCHAR(10)" json:"-"`
@@ -103,6 +102,12 @@ type User struct {
 	NumMembers  int
 	Teams       []*Team `xorm:"-" gorm:"-" json:"-"`
 	Members     []*User `xorm:"-" gorm:"-" json:"-"`
+
+	// Course & Exp
+	ExpID      int64  `json:"exp_id"`
+	ExpName    string `json:"exp_name"`
+	CourseID   int64  `json:"course_id"`
+	CourseName string `json:"course_name"`
 }
 
 func (u *User) BeforeInsert() {
@@ -433,19 +438,6 @@ func (u *User) GetRepositories(page, pageSize int) (err error) {
 // GetRepositories returns mirror repositories that user owns, including private repositories.
 func (u *User) GetMirrorRepositories() ([]*Repository, error) {
 	return GetUserMirrorRepositories(u.ID)
-}
-
-func (u *User) GetProjects(page, pageSize int) (err error) {
-	u.Projects, err = GetUserProjects(&UserProjectOptions{
-		SenderID: u.ID,
-		Page:     page,
-		PageSize: pageSize,
-	})
-	if err != nil {
-		return
-	}
-	err = u.Projects.LoadAttributes()
-	return
 }
 
 // GetOwnedOrganizations returns all organizations that user owns.

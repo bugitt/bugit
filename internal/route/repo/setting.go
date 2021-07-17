@@ -78,20 +78,6 @@ func SettingsPost(c *context.Context, f form.RepoSetting) {
 			log.Trace("Repository name changed: %s/%s -> %s", c.Repo.Owner.Name, repo.Name, newRepoName)
 		}
 
-		// 检查新设置的 ProjectID 是否合法
-		if repo.ProjectID != f.ProjectID {
-			if err := db.IsProjectAppropriate(c.Repo.Owner, f.ProjectID); err != nil {
-				c.FormErr("Project")
-				if db.IsErrProjectNotAppropriate(err) {
-					c.RenderWithErr(c.Tr("form.project_not_exist"), SETTINGS_OPTIONS, &f)
-				} else {
-					c.Error(err, "change repository project id")
-				}
-				return
-			}
-			repo.ProjectID = f.ProjectID
-		}
-
 		// In case it's just a case change.
 		repo.Name = newRepoName
 		repo.LowerName = strings.ToLower(newRepoName)

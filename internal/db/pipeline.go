@@ -139,7 +139,7 @@ func (ptask *PipeTask) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
 	task.PipeTaskID = ptask.ID
 	task.Status = BeforeStart
-	task.NameSpace = fmt.Sprintf("%d-%d", ctx.repo.ProjectID, ctx.owner.ID)
+	task.NameSpace = fmt.Sprintf("%d", ctx.owner.ID)
 	task.DeploymentName = ctx.repo.DeployName() + "-deployment"
 	task.ServiceName = ctx.repo.DeployName() + "-service"
 	_, err := x.Insert(task)
@@ -507,7 +507,7 @@ func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pushe
 		Commit:       commit.ID.String(),
 		ImageTag:     imageTag,
 		ConfigString: string(configS),
-		ProjectID:    repo.ProjectID,
+		ProjectID:    repo.OwnerID,
 	}
 	id, err := createPipeline(x, pipeline)
 	if err != nil {
