@@ -7,6 +7,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -45,7 +46,11 @@ type Engine interface {
 var (
 	x            *xorm.Engine
 	legacyTables []interface{}
-	HasEngine    bool
+
+	cloudX            *xorm.Engine
+	cloudLegacyTables []interface{} // 注意: cloudLegacyTables功能没有与legacyTables对齐!
+
+	HasEngine bool
 )
 
 func init() {
@@ -69,26 +74,41 @@ func init() {
 	}
 }
 
-func getEngine() (*xorm.Engine, error) {
+func getMysqlEngine(user, password, host, name, param string) (*xorm.Engine, error) {
+	connStr := ""
+	conf.UseMySQL = true
+	if conf.Database.Host[0] == '/' { // looks like a unix socket
+		connStr = fmt.Sprintf("%s:%s@unix(%s)/%s%scharset=utf8mb4&parseTime=true",
+			user, password, host, name, param)
+	} else {
+		connStr = fmt.Sprintf("%s:%s@tcp(%s)/%s%scharset=utf8mb4&parseTime=true",
+			user, password, host, name, param)
+	}
+	var engineParams = map[string]string{"rowFormat": "DYNAMIC"}
+	return xorm.NewEngineWithParams("mysql", connStr, engineParams)
+}
+
+func getCloudEngine() (*xorm.Engine, error) {
+	Param := getDBParam(conf.CloudAPI.DBName)
+	return getMysqlEngine(conf.CloudAPI.DBUser, conf.CloudAPI.DBPasswd, conf.CloudAPI.DBHost, conf.CloudAPI.DBName, Param)
+}
+
+func getDBParam(dbName string) string {
 	Param := "?"
-	if strings.Contains(conf.Database.Name, Param) {
+	if strings.Contains(dbName, Param) {
 		Param = "&"
 	}
+	return Param
+}
+
+func getEngine() (*xorm.Engine, error) {
+	Param := getDBParam(conf.Database.Name)
 
 	driver := conf.Database.Type
 	connStr := ""
 	switch conf.Database.Type {
 	case "mysql":
-		conf.UseMySQL = true
-		if conf.Database.Host[0] == '/' { // looks like a unix socket
-			connStr = fmt.Sprintf("%s:%s@unix(%s)/%s%scharset=utf8mb4&parseTime=true",
-				conf.Database.User, conf.Database.Password, conf.Database.Host, conf.Database.Name, Param)
-		} else {
-			connStr = fmt.Sprintf("%s:%s@tcp(%s)/%s%scharset=utf8mb4&parseTime=true",
-				conf.Database.User, conf.Database.Password, conf.Database.Host, conf.Database.Name, Param)
-		}
-		var engineParams = map[string]string{"rowFormat": "DYNAMIC"}
-		return xorm.NewEngineWithParams(conf.Database.Type, connStr, engineParams)
+		return getMysqlEngine(conf.Database.User, conf.Database.Password, conf.Database.Host, conf.Database.Name, Param)
 
 	case "postgres":
 		conf.UsePostgreSQL = true
@@ -130,15 +150,29 @@ func NewTestEngine() error {
 	return x.StoreEngine("InnoDB").Sync2(legacyTables...)
 }
 
-func SetEngine() (*gorm.DB, error) {
-	var err error
-	x, err = getEngine()
+func getConfigXormEngine(getEngine func() (*xorm.Engine, error), fileWriter io.Writer) (*xorm.Engine, error) {
+	x, err := getEngine()
 	if err != nil {
 		return nil, fmt.Errorf("connect to database: %v", err)
 	}
 
 	x.SetMapper(core.GonicMapper{})
 
+	x.SetMaxOpenConns(conf.Database.MaxOpenConns)
+	x.SetMaxIdleConns(conf.Database.MaxIdleConns)
+	x.SetConnMaxLifetime(time.Second)
+
+	if conf.IsProdMode() {
+		x.SetLogger(xorm.NewSimpleLogger3(fileWriter, xorm.DEFAULT_LOG_PREFIX, xorm.DEFAULT_LOG_FLAG, core.LOG_WARNING))
+	} else {
+		x.SetLogger(xorm.NewSimpleLogger(fileWriter))
+	}
+	x.ShowSQL(true)
+	return x, nil
+}
+
+func SetEngine() (*gorm.DB, error) {
+	var err error
 	var logPath string
 	if conf.HookMode {
 		logPath = filepath.Join(conf.Log.RootPath, "hooks", "xorm.log")
@@ -158,16 +192,14 @@ func SetEngine() (*gorm.DB, error) {
 		return nil, fmt.Errorf("create 'xorm.log': %v", err)
 	}
 
-	x.SetMaxOpenConns(conf.Database.MaxOpenConns)
-	x.SetMaxIdleConns(conf.Database.MaxIdleConns)
-	x.SetConnMaxLifetime(time.Second)
-
-	if conf.IsProdMode() {
-		x.SetLogger(xorm.NewSimpleLogger3(fileWriter, xorm.DEFAULT_LOG_PREFIX, xorm.DEFAULT_LOG_FLAG, core.LOG_WARNING))
-	} else {
-		x.SetLogger(xorm.NewSimpleLogger(fileWriter))
+	x, err = getConfigXormEngine(getEngine, fileWriter)
+	if err != nil {
+		return nil, err
 	}
-	x.ShowSQL(true)
+	cloudX, err = getConfigXormEngine(getCloudEngine, fileWriter)
+	if err != nil {
+		return nil, err
+	}
 
 	var gormLogger logger.Writer
 	if conf.HookMode {
@@ -186,15 +218,22 @@ func NewEngine() (err error) {
 		return err
 	}
 
-	if err = migrations.Migrate(x); err != nil {
-		return fmt.Errorf("migrate: %v", err)
+	migrate := func(x *xorm.Engine, legacyTables []interface{}) error {
+		if err = migrations.Migrate(x); err != nil {
+			return fmt.Errorf("migrate: %v", err)
+		}
+
+		if err = x.StoreEngine("InnoDB").Sync2(legacyTables...); err != nil {
+			return fmt.Errorf("sync structs to database tables: %v\n", err)
+		}
+		return nil
 	}
 
-	if err = x.StoreEngine("InnoDB").Sync2(legacyTables...); err != nil {
-		return fmt.Errorf("sync structs to database tables: %v\n", err)
+	if err = migrate(x, legacyTables); err != nil {
+		return err
 	}
 
-	return nil
+	return migrate(cloudX, cloudLegacyTables)
 }
 
 type Statistic struct {

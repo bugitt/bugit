@@ -336,6 +336,11 @@ var (
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`
 		SupperDebug bool   `ini:"supper_debug"`
+		DBUser      string `ini:"db_user"`
+		DBPasswd    string `ini:"db_password"`
+		DBHost      string `ini:"db_host"`
+		DBPort      int    `ini:"db_port"`
+		DBName      string `ini:"db_name"`
 	}
 
 	// Other settings
