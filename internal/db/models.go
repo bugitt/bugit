@@ -68,6 +68,10 @@ func init() {
 		new(Team), new(OrgUser), new(TeamUser), new(TeamRepo),
 		new(Notice), new(EmailAddress))
 
+	cloudLegacyTables = append(cloudLegacyTables,
+		new(Course), new(CourseStudentMapping), new(Experiment),
+	)
+
 	gonicNames := []string{"SSL"}
 	for _, name := range gonicNames {
 		core.LintGonicMapper[name] = true
