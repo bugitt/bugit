@@ -69,7 +69,7 @@ func init() {
 		new(Notice), new(EmailAddress))
 
 	cloudLegacyTables = append(cloudLegacyTables,
-		new(Course), new(CourseStudentMapping), new(Experiment),
+		new(Course), new(CourseStudentMapping), new(Experiment), new(ExperimentStudent),
 	)
 
 	gonicNames := []string{"SSL"}

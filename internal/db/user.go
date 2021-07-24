@@ -104,10 +104,12 @@ type User struct {
 	Members     []*User `xorm:"-" gorm:"-" json:"-"`
 
 	// Course & Exp
-	ExpID      int64  `json:"exp_id"`
-	ExpName    string `json:"exp_name"`
-	CourseID   int64  `json:"course_id"`
-	CourseName string `json:"course_name"`
+	Exp        *Experiment `xorm:"-" gorm:"-" json:"-"`
+	ExpID      int64       `json:"exp_id"`
+	ExpName    string      `json:"exp_name"`
+	Course     *Course     `xorm:"-" gorm:"-" json:"-"`
+	CourseID   int64       `json:"course_id"`
+	CourseName string      `json:"course_name"`
 }
 
 func (u *User) BeforeInsert() {

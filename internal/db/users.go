@@ -185,6 +185,34 @@ func (err ErrUserAlreadyExist) Error() string {
 	return fmt.Sprintf("user already exists: %v", err.args)
 }
 
+// ErrUserExpConflict 用户是不是属于这门实验
+type ErrUserExpConflict struct {
+	args errutil.Args
+}
+
+func IsErrUserExpConflict(err error) bool {
+	_, ok := err.(ErrUserExpConflict)
+	return ok
+}
+
+func (err ErrUserExpConflict) Error() string {
+	return fmt.Sprintf("user doesn't belong to this experiment: %v", err.args)
+}
+
+// ErrUserExpConflict 用户是不是属于这门实验
+type ErrUserOrgExpConflict struct {
+	args errutil.Args
+}
+
+func IsErrUserOrgExpConflict(err error) bool {
+	_, ok := err.(ErrUserOrgExpConflict)
+	return ok
+}
+
+func (err ErrUserOrgExpConflict) Error() string {
+	return fmt.Sprintf("user has already created a project for this experiment: %v", err.args)
+}
+
 type ErrEmailAlreadyUsed struct {
 	args errutil.Args
 }

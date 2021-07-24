@@ -99,6 +99,21 @@ func (u *User) RemoveOrgRepo(repoID int64) error {
 	return u.removeOrgRepo(x, repoID)
 }
 
+func isUserExpConflict(sid string, cid, eid int64) (bool, error) {
+	isExist, err := ExistCourseByStudentID(cid, sid)
+	if err != nil {
+		return true, err
+	} else if !isExist {
+		return true, nil
+	}
+
+	isExist, err = ExistExpByID(eid, cid)
+	if err != nil {
+		return true, err
+	}
+	return !isExist, nil
+}
+
 // CreateOrganization creates record of a new organization.
 func CreateOrganization(org, owner *User) (err error) {
 	if err = isUsernameAllowed(org.Name); err != nil {
@@ -110,6 +125,22 @@ func CreateOrganization(org, owner *User) (err error) {
 		return err
 	} else if isExist {
 		return ErrUserAlreadyExist{args: errutil.Args{"name": org.Name}}
+	}
+
+	// 检查给出的课程ID和实验ID是不是合法的
+	isConflict, err := isUserExpConflict(owner.StudentID, org.CourseID, org.ExpID)
+	if err != nil {
+		return err
+	} else if isConflict {
+		return ErrUserExpConflict{args: errutil.Args{"exp": org.ExpName}}
+	}
+
+	// 检查该用户是不是已经使用同样的实验创建过项目了
+	isExist, err = ExistOrgByExpStudent(org.ExpID, owner.ID)
+	if err != nil {
+		return err
+	} else if isExist {
+		return ErrUserOrgExpConflict{args: errutil.Args{"exp": org.ExpName}}
 	}
 
 	org.LowerName = strings.ToLower(org.Name)
@@ -227,6 +258,14 @@ func DeleteOrganization(org *User) (err error) {
 	}
 
 	return sess.Commit()
+}
+
+// ExistOrgByExpStudent 检查是不是存在这样一个org，其实验ID是eid，而且还包含一个id为uid的用户
+func ExistOrgByExpStudent(eid, uid int64) (bool, error) {
+	return x.Table("user").
+		Join("INNER", "org_user", "org_user.org_id = `user`.id").
+		Where("org_user.uid = ? and `user`.exp_id = ?", uid, eid).
+		Get(new(User))
 }
 
 // ________                ____ ___

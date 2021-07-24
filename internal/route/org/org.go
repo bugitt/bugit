@@ -51,20 +51,54 @@ func CreatePost(c *context.Context, f form.CreateOrg) {
 		return
 	}
 
+	course, err := db.GetCourseByID(f.OrgCourse)
+	if err != nil {
+		c.Error(err, "get course")
+		return
+	}
+	exp, err := db.GetExpByID(f.OrgExp)
+	if err != nil {
+		c.Error(err, "get experiment")
+		return
+	}
+
 	org := &db.User{
 		Name:     f.OrgName,
 		IsActive: true,
 		Type:     db.UserOrganization,
+
+		CourseID:   course.ID,
+		CourseName: course.Name,
+		ExpID:      exp.ID,
+		ExpName:    exp.Name,
 	}
 
 	if err := db.CreateOrganization(org, c.User); err != nil {
-		c.Data["Err_OrgName"] = true
+		// get all courses for this user 用于再次渲染前端页面
+		if courses, err := db.GetCoursesByStudentID(c.User.StudentID); err != nil {
+			c.Error(err, "get courses error")
+			return
+		} else {
+			c.Data["Courses"] = courses
+		}
+
 		switch {
 		case db.IsErrUserAlreadyExist(err):
+			c.Data["Err_OrgName"] = true
 			c.RenderWithErr(c.Tr("form.org_name_been_taken"), CREATE, &f)
 		case db.IsErrNameNotAllowed(err):
+			c.Data["Err_OrgName"] = true
 			c.RenderWithErr(c.Tr("org.form.name_not_allowed", err.(db.ErrNameNotAllowed).Value()), CREATE, &f)
+		case db.IsErrUserExpConflict(err):
+			c.Data["Err_OrgExps"] = true
+			c.Data["Err_OrgCourses"] = true
+			c.RenderWithErr(err.Error(), CREATE, &f)
+		case db.IsErrUserOrgExpConflict(err):
+			c.Data["Err_OrgExps"] = true
+			c.Data["Err_OrgCourses"] = true
+			c.RenderWithErr(c.Tr("form.project_for_exp_already_have"), CREATE, &f)
 		default:
+			c.Data["Err_OrgName"] = true
 			c.Error(err, "create organization")
 		}
 		return
