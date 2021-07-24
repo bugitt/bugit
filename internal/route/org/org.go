@@ -14,15 +14,29 @@ import (
 
 const (
 	CREATE = "org/create"
+	EXPS   = "org/exp_items"
 )
 
 func Create(c *context.Context) {
+	courseID, request_exps := c.QueryInt64("course_id"), c.QueryBool("request_exps")
+	if courseID > 0 && request_exps {
+		exps, err := db.GetExpsByCourseID(courseID)
+		if err != nil {
+			c.Error(err, "get exps error")
+			return
+		}
+		c.Data["Exps"] = exps
+		c.Success(EXPS)
+		return
+	}
+
 	c.Title("new_org")
 
 	// get all courses for this user
 	courses, err := db.GetCoursesByStudentID(c.User.StudentID)
 	if err != nil {
 		c.Error(err, "get courses error")
+		return
 	}
 	c.Data["Courses"] = courses
 

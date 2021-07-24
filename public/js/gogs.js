@@ -1822,3 +1822,22 @@ $(function () {
 $('.menu .item')
   .tab()
   ;
+
+// 创建项目 页面，当用户选择某个课程时，则拉取该课程包含的实验
+$(function () {
+  $('#org_course_dropdown')
+    .dropdown({
+      action: 'activate',
+      onChange: function (value, text, $selectedItem) {
+        $("#org_exp_dropdown").dropdown("clear");
+        $.ajax({
+          url: "?request_exps=true&course_id=" + value,
+          headers: {
+            "X-AJAX": "true"
+          }
+        }).done(function (data, status, request) {
+          $("#exp_items").html(data);
+        });
+      }
+    });
+});

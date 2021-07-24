@@ -9,3 +9,9 @@ type Experiment struct {
 	EndTime    string
 	Deadline   string
 }
+
+func GetExpsByCourseID(courseID int64) ([]*Experiment, error) {
+	exps := make([]*Experiment, 0)
+	err := cloudX.Where("course_id = ?", courseID).Find(&exps)
+	return exps, err
+}
