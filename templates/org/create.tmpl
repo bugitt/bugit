@@ -15,6 +15,20 @@
 						<span class="help">{{.i18n.Tr "org.org_name_helper"}}</span>
 					</div>
 
+					<div class="inline required field {{if .Err_Courses}}error{{end}}">
+						<label for="org_course">{{.i18n.Tr "org.org_course_holder"}}</label>
+						<div class="ui selection dropdown" id="org_course">
+							<input type="hidden" name="org_course">
+							<i class="dropdown icon"></i>
+							<div class="default text"></div>
+							<div class="menu">
+								{{range .Courses}}
+								<div class="item" data-value="{{.ID}}">{{.Name}}</div>
+								{{end}}
+							</div>
+						</div>
+					</div>
+
 					<div class="inline field">
 						<label></label>
 						<button class="ui green button">

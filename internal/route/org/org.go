@@ -18,6 +18,14 @@ const (
 
 func Create(c *context.Context) {
 	c.Title("new_org")
+
+	// get all courses for this user
+	courses, err := db.GetCoursesByStudentID(c.User.StudentID)
+	if err != nil {
+		c.Error(err, "get courses error")
+	}
+	c.Data["Courses"] = courses
+
 	c.Success(CREATE)
 }
 
