@@ -5,6 +5,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"xorm.io/xorm"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
 )
 
 var (
@@ -200,7 +202,12 @@ func CreateOrganization(org, owner *User) (err error) {
 		return fmt.Errorf("create directory: %v", err)
 	}
 
-	return sess.Commit()
+	if err = sess.Commit(); err != nil {
+		return err
+	}
+
+	// create harbor project
+	return harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
 }
 
 // GetOrgByName returns organization by given name.
