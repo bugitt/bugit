@@ -111,13 +111,15 @@ func DeleteProjectMember(ctx context.Context, projectID int64, uName string) err
 }
 
 func DeleteProject(ctx context.Context, projectID string) error {
-	client, err := getClient()
-	if err != nil {
-		return err
-	}
-	p, err := client.GetProject(ctx, projectID)
-	if err != nil {
-		return err
-	}
-	return client.DeleteProject(ctx, p)
+	// FIXME: 补充删除项目中的repo的api后，再启用删除Harbor中项目的逻辑
+	// client, err := getClient()
+	// if err != nil {
+	// 	return err
+	// }
+	// p, err := client.GetProject(ctx, projectID)
+	// if err != nil {
+	// 	return err
+	// }
+	// return client.DeleteProject(ctx, p)
+	return nil
 }
