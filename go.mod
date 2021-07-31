@@ -32,6 +32,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
+	github.com/mittwald/goharbor-client/v4 v4.0.0
 	github.com/msteinert/pam v0.0.0-20190215180659-f29b9f28d6f9
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niklasfasching/go-org v0.1.9
@@ -51,8 +52,8 @@ require (
 	github.com/unknwon/paginater v0.0.0-20170405233947-45e5d631308e
 	github.com/urfave/cli v1.22.5
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
-	golang.org/x/text v0.3.4
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/text v0.3.5
 	gopkg.in/DATA-DOG/go-sqlmock.v2 v2.0.0-20180914054222-c19298f520d0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect

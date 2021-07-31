@@ -5,6 +5,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
 )
 
 // UsersStore is the persistent interface for users.
@@ -302,7 +304,12 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.EncodePassword()
 
-	return user, db.DB.Create(user).Error
+	err = db.DB.Create(user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return user, harbor.CreateUser(context.Background(), user.StudentID, user.Email, user.Name)
 }
 
 var _ errutil.NotFound = (*ErrUserNotExist)(nil)

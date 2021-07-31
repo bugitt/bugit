@@ -353,6 +353,14 @@ func Init(customConf string) error {
 	}
 
 	// *************************
+	// ----- harbor settings -----
+	// *************************
+
+	if err = File.Section("harbor").MapTo(&Harbor); err != nil {
+		return errors.Wrap(err, "mapping [harbor] section")
+	}
+
+	// *************************
 	// ----- cloud api settings -----
 	// *************************
 

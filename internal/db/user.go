@@ -6,6 +6,7 @@ package db
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -32,6 +33,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
@@ -631,7 +633,13 @@ func CreateUser(u *User) (err error) {
 		return err
 	}
 
-	return sess.Commit()
+	err = sess.Commit()
+	if err != nil {
+		return err
+	}
+
+	// create harbor user
+	return harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
 }
 
 func countUsers(e Engine) int64 {

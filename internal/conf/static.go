@@ -332,6 +332,14 @@ var (
 		DockerService string `ini:"docker_service"`
 	}
 
+	// Harbor settings
+	Harbor struct {
+		Url           string `ini:"url"`
+		AdminName     string `ini:"admin_name"`
+		AdminPasswd   string `ini:"admin_password"`
+		DefaultPasswd string `ini:"default_password"`
+	}
+
 	// cloud api settings
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`
