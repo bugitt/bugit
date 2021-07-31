@@ -5,6 +5,8 @@ import (
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/mittwald/goharbor-client/v4/apiv2"
+	modelv2 "github.com/mittwald/goharbor-client/v4/apiv2/model"
+	legacymodel "github.com/mittwald/goharbor-client/v4/apiv2/model/legacy"
 	"github.com/mittwald/goharbor-client/v4/apiv2/project"
 	"github.com/mittwald/goharbor-client/v4/apiv2/user"
 )
@@ -15,6 +17,15 @@ func getInt64Ptr(x int64) *int64 {
 
 func getClient() (*apiv2.RESTClient, error) {
 	return apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
+}
+
+func getUP(ctx context.Context, client *apiv2.RESTClient, pName, uName string) (*legacymodel.User, *modelv2.Project, error) {
+	u, err := client.GetUser(ctx, uName)
+	if err != nil {
+		return nil, nil, err
+	}
+	p, err := client.GetProject(ctx, pName)
+	return u, p, err
 }
 
 // CreateUser post a user to harbor
@@ -71,4 +82,29 @@ func CreateProject(ctx context.Context, name, username string) error {
 
 	// The role id 1 for projectAdmin, 2 for developer, 3 for guest, 4 for maintainer
 	return client.AddProjectMember(ctx, p, u, 1)
+}
+
+// AddProjectMember 默认添加的每个member都有管理员权限
+func AddProjectMember(ctx context.Context, pName, uName string) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+	u, p, err := getUP(ctx, client, pName, uName)
+	if err != nil {
+		return err
+	}
+	return client.AddProjectMember(ctx, p, u, 1)
+}
+
+func DeleteProjectMember(ctx context.Context, pName, uName string) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+	u, p, err := getUP(ctx, client, pName, uName)
+	if err != nil {
+		return err
+	}
+	return client.DeleteProjectMember(ctx, p, u)
 }

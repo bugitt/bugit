@@ -391,6 +391,16 @@ func ChangeOrgUserStatus(orgID, uid int64, public bool) error {
 	return err
 }
 
+func getUserOrg(orgID, uid int64) (*User, *User, error) {
+	user, err := GetUserByID(uid)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	org, err := GetUserByID(orgID)
+	return user, org, err
+}
+
 // AddOrgUser adds new user to given organization.
 func AddOrgUser(orgID, uid int64) error {
 	if IsOrganizationMember(orgID, uid) {
@@ -414,7 +424,15 @@ func AddOrgUser(orgID, uid int64) error {
 		return err
 	}
 
-	return sess.Commit()
+	if err := sess.Commit(); err != nil {
+		return err
+	}
+
+	user, org, err := getUserOrg(orgID, uid)
+	if err != nil {
+		return err
+	}
+	return harbor.AddProjectMember(context.Background(), org.Name, user.StudentID)
 }
 
 // RemoveOrgUser removes user from given organization.
@@ -492,7 +510,11 @@ func RemoveOrgUser(orgID, userID int64) error {
 		}
 	}
 
-	return sess.Commit()
+	if err := sess.Commit(); err != nil {
+		return err
+	}
+
+	return harbor.DeleteProjectMember(context.Background(), org.Name, user.StudentID)
 }
 
 func removeOrgRepo(e Engine, orgID, repoID int64) error {
