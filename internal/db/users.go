@@ -304,12 +304,13 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.EncodePassword()
 
-	err = db.DB.Create(user).Error
+	harborID, err := harbor.CreateUser(context.Background(), user.StudentID, user.Email, user.Name)
 	if err != nil {
 		return nil, err
 	}
+	user.HarborID = harborID
 
-	return user, harbor.CreateUser(context.Background(), user.StudentID, user.Email, user.Name)
+	return user, db.DB.Create(user).Error
 }
 
 var _ errutil.NotFound = (*ErrUserNotExist)(nil)

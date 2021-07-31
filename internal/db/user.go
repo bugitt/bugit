@@ -112,6 +112,9 @@ type User struct {
 	Course     *Course     `xorm:"-" gorm:"-" json:"-"`
 	CourseID   int64       `json:"course_id"`
 	CourseName string      `json:"course_name"`
+
+	// Harbor
+	HarborID int64
 }
 
 func (u *User) BeforeInsert() {
@@ -621,6 +624,13 @@ func CreateUser(u *User) (err error) {
 	u.EncodePassword()
 	u.MaxRepoCreation = -1
 
+	// create harbor user
+	harborID, err := harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
+	if err != nil {
+		return err
+	}
+	u.HarborID = harborID
+
 	sess := x.NewSession()
 	defer sess.Close()
 	if err = sess.Begin(); err != nil {
@@ -633,13 +643,7 @@ func CreateUser(u *User) (err error) {
 		return err
 	}
 
-	err = sess.Commit()
-	if err != nil {
-		return err
-	}
-
-	// create harbor user
-	return harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
+	return sess.Commit()
 }
 
 func countUsers(e Engine) int64 {

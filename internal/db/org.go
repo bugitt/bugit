@@ -157,6 +157,13 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.NumTeams = 1
 	org.NumMembers = 1
 
+	// create harbor project
+	harborID, err := harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
+	if err != nil {
+		return err
+	}
+	org.HarborID = harborID
+
 	sess := x.NewSession()
 	defer sess.Close()
 	if err = sess.Begin(); err != nil {
@@ -202,12 +209,7 @@ func CreateOrganization(org, owner *User) (err error) {
 		return fmt.Errorf("create directory: %v", err)
 	}
 
-	if err = sess.Commit(); err != nil {
-		return err
-	}
-
-	// create harbor project
-	return harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
+	return sess.Commit()
 }
 
 // GetOrgByName returns organization by given name.
@@ -436,7 +438,7 @@ func AddOrgUser(orgID, uid int64) error {
 	if err != nil {
 		return err
 	}
-	return harbor.AddProjectMember(context.Background(), org.Name, user.StudentID)
+	return harbor.AddProjectMember(context.Background(), org.HarborID, user.StudentID)
 }
 
 // RemoveOrgUser removes user from given organization.
@@ -518,7 +520,7 @@ func RemoveOrgUser(orgID, userID int64) error {
 		return err
 	}
 
-	return harbor.DeleteProjectMember(context.Background(), org.Name, user.StudentID)
+	return harbor.DeleteProjectMember(context.Background(), org.HarborID, user.StudentID)
 }
 
 func removeOrgRepo(e Engine, orgID, repoID int64) error {
