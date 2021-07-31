@@ -108,3 +108,15 @@ func DeleteProjectMember(ctx context.Context, pName, uName string) error {
 	}
 	return client.DeleteProjectMember(ctx, p, u)
 }
+
+func DeleteProject(ctx context.Context, pName string) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+	p, err := client.GetProject(ctx, pName)
+	if err != nil {
+		return err
+	}
+	return client.DeleteProject(ctx, p)
+}

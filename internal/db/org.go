@@ -264,7 +264,11 @@ func DeleteOrganization(org *User) (err error) {
 		return fmt.Errorf("deleteUser: %v", err)
 	}
 
-	return sess.Commit()
+	if err = sess.Commit(); err != nil {
+		return err
+	}
+
+	return harbor.DeleteProject(context.Background(), org.Name)
 }
 
 // ExistOrgByExpStudent 检查是不是存在这样一个org，其实验ID是eid，而且还包含一个id为uid的用户
