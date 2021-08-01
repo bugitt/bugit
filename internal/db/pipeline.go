@@ -61,38 +61,20 @@ type Pipeline struct {
 	ID           int64
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
 	RepoID       int64
-	ProjectID    int64
-	repoDB       *Repository     `xorm:"-" json:"-"`
-	gitRepo      *git.Repository `xorm:"-" json:"-"`
+	ProjectID    int64 // 项目ID
 	UUID         string
 	RefName      string
 	Commit       string
 	ImageTag     string
-	gitCommit    *git.Commit `xorm:"-" json:"-"`
-	ConfigString string      `xorm:"text"`
-	Config       *CIConfig   `xorm:"-" json:"-"`
+	ConfigString string `xorm:"text"`
 	CIPath       string
+	IsSucceed    bool
+	ErrMsg       string `xorm:"text"`
+	Status       RunStatus
+	Stage        PipeStage
+	BeginUnix    int64 // 开始时间戳
+	EndUnix      int64 // 结束时间戳
 	BaseModel    `xorm:"extends"`
-}
-
-type PipeTask struct {
-	ID         int64
-	RepoID     int64
-	UUID       string
-	PipelineID int64
-	ProjectID  int64
-	Pipeline   *Pipeline `xorm:"-" json:"-"`
-	SenderID   int64     // 表示是谁触发了这次pipeline的执行
-	SenderTime int64     // 触发执行时的时间戳
-	Stage      PipeStage
-	IsSucceed  bool
-	ErrType    CIErrType
-	ErrMsg     string `xorm:"text"`
-	ImageTag   string
-	Status     RunStatus
-	BeginUnix  int64 // 开始时间戳
-	EndUnix    int64 // 结束时间戳
-	BaseModel  `xorm:"extends"`
 }
 
 type BasicTask struct {
@@ -108,7 +90,7 @@ type BasicTask struct {
 	EndUnix    int64  // 结束时间戳
 }
 
-func (ptask *PipeTask) prepareValidstaionTask(index int) (*ValidationTask, error) {
+func (ptask *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, error) {
 	task := &ValidationTask{}
 	task.PipeTaskID = ptask.ID
 	task.Number = index
@@ -117,7 +99,7 @@ func (ptask *PipeTask) prepareValidstaionTask(index int) (*ValidationTask, error
 	return task, err
 }
 
-func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
+func (ptask *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
 	task := &BuildTask{}
 	task.PipeTaskID = ptask.ID
 	task.Number = index
@@ -127,7 +109,7 @@ func (ptask *PipeTask) prepareBuildTask(context *CIContext, index int) (*BuildTa
 	return task, err
 }
 
-func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
+func (ptask *Pipeline) preparePushTask(context *CIContext) (*PushTask, error) {
 	task := &PushTask{}
 	task.PipeTaskID = ptask.ID
 	task.Status = BeforeStart
@@ -135,7 +117,7 @@ func (ptask *PipeTask) preparePushTask(context *CIContext) (*PushTask, error) {
 	return task, err
 }
 
-func (ptask *PipeTask) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
+func (ptask *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
 	task.PipeTaskID = ptask.ID
 	task.Status = BeforeStart
@@ -146,7 +128,7 @@ func (ptask *PipeTask) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	return task, err
 }
 
-func (ptask *PipeTask) Validation(ctx *CIContext) error {
+func (ptask *Pipeline) Validation(ctx *CIContext) error {
 	_ = ptask.updateStatus(ValidStart)
 	configs := ptask.Pipeline.Config.Validate
 	for i := range configs {
@@ -164,7 +146,7 @@ func (ptask *PipeTask) Validation(ctx *CIContext) error {
 	return ptask.updateStatus(ValidEnd)
 }
 
-func (ptask *PipeTask) Build(ctx *CIContext) error {
+func (ptask *Pipeline) Build(ctx *CIContext) error {
 	_ = ptask.updateStatus(BuildStart)
 	task, err := ptask.prepareBuildTask(ctx, 1)
 	if err != nil {
@@ -180,7 +162,7 @@ func (ptask *PipeTask) Build(ctx *CIContext) error {
 	return ptask.updateStatus(BuildEnd)
 }
 
-func (ptask *PipeTask) Push(ctx *CIContext) error {
+func (ptask *Pipeline) Push(ctx *CIContext) error {
 	_ = ptask.updateStatus(PushStart)
 	task, err := ptask.preparePushTask(ctx)
 	if err != nil {
@@ -195,7 +177,7 @@ func (ptask *PipeTask) Push(ctx *CIContext) error {
 	return ptask.updateStatus(PushEnd)
 }
 
-func (ptask *PipeTask) Deploy(ctx *CIContext) error {
+func (ptask *Pipeline) Deploy(ctx *CIContext) error {
 	_ = ptask.updateStatus(DeployStart)
 	task, err := ptask.prepareDeployTask(ctx)
 	if err != nil {
@@ -420,14 +402,14 @@ func (ptask *PipeTask) Run() {
 	}
 }
 
-func (ptask *PipeTask) begin() error {
+func (ptask *Pipeline) begin() error {
 	ptask.BeginUnix = time.Now().Unix()
 	ptask.Status = Running
 	_, err := x.ID(ptask.ID).Update(ptask)
 	return err
 }
 
-func (ptask *PipeTask) success() error {
+func (ptask *Pipeline) success() error {
 	ptask.IsSucceed = true
 	ptask.EndUnix = time.Now().Unix()
 	ptask.Status = Finished
@@ -438,7 +420,7 @@ func (ptask *PipeTask) success() error {
 	return err
 }
 
-func (ptask *PipeTask) fail(sourceErr error) error {
+func (ptask *Pipeline) fail(sourceErr error) error {
 	ptask.IsSucceed = false
 	ptask.EndUnix = time.Now().Unix()
 	ptask.ErrMsg = sourceErr.Error()
@@ -453,32 +435,13 @@ func (ptask *PipeTask) fail(sourceErr error) error {
 	return err
 }
 
-func (ptask *PipeTask) updateStatus(status PipeStage) error {
+func (ptask *Pipeline) updateStatus(status PipeStage) error {
 	ptask.Stage = status
 	_, err := x.Where("id = ?", ptask.ID).Update(ptask)
 	return err
 }
 
-func (ptask *PipeTask) loadAttributes() error {
-	if ptask.Pipeline == nil {
-		pipeline := new(Pipeline)
-		has, err := x.ID(ptask.PipelineID).Get(pipeline)
-		if err != nil {
-			return err
-		}
-		if !has {
-			return errors.New("pipeline not found")
-		}
-		if err := pipeline.loadAttributes(); err != nil {
-			return err
-		}
-		ptask.Pipeline = pipeline
-	}
-
-	return nil
-}
-
-func (ptask *PipeTask) GetDeployTask() (dtask *DeployTask, err error) {
+func (ptask *Pipeline) GetDeployTask() (dtask *DeployTask, err error) {
 	dtask = &DeployTask{
 		BasicTask: BasicTask{
 			PipeTaskID: ptask.ID,

@@ -5,46 +5,12 @@ import (
 	"time"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
 	"github.com/bugitt/git-module"
 	log "unknwon.dev/clog/v2"
 )
 
 var CIQueue = sync.NewUniqueQueue(1000)
-
-func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName string) (bool, error) {
-	ciConfig, fileContent, err := getCIConfigFromCommit(commit)
-	if err != nil {
-		return false, err
-	}
-	if ciConfig == nil {
-		// TODO: 无法解析config的时候是不是要给用户提示？
-		return false, errors.New("can not parse config")
-	}
-
-	shouldCI := ciConfig.ShouldCIOnPush(refName)
-	if !shouldCI {
-		return false, nil
-	}
-
-	// 创建 pipeline
-	pipeline, err := preparePipeline(commit, fileContent, repo, pusher, refName)
-	if err != nil {
-		log.Error("%s", err.Error())
-		return false, err
-	}
-
-	log.Trace("%d", pipeline.ID)
-
-	// 创建 pipelineTask
-	if err := preparePipeTask(pipeline, pusher); err != nil {
-		return false, err
-	}
-
-	go CIQueue.Add(repo.ID)
-	return true, nil
-}
 
 func getCIConfigFromCommit(commit *git.Commit) (*CIConfig, []byte, error) {
 	var fileContent []byte

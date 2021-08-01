@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/aofei/cameron v1.1.6
 	github.com/artdarek/go-unzip v1.0.0
-	github.com/bugitt/git-module v1.2.2
+	github.com/bugitt/git-module v1.2.3
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/editorconfig/editorconfig-core-go/v2 v2.3.9
 	github.com/fatih/color v1.9.0 // indirect
