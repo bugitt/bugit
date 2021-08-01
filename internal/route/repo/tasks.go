@@ -7,6 +7,7 @@ package repo
 import (
 	"net/http"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
 	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
 
@@ -75,7 +76,7 @@ func TriggerTask(c *macaron.Context) {
 	shouldCI := c.Query("ci")
 	// TODO: 可能可以不以repo为CI队列的唯一标识？
 	if shouldCI == "true" {
-		go db.CIQueue.Add(repo.ID)
+		go ci.CIQueue.Add(repo.ID)
 	}
 
 	c.Status(http.StatusAccepted)

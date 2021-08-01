@@ -90,6 +90,16 @@ type BasicTask struct {
 	EndUnix    int64  // 结束时间戳
 }
 
+func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
+	tasks := make([]*Pipeline, 0)
+	query := x.Where("stage = ?", NotStart)
+	if repoID > 0 {
+		query = query.And("repo_id = ?", repoID)
+	}
+	err := query.Find(&tasks)
+	return tasks, err
+}
+
 func (ptask *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, error) {
 	task := &ValidationTask{}
 	task.PipeTaskID = ptask.ID
@@ -343,7 +353,7 @@ func (ptask *PipeTask) LoadRepo(context *CIContext) error {
 }
 
 // CI CI过程中生成的error应该被自己消费掉
-func (ptask *PipeTask) Run() {
+func (ptask *Pipeline) Run() {
 	// 一个task最多只允许跑一小时
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
@@ -457,7 +467,7 @@ func (ptask *Pipeline) GetDeployTask() (dtask *DeployTask, err error) {
 	return
 }
 
-func preparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
+func PreparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
 	imageTag := fmt.Sprintf("%s/%s/%s:%s",
 		conf.Docker.Registry,
 		repo.MustOwner().LowerName,

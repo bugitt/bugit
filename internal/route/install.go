@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
 	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	"github.com/unknwon/com"
@@ -83,7 +84,7 @@ func GlobalInit(customConf string) error {
 		cron.NewContext()
 		db.InitSyncMirrors()
 		db.InitDeliverHooks()
-		db.StartCI()
+		ci.StartCI()
 		db.InitTestPullRequests()
 	}
 	if conf.HasMinWinSvc {

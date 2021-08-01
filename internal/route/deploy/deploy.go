@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
 func CreatePost(c *context.Context) {
@@ -28,7 +28,7 @@ func CreatePost(c *context.Context) {
 
 	for _, id := range repoIDs {
 		// TODO: check error
-		_ = db.CreateDeploy(&db.DeployOption{
+		_ = ci.CreateDeploy(&ci.DeployOption{
 			RepoID: id,
 			Pusher: c.User,
 		})
