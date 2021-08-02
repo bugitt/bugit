@@ -38,8 +38,8 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
 
-// USER_AVATAR_URL_PREFIX is used to identify a URL is to access user avatar.
-const USER_AVATAR_URL_PREFIX = "avatars"
+// UserAvatarUrlPrefix is used to identify a URL is to access user avatar.
+const UserAvatarUrlPrefix = "avatars"
 
 type UserType int
 
@@ -276,7 +276,7 @@ func (u *User) RelAvatarLink() string {
 		if !com.IsExist(u.CustomAvatarPath()) {
 			return defaultImgUrl
 		}
-		return fmt.Sprintf("%s/%s/%d", conf.Server.Subpath, USER_AVATAR_URL_PREFIX, u.ID)
+		return fmt.Sprintf("%s/%s/%d", conf.Server.Subpath, UserAvatarUrlPrefix, u.ID)
 	case conf.Picture.DisableGravatar:
 		if !com.IsExist(u.CustomAvatarPath()) {
 			if err := u.GenerateRandomAvatar(); err != nil {
@@ -284,7 +284,7 @@ func (u *User) RelAvatarLink() string {
 			}
 		}
 
-		return fmt.Sprintf("%s/%s/%d", conf.Server.Subpath, USER_AVATAR_URL_PREFIX, u.ID)
+		return fmt.Sprintf("%s/%s/%d", conf.Server.Subpath, UserAvatarUrlPrefix, u.ID)
 	}
 	return tool.AvatarLink(u.AvatarEmail)
 }
@@ -298,7 +298,7 @@ func (u *User) AvatarLink() string {
 	return link
 }
 
-// User.GetFollwoers returns range of user's followers.
+// GetFollowers User.GetFollowers returns range of user's followers.
 func (u *User) GetFollowers(page int) ([]*User, error) {
 	users := make([]*User, 0, ItemsPerPage)
 	sess := x.Limit(ItemsPerPage, (page-1)*ItemsPerPage).Where("follow.follow_id=?", u.ID)

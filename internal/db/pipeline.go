@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -19,17 +18,6 @@ import (
 	log "unknwon.dev/clog/v2"
 	"xorm.io/xorm"
 )
-
-type CIContext struct {
-	context.Context
-	path     string
-	imageTag string
-	owner    *User
-	repo     *Repository
-	commit   string
-	refName  string
-	config   *CIConfig
-}
 
 type PipeStage int
 
@@ -68,7 +56,8 @@ type Pipeline struct {
 	ImageTag     string
 	ConfigString string `xorm:"text"`
 	CIPath       string
-	IsSucceed    bool
+	IsSuccessful bool
+	Log          string `xorm:"text"`
 	ErrMsg       string `xorm:"text"`
 	Status       RunStatus
 	Stage        PipeStage
@@ -78,16 +67,16 @@ type Pipeline struct {
 }
 
 type BasicTask struct {
-	ID         int64
-	PipeTaskID int64
-	Number     int
-	Status     RunStatus
-	IsSucceed  bool
-	ErrType    CIErrType
-	SrcErrMsg  string `xorm:"text"`
-	CusErrMsg  string `xorm:"text"`
-	BeginUnix  int64  // 开始时间戳
-	EndUnix    int64  // 结束时间戳
+	ID           int64
+	PipeTaskID   int64
+	Number       int
+	Status       RunStatus
+	IsSuccessful bool
+	ErrType      CIErrType
+	SrcErrMsg    string `xorm:"text"`
+	CusErrMsg    string `xorm:"text"`
+	BeginUnix    int64  // 开始时间戳
+	EndUnix      int64  // 结束时间戳
 }
 
 func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
@@ -100,18 +89,18 @@ func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	return tasks, err
 }
 
-func (ptask *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, error) {
+func (pipeline *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, error) {
 	task := &ValidationTask{}
-	task.PipeTaskID = ptask.ID
+	task.PipeTaskID = pipeline.ID
 	task.Number = index
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
 }
 
-func (ptask *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
+func (pipeline *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
 	task := &BuildTask{}
-	task.PipeTaskID = ptask.ID
+	task.PipeTaskID = pipeline.ID
 	task.Number = index
 	task.Status = BeforeStart
 	task.ImageTag = context.imageTag
@@ -119,17 +108,17 @@ func (ptask *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTa
 	return task, err
 }
 
-func (ptask *Pipeline) preparePushTask(context *CIContext) (*PushTask, error) {
+func (pipeline *Pipeline) preparePushTask(context *CIContext) (*PushTask, error) {
 	task := &PushTask{}
-	task.PipeTaskID = ptask.ID
+	task.PipeTaskID = pipeline.ID
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
 }
 
-func (ptask *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
+func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
-	task.PipeTaskID = ptask.ID
+	task.PipeTaskID = pipeline.ID
 	task.Status = BeforeStart
 	task.NameSpace = fmt.Sprintf("%d", ctx.owner.ID)
 	task.DeploymentName = ctx.repo.DeployName() + "-deployment"
@@ -138,11 +127,11 @@ func (ptask *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	return task, err
 }
 
-func (ptask *Pipeline) Validation(ctx *CIContext) error {
-	_ = ptask.updateStatus(ValidStart)
-	configs := ptask.Pipeline.Config.Validate
+func (pipeline *Pipeline) Validation(ctx *CIContext) error {
+	_ = pipeline.updateStatus(ValidStart)
+	configs := pipeline.Pipeline.Config.Validate
 	for i := range configs {
-		task, err := ptask.prepareValidstaionTask(i + 1)
+		task, err := pipeline.prepareValidstaionTask(i + 1)
 		if err != nil {
 			return err
 		}
@@ -153,12 +142,12 @@ func (ptask *Pipeline) Validation(ctx *CIContext) error {
 		}
 		_ = task.success()
 	}
-	return ptask.updateStatus(ValidEnd)
+	return pipeline.updateStatus(ValidEnd)
 }
 
-func (ptask *Pipeline) Build(ctx *CIContext) error {
-	_ = ptask.updateStatus(BuildStart)
-	task, err := ptask.prepareBuildTask(ctx, 1)
+func (pipeline *Pipeline) Build(ctx *CIContext) error {
+	_ = pipeline.updateStatus(BuildStart)
+	task, err := pipeline.prepareBuildTask(ctx, 1)
 	if err != nil {
 		return err
 	}
@@ -169,12 +158,12 @@ func (ptask *Pipeline) Build(ctx *CIContext) error {
 	}
 	_ = task.success()
 
-	return ptask.updateStatus(BuildEnd)
+	return pipeline.updateStatus(BuildEnd)
 }
 
-func (ptask *Pipeline) Push(ctx *CIContext) error {
-	_ = ptask.updateStatus(PushStart)
-	task, err := ptask.preparePushTask(ctx)
+func (pipeline *Pipeline) Push(ctx *CIContext) error {
+	_ = pipeline.updateStatus(PushStart)
+	task, err := pipeline.preparePushTask(ctx)
 	if err != nil {
 		return err
 	}
@@ -184,12 +173,12 @@ func (ptask *Pipeline) Push(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return ptask.updateStatus(PushEnd)
+	return pipeline.updateStatus(PushEnd)
 }
 
-func (ptask *Pipeline) Deploy(ctx *CIContext) error {
-	_ = ptask.updateStatus(DeployStart)
-	task, err := ptask.prepareDeployTask(ctx)
+func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
+	_ = pipeline.updateStatus(DeployStart)
+	task, err := pipeline.prepareDeployTask(ctx)
 	if err != nil {
 		return err
 	}
@@ -199,7 +188,7 @@ func (ptask *Pipeline) Deploy(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return ptask.updateStatus(DeployEnd)
+	return pipeline.updateStatus(DeployEnd)
 }
 
 func preparePipeTask(pipeline *Pipeline, pusher *User) error {
@@ -352,109 +341,46 @@ func (ptask *PipeTask) LoadRepo(context *CIContext) error {
 	return ptask.updateStatus(LoadRepoEnd)
 }
 
-// CI CI过程中生成的error应该被自己消费掉
-func (ptask *Pipeline) Run() {
-	// 一个task最多只允许跑一小时
-	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
-	defer cancel()
-
-	var err error
-
-	defer func() {
-		if err != nil {
-			err = ptask.fail(err)
-		}
-		if err != nil {
-			log.Error("update ptask error: err")
-		}
-	}()
-
-	// prepare attributes
-	if err = ptask.loadAttributes(); err != nil {
-		return
-	}
-
-	if err = ptask.begin(); err != nil {
-		return
-	}
-
-	// work
-	done := make(chan error)
-	go func() {
-		done <- func() (err error) {
-			defer func() {
-				if panicErr := recover(); panicErr != nil {
-					err = fmt.Errorf("panic occurred: %#v", panicErr)
-				}
-			}()
-			switch ptask.Pipeline.Config.Version {
-			case "0.0.1":
-				err = ptask.CI001(ctx)
-			}
-			return err
-		}()
-	}()
-	select {
-	case err = <-done:
-	case <-ctx.Done():
-		err = &CIError{
-			Type: TimeoutErrType,
-			err:  ctx.Err(),
-		}
-	}
-
-	// 保证打上结束的时间戳
-	if err == nil {
-		log.Info("pipe CI success: %d", ptask.ID)
-		err = ptask.success()
-	} else {
-		log.Error("pipe CI error: %s", err.Error())
-	}
-}
-
-func (ptask *Pipeline) begin() error {
-	ptask.BeginUnix = time.Now().Unix()
-	ptask.Status = Running
-	_, err := x.ID(ptask.ID).Update(ptask)
+func (pipeline *Pipeline) Begin() error {
+	pipeline.BeginUnix = time.Now().Unix()
+	pipeline.Status = Running
+	_, err := x.ID(pipeline.ID).Update(pipeline)
 	return err
 }
 
-func (ptask *Pipeline) success() error {
-	ptask.IsSucceed = true
-	ptask.EndUnix = time.Now().Unix()
-	ptask.Status = Finished
-	row, err := x.ID(ptask.ID).Cols("is_succeed", "status", "end_unix").Update(ptask)
+func (pipeline *Pipeline) Succeed() error {
+	pipeline.IsSuccessful = true
+	pipeline.EndUnix = time.Now().Unix()
+	pipeline.Status = Finished
+	row, err := x.ID(pipeline.ID).Cols("is_succeed", "status", "end_unix").Update(pipeline)
 	if err == nil && row != 1 {
 		err = errors.New("set ptask success failed")
 	}
 	return err
 }
 
-func (ptask *Pipeline) fail(sourceErr error) error {
-	ptask.IsSucceed = false
-	ptask.EndUnix = time.Now().Unix()
-	ptask.ErrMsg = sourceErr.Error()
-	if ciErr, ok := sourceErr.(*CIError); ok {
-		ptask.ErrType = ciErr.Type
-	}
-	ptask.Status = Finished
-	row, err := x.ID(ptask.ID).Cols("is_succeed", "status", "end_unix", "err_msg", "err_type").Update(ptask)
+func (pipeline *Pipeline) Fail(sourceErr error) error {
+	pipeline.IsSuccessful = false
+	pipeline.EndUnix = time.Now().Unix()
+	pipeline.ErrMsg = sourceErr.Error()
+	pipeline.Status = Finished
+	row, err := x.ID(pipeline.ID).Cols("is_succeed", "status", "end_unix", "err_msg", "err_type").Update(pipeline)
 	if err == nil && row != 1 {
 		err = errors.New("update ptask failed")
 	}
 	return err
 }
 
-func (ptask *Pipeline) updateStatus(status PipeStage) error {
-	ptask.Stage = status
-	_, err := x.Where("id = ?", ptask.ID).Update(ptask)
+func (pipeline *Pipeline) updateStatus(status PipeStage) error {
+	pipeline.Stage = status
+	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
 	return err
 }
 
-func (ptask *Pipeline) GetDeployTask() (dtask *DeployTask, err error) {
+func (pipeline *Pipeline) GetDeployTask() (dtask *DeployTask, err error) {
 	dtask = &DeployTask{
 		BasicTask: BasicTask{
-			PipeTaskID: ptask.ID,
+			PipeTaskID: pipeline.ID,
 		},
 	}
 	has, err := x.OrderBy("created_unix desc").Get(dtask)
@@ -515,45 +441,45 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 	return p.ID, nil
 }
 
-func (p *Pipeline) loadAttributes() error {
-	if p.repoDB == nil {
+func (pipeline *Pipeline) loadAttributes() error {
+	if pipeline.repoDB == nil {
 		repo := new(Repository)
-		has, err := x.ID(p.RepoID).Get(repo)
+		has, err := x.ID(pipeline.RepoID).Get(repo)
 		if err != nil {
 			return err
 		}
 		if !has {
 			return errors.New("repo not found")
 		}
-		p.repoDB = repo
+		pipeline.repoDB = repo
 	}
 
-	if p.gitRepo == nil {
-		gitRepo, err := git.Open(p.repoDB.RepoPath())
+	if pipeline.gitRepo == nil {
+		gitRepo, err := git.Open(pipeline.repoDB.RepoPath())
 		if err != nil {
 			return err
 		}
-		p.gitRepo = gitRepo
+		pipeline.gitRepo = gitRepo
 	}
 
-	if p.gitCommit == nil {
-		gitCommit, err := p.gitRepo.CatFileCommit(p.Commit)
+	if pipeline.gitCommit == nil {
+		gitCommit, err := pipeline.gitRepo.CatFileCommit(pipeline.Commit)
 		if err != nil {
 			return err
 		}
-		p.gitCommit = gitCommit
+		pipeline.gitCommit = gitCommit
 	}
 
 	return nil
 }
 
-func (p *Pipeline) loadRepo() error {
+func (pipeline *Pipeline) loadRepo() error {
 	// 如果已经存在了，那么就不用再load一次了
-	if com.IsDir(p.CIPath) {
+	if com.IsDir(pipeline.CIPath) {
 		return nil
 	}
-	hash := tool.ShortSHA1(p.Commit)
-	archivePath := filepath.Join(p.gitRepo.Path(), "archives", "zip")
+	hash := tool.ShortSHA1(pipeline.Commit)
+	archivePath := filepath.Join(pipeline.gitRepo.Path(), "archives", "zip")
 	if !com.IsDir(archivePath) {
 		if err := os.MkdirAll(archivePath, os.ModePerm); err != nil {
 			return err
@@ -561,42 +487,42 @@ func (p *Pipeline) loadRepo() error {
 	}
 	archivePath = path.Join(archivePath, hash+".zip")
 	if !com.IsFile(archivePath) {
-		if err := p.gitCommit.CreateArchive(git.ArchiveZip, archivePath); err != nil {
+		if err := pipeline.gitCommit.CreateArchive(git.ArchiveZip, archivePath); err != nil {
 			return err
 		}
 	}
 
-	repoPath := filepath.Join(conf.Devops.Tmpdir, p.repoDB.MustOwner().Name, p.repoDB.Name, hash)
+	repoPath := filepath.Join(conf.Devops.Tmpdir, pipeline.repoDB.MustOwner().Name, pipeline.repoDB.Name, hash)
 	if !com.IsDir(repoPath) {
 		uz := unzip.New(archivePath, repoPath)
 		if err := uz.Extract(); err != nil {
 			return err
 		}
 	}
-	p.CIPath = repoPath
+	pipeline.CIPath = repoPath
 	// 更新数据库
-	_, err := x.ID(p.ID).Update(p)
+	_, err := x.ID(pipeline.ID).Update(pipeline)
 	return err
 }
 
-func (p *Pipeline) BeforeInsert() {
-	p.BaseModel.BeforeInsert()
+func (pipeline *Pipeline) BeforeInsert() {
+	pipeline.BaseModel.BeforeInsert()
 
 	// 保证 configString 不为空
-	if len(p.ConfigString) <= 0 {
-		configS, err := yaml.Marshal(p.Config)
+	if len(pipeline.ConfigString) <= 0 {
+		configS, err := yaml.Marshal(pipeline.Config)
 		if err != nil {
-			log.Error("%s, marchel config string error for %#v", err.Error(), p)
+			log.Error("%s, marchel config string error for %#v", err.Error(), pipeline)
 			return
 		}
-		p.ConfigString = string(configS)
+		pipeline.ConfigString = string(configS)
 	}
 }
 
-func (p *Pipeline) AfterSet(colName string, cell xorm.Cell) {
-	p.BaseModel.AfterSet(colName, cell)
+func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
+	pipeline.BaseModel.AfterSet(colName, cell)
 	switch colName {
 	case "config_string":
-		p.Config, _ = ParseCIConfig([]byte(p.ConfigString))
+		pipeline.Config, _ = ParseCIConfig([]byte(pipeline.ConfigString))
 	}
 }

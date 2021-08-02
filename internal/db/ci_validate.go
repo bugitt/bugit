@@ -104,7 +104,7 @@ func (task *ValidationTask) start() error {
 
 func (task *ValidationTask) success() error {
 	task.Status = Finished
-	task.IsSucceed = true
+	task.IsSuccessful = true
 	task.EndUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
 	if err != nil {
@@ -116,7 +116,7 @@ func (task *ValidationTask) success() error {
 
 func (task *ValidationTask) failed() error {
 	task.Status = Finished
-	task.IsSucceed = false
+	task.IsSuccessful = false
 	task.EndUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_succeed", "end_unix").Update(task)
 	if err != nil {

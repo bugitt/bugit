@@ -12,9 +12,9 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
-var CIQueue = sync.NewUniqueQueue(1000)
+var Queue = sync.NewUniqueQueue(1000)
 
-func getCIConfigFromCommit(commit *git.Commit) (*db.CIConfig, []byte, error) {
+func getCIConfigFromCommit(commit *git.Commit) (*Config, []byte, error) {
 	var fileContent []byte
 	var err error
 	for _, filename := range conf.Devops.Filename {
@@ -40,13 +40,13 @@ func ci() {
 	if err != nil {
 		log.Error("Get pre pipeline: %v", err)
 	}
-	for _, ptask := range tasks {
-		go ptask.Run()
+	for _, pipeline := range tasks {
+		go run(pipeline)
 
 	}
-	for repoID := range CIQueue.Queue() {
+	for repoID := range Queue.Queue() {
 		log.Trace("Begin Pipeline for [repo_id: %v]", repoID)
-		CIQueue.Remove(repoID)
+		Queue.Remove(repoID)
 
 		repoIDInt, err := strconv.ParseInt(repoID, 10, 64)
 		if err != nil {
@@ -58,8 +58,8 @@ func ci() {
 			log.Error("Get repository [%s] pipelines: %v", repoID, err)
 			continue
 		}
-		for _, ptask := range tasks {
-			go ptask.Run()
+		for _, pipeline := range tasks {
+			go run(pipeline)
 		}
 	}
 }
@@ -68,13 +68,17 @@ func StartCI() {
 	go ci()
 }
 
+func contextCI(ctx *Context) error {
+	return nil
+}
+
 type DeployOption struct {
 	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
 	Repo      *db.Repository  `json:"-"`
-	gitRepo   *git.Repository `json:"-"`
+	GitRepo   *git.Repository `json:"-"`
 	Branch    string          `json:"Branch" form:"Branch"`
 	Commit    string          `json:"Commit" form:"Commit"`
-	gitCommit *git.Commit     `json:"-"`
+	GitCommit *git.Commit     `json:"-"`
 	Pusher    *db.User        `json:"-"`
 }
 
@@ -89,7 +93,7 @@ func CreateDeploy(opt *DeployOption) (err error) {
 		}
 		opt.Repo = repo
 	}
-	opt.gitRepo, err = git.Open(opt.Repo.RepoPath())
+	opt.GitRepo, err = git.Open(opt.Repo.RepoPath())
 	if err != nil {
 		return err
 	}
@@ -99,20 +103,20 @@ func CreateDeploy(opt *DeployOption) (err error) {
 	}
 
 	if len(opt.Commit) <= 0 {
-		opt.gitCommit, err = opt.gitRepo.BranchCommit(opt.Branch)
+		opt.GitCommit, err = opt.GitRepo.BranchCommit(opt.Branch)
 		if err != nil {
 			return
 		}
-		opt.Commit = opt.gitCommit.ID.String()
+		opt.Commit = opt.GitCommit.ID.String()
 	} else {
-		opt.gitCommit, err = opt.gitRepo.CatFileCommit(opt.Commit)
+		opt.GitCommit, err = opt.GitRepo.CatFileCommit(opt.Commit)
 		if err != nil {
 			return
 		}
 	}
 
 	// 2. 检查对应的commit中是否有合法的 CIConfig 配置文件
-	ciConfig, fileContent, err := getCIConfigFromCommit(opt.gitCommit)
+	ciConfig, fileContent, err := getCIConfigFromCommit(opt.GitCommit)
 	if err != nil {
 		return err
 	}
@@ -135,12 +139,12 @@ func CreateDeploy(opt *DeployOption) (err error) {
 	}
 
 	// 4. 好了，终于确定了，可以触发新的部署了
-	_, err = db.PreparePipeline(opt.gitCommit, fileContent, opt.Repo, opt.Pusher, opt.Branch)
+	_, err = db.PreparePipeline(opt.GitCommit, fileContent, opt.Repo, opt.Pusher, opt.Branch)
 	if err != nil {
 		return err
 	}
 
-	go CIQueue.Add(opt.Repo.ID)
+	go Queue.Add(opt.Repo.ID)
 	return nil
 }
 
@@ -209,7 +213,7 @@ func DescribePipeTask(pipeline *db.Pipeline, repos ...*db.Repository) (re *Deplo
 		Status:       pipeline.Status,
 		Stage:        pipeline.Stage,
 		StageString:  db.PrettyStage(pipeline.Stage),
-		IsSuccessful: pipeline.IsSucceed,
+		IsSuccessful: pipeline.IsSuccessful,
 		ErrMsg:       pipeline.ErrMsg,
 		BeginUnix:    pipeline.BeginUnix,
 		EndUnix:      pipeline.EndUnix,
@@ -265,7 +269,7 @@ func GetDeployByRepo(repo *db.Repository) (re *DeployDes, err error) {
 		return
 	}
 	if pipeline == nil {
-		err = &db.ErrPipeNotFound{repoID, repo.Name}
+		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
 		return
 	}
 	ptask, err := db.GetLatestPipeTask(pipeline.ID)
@@ -273,7 +277,7 @@ func GetDeployByRepo(repo *db.Repository) (re *DeployDes, err error) {
 		return
 	}
 	if ptask == nil {
-		err = &db.ErrPipeNotFound{repoID, repo.Name}
+		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
 		return
 	}
 

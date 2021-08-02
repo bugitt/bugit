@@ -74,9 +74,8 @@ func TriggerTask(c *macaron.Context) {
 
 	// check CI
 	shouldCI := c.Query("ci")
-	// TODO: 可能可以不以repo为CI队列的唯一标识？
 	if shouldCI == "true" {
-		go ci.CIQueue.Add(repo.ID)
+		go ci.Queue.Add(repo.ID)
 	}
 
 	c.Status(http.StatusAccepted)

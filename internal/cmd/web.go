@@ -97,7 +97,7 @@ func newMacaron() *macaron.Macaron {
 	m.Use(macaron.Static(
 		conf.Picture.AvatarUploadPath,
 		macaron.StaticOptions{
-			Prefix:      db.USER_AVATAR_URL_PREFIX,
+			Prefix:      db.UserAvatarUrlPrefix,
 			SkipLogging: conf.Server.DisableRouterLog,
 		},
 	))

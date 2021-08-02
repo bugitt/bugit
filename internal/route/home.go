@@ -47,7 +47,7 @@ func Home(c *context.Context) {
 	c.Redirect(conf.Server.Subpath + "/user/login")
 
 	// c.Data["PageIsHome"] = true
-	// c.Success(HOME)
+	// c.Succeed(HOME)
 }
 
 func ExploreRepos(c *context.Context) {
