@@ -158,11 +158,11 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.NumMembers = 1
 
 	// create harbor project
-	harborID, err := harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
+	harborID, harborName, err := harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
 	if err != nil {
 		return err
 	}
-	org.HarborID = harborID
+	org.HarborID, org.HarborName = harborID, harborName
 
 	sess := x.NewSession()
 	defer sess.Close()

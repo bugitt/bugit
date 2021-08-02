@@ -114,7 +114,8 @@ type User struct {
 	CourseName string      `json:"course_name"`
 
 	// Harbor
-	HarborID int64
+	HarborID   int64
+	HarborName string
 }
 
 func (u *User) BeforeInsert() {
@@ -625,11 +626,11 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	harborID, err := harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
+	harborID, harborName, err := harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
 	if err != nil {
 		return err
 	}
-	u.HarborID = harborID
+	u.HarborID, u.HarborName = harborID, harborName
 
 	sess := x.NewSession()
 	defer sess.Close()

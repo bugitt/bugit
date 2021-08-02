@@ -3,6 +3,7 @@ package harbor
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/mittwald/goharbor-client/v4/apiv2"
@@ -11,10 +12,6 @@ import (
 	"github.com/mittwald/goharbor-client/v4/apiv2/project"
 	"github.com/mittwald/goharbor-client/v4/apiv2/user"
 )
-
-func getInt64Ptr(x int64) *int64 {
-	return &x
-}
 
 func getClient() (*apiv2.RESTClient, error) {
 	return apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
@@ -30,31 +27,37 @@ func getUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName
 }
 
 // CreateUser post a user to harbor
-func CreateUser(ctx context.Context, username, email, realname string) (int64, error) {
+func CreateUser(ctx context.Context, username, email, realname string) (int64, string, error) {
+	username = PrettyName(username)
 	client, err := getClient()
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	// check whether user already exists
 	_, err = client.GetUser(ctx, username)
 	if err != nil {
 		if _, ok := err.(*user.ErrUserNotFound); !ok {
-			return 0, err
+			return 0, "", err
 		}
 	} else {
-		return 0, nil
+		return 0, "", nil
 	}
 
 	// create
 	u, err := client.NewUser(ctx, username, email, realname, conf.Harbor.DefaultPasswd, "User created by BuGit")
-	return u.UserID, err
+	if err != nil {
+		return 0, "", err
+	}
+
+	return CreateProject(ctx, strings.ToLower(username), u.Username)
 }
 
-func CreateProject(ctx context.Context, name, username string) (int64, error) {
+func CreateProject(ctx context.Context, name, username string) (int64, string, error) {
+	name = PrettyName(name)
 	client, err := getClient()
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	// check whether project already exists
@@ -62,27 +65,27 @@ func CreateProject(ctx context.Context, name, username string) (int64, error) {
 	p, err := client.GetProject(ctx, name)
 	if err != nil {
 		if _, ok := err.(*project.ErrProjectNotFound); !ok {
-			return 0, err
+			return 0, "", err
 		}
 	} else {
 		if err = client.DeleteProject(ctx, p); err != nil {
-			return 0, err
+			return 0, "", err
 		}
 	}
 
 	p, err = client.NewProject(ctx, name, getInt64Ptr(-1))
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	// 将BuGit中的项目的创建这作为管理员，添加到Harbor项目中
 	u, err := client.GetUser(ctx, username)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	// The role id 1 for projectAdmin, 2 for developer, 3 for guest, 4 for maintainer
-	return int64(p.ProjectID), client.AddProjectMember(ctx, p, u, 1)
+	return int64(p.ProjectID), name, client.AddProjectMember(ctx, p, u, 1)
 }
 
 // AddProjectMember 默认添加的每个member都有管理员权限
