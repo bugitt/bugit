@@ -41,7 +41,7 @@ func ci() {
 		log.Error("Get pre pipeline: %v", err)
 	}
 	for _, pipeline := range tasks {
-		go run(pipeline)
+		go runHandle(pipeline)
 
 	}
 	for repoID := range Queue.Queue() {
@@ -59,17 +59,13 @@ func ci() {
 			continue
 		}
 		for _, pipeline := range tasks {
-			go run(pipeline)
+			go runHandle(pipeline)
 		}
 	}
 }
 
 func StartCI() {
 	go ci()
-}
-
-func contextCI(ctx *Context) error {
-	return nil
 }
 
 type DeployOption struct {

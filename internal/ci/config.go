@@ -16,6 +16,12 @@ type Config struct {
 	//Deploy   DeployTaskConfig    `yaml:"deploy"`
 }
 
+type BaseTaskConfig struct {
+	Name     string `yaml:"name"`
+	Describe string `yaml:"describe"`
+	Type     string `yaml:"type"`
+}
+
 func (c *Config) ShouldCIOnPush(refName string) bool {
 	log.Trace("refName: %s", refName)
 	var events []string

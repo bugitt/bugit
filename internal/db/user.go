@@ -971,7 +971,6 @@ func getUserByID(e Engine, id int64) (*User, error) {
 }
 
 // GetUserByID returns the user object by given ID if exists.
-// Deprecated: Use Users.GetByID instead.
 func GetUserByID(id int64) (*User, error) {
 	return getUserByID(x, id)
 }

@@ -9,8 +9,8 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
-// run CI CI过程中生成的error应该被自己消费掉
-func run(pipeline *db.Pipeline) {
+// runHandle CI CI过程中生成的error应该被自己消费掉
+func runHandle(pipeline *db.Pipeline) {
 	// 一个task最多只允许跑一小时
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
@@ -35,11 +35,11 @@ func run(pipeline *db.Pipeline) {
 					err = fmt.Errorf("panic occurred: %#v", panicErr)
 				}
 			}()
-			ctx, err := prepareCtx(pipeline)
+			ciCtx, err := prepareCtx(ctx, pipeline)
 			if err != nil {
 				return err
 			}
-			return contextCI(ctx)
+			return run(ciCtx)
 		}()
 	}()
 	select {
