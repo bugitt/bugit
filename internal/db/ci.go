@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/bugitt/git-module"
 	log "unknwon.dev/clog/v2"
@@ -32,8 +34,17 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 		return false, err
 	}
 
+	config, err := ParseCIConfig(fileContent)
+	if err != nil {
+		return false, err
+	}
+
+	if !config.ShouldCI(refName, PUSH) {
+		return false, nil
+	}
+
 	// 创建 pipeline
-	pipeline, err := preparePipeline(commit, fileContent, repo, pusher, refName)
+	pipeline, err := PreparePipeline(commit, PUSH, repo, pusher, refName, config)
 	if err != nil {
 		log.Error("%s", err.Error())
 		return false, err
@@ -42,4 +53,39 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 	log.Trace("%d", pipeline.ID)
 
 	return true, nil
+}
+
+func genImageTag(repo *Repository, commit string) string {
+	_ = repo.LoadAttributes()
+	return fmt.Sprintf("%s/%s:%s", repo.Owner.HarborName, repo.LowerName, commit)
+}
+
+func GetCIConfigFromCommit(commit *git.Commit) (*CIConfig, error) {
+	var fileContent []byte
+	var err error
+	for _, filename := range conf.Devops.Filename {
+		if fileContent, err = commit.ReadFileSimple(filename); err != nil {
+			continue
+		} else {
+			break
+		}
+	}
+	if len(fileContent) <= 0 {
+		return nil, nil
+	}
+	ciConfig, err := ParseCIConfig(fileContent)
+	if err != nil {
+		return nil, err
+	}
+	return ciConfig, nil
+}
+
+type DeployOption struct {
+	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
+	Repo      *Repository     `json:"-"`
+	GitRepo   *git.Repository `json:"-"`
+	Branch    string          `json:"Branch" form:"Branch"`
+	Commit    string          `json:"Commit" form:"Commit"`
+	GitCommit *git.Commit     `json:"-"`
+	Pusher    *User           `json:"-"`
 }

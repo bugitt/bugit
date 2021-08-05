@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
 	"github.com/bugitt/git-module"
@@ -13,26 +12,6 @@ import (
 )
 
 var Queue = sync.NewUniqueQueue(1000)
-
-func getCIConfigFromCommit(commit *git.Commit) (*Config, []byte, error) {
-	var fileContent []byte
-	var err error
-	for _, filename := range conf.Devops.Filename {
-		if fileContent, err = commit.ReadFileSimple(filename); err != nil {
-			continue
-		} else {
-			break
-		}
-	}
-	if len(fileContent) <= 0 {
-		return nil, nil, nil
-	}
-	ciConfig, err := db.ParseCIConfig(fileContent)
-	if err != nil {
-		return nil, nil, err
-	}
-	return ciConfig, fileContent, nil
-}
 
 func ci() {
 	// repoID = 0 表示获取所有没有开始执行的pipeline
@@ -66,82 +45,6 @@ func ci() {
 
 func StartCI() {
 	go ci()
-}
-
-type DeployOption struct {
-	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
-	Repo      *db.Repository  `json:"-"`
-	GitRepo   *git.Repository `json:"-"`
-	Branch    string          `json:"Branch" form:"Branch"`
-	Commit    string          `json:"Commit" form:"Commit"`
-	GitCommit *git.Commit     `json:"-"`
-	Pusher    *db.User        `json:"-"`
-}
-
-func CreateDeploy(opt *DeployOption) (err error) {
-	// 1. 完善参数
-	if opt.Repo != nil {
-		opt.RepoID = opt.Repo.ID
-	} else {
-		repo, err := db.GetRepositoryByID(opt.RepoID)
-		if err != nil {
-			return err
-		}
-		opt.Repo = repo
-	}
-	opt.GitRepo, err = git.Open(opt.Repo.RepoPath())
-	if err != nil {
-		return err
-	}
-
-	if len(opt.Branch) <= 0 {
-		opt.Branch = opt.Repo.DefaultBranch
-	}
-
-	if len(opt.Commit) <= 0 {
-		opt.GitCommit, err = opt.GitRepo.BranchCommit(opt.Branch)
-		if err != nil {
-			return
-		}
-		opt.Commit = opt.GitCommit.ID.String()
-	} else {
-		opt.GitCommit, err = opt.GitRepo.CatFileCommit(opt.Commit)
-		if err != nil {
-			return
-		}
-	}
-
-	// 2. 检查对应的commit中是否有合法的 CIConfig 配置文件
-	ciConfig, fileContent, err := getCIConfigFromCommit(opt.GitCommit)
-	if err != nil {
-		return err
-	}
-	if ciConfig == nil {
-		return &db.ErrNoValidCIConfig{
-			RepoName: opt.Repo.Name,
-			Branch:   opt.Branch,
-			Commit:   opt.Commit,
-		}
-	}
-
-	// 3. 首先检查是不是真的需要进行一次 deploy
-	//    当前的计划是，如果当前有同样commit的deploy正在执行，那么就忽略本次部署请求
-	isRunning, err := db.IsPipelineRunning(opt.RepoID, opt.Commit)
-	if err != nil {
-		return err
-	}
-	if isRunning {
-		return &db.ErrNoNeedDeploy{"the deployment of the current commit is in progress, please stay calm"}
-	}
-
-	// 4. 好了，终于确定了，可以触发新的部署了
-	_, err = db.PreparePipeline(opt.GitCommit, fileContent, opt.Repo, opt.Pusher, opt.Branch)
-	if err != nil {
-		return err
-	}
-
-	go Queue.Add(opt.Repo.ID)
-	return nil
 }
 
 // DeployDes 描述一个project中的一个仓库最新的部署情况
@@ -179,6 +82,72 @@ type DeployDes struct {
 	DepLabels  map[string]string
 	SvcLabels  map[string]string
 	Ports      []db.Port
+}
+
+func CreateDeploy(opt *db.DeployOption) (err error) {
+	// 1. 完善参数
+	if opt.Repo != nil {
+		opt.RepoID = opt.Repo.ID
+	} else {
+		repo, err := db.GetRepositoryByID(opt.RepoID)
+		if err != nil {
+			return err
+		}
+		opt.Repo = repo
+	}
+	opt.GitRepo, err = git.Open(opt.Repo.RepoPath())
+	if err != nil {
+		return err
+	}
+
+	if len(opt.Branch) <= 0 {
+		opt.Branch = opt.Repo.DefaultBranch
+	}
+
+	if len(opt.Commit) <= 0 {
+		opt.GitCommit, err = opt.GitRepo.BranchCommit(opt.Branch)
+		if err != nil {
+			return
+		}
+		opt.Commit = opt.GitCommit.ID.String()
+	} else {
+		opt.GitCommit, err = opt.GitRepo.CatFileCommit(opt.Commit)
+		if err != nil {
+			return
+		}
+	}
+
+	// 2. 检查对应的commit中是否有合法的 CIConfig 配置文件
+	ciConfig, err := db.GetCIConfigFromCommit(opt.GitCommit)
+	if err != nil {
+		return err
+	}
+	if ciConfig == nil || !ciConfig.ShouldCI(opt.Branch, db.MANUAL) {
+		return &db.ErrNoValidCIConfig{
+			RepoName: opt.Repo.Name,
+			Branch:   opt.Branch,
+			Commit:   opt.Commit,
+		}
+	}
+
+	// 3. 首先检查是不是真的需要进行一次 deploy
+	//    当前的计划是，如果当前有同样commit的deploy正在执行，那么就忽略本次部署请求
+	isRunning, err := db.IsPipelineRunning(opt.RepoID, opt.Commit)
+	if err != nil {
+		return err
+	}
+	if isRunning {
+		return &db.ErrNoNeedDeploy{"the deployment of the current commit is in progress, please stay calm"}
+	}
+
+	// 4. 好了，终于确定了，可以触发新的部署了
+	_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig)
+	if err != nil {
+		return err
+	}
+
+	go Queue.Add(opt.Repo.ID)
+	return nil
 }
 
 func DescribePipeTask(pipeline *db.Pipeline, repos ...*db.Repository) (re *DeployDes, err error) {
@@ -268,7 +237,7 @@ func GetDeployByRepo(repo *db.Repository) (re *DeployDes, err error) {
 		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
 		return
 	}
-	ptask, err := db.GetLatestPipeTask(pipeline.ID)
+	//ptask, err := db.GetLatestPipeTask(pipeline.ID)
 	if err != nil {
 		return
 	}

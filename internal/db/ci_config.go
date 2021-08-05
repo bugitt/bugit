@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
@@ -13,6 +14,7 @@ import (
 	"github.com/bugitt/git-module"
 	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
+	log "unknwon.dev/clog/v2"
 )
 
 const (
@@ -34,20 +36,51 @@ func IsErrConfFileNotFound(err error) bool {
 	return ok
 }
 
-type Meta struct {
-	Tag string `yaml:"tag"`
+type CIMeta struct {
 }
 
-type BaseTaskConfig struct {
+type CIConfig struct {
+	Version string              `yaml:"version"`
+	Meta    CIMeta              `yaml:"meta"`
+	On      map[string][]string `yaml:"on"`
+	//Validate []ValidTaskConfig   `yaml:"validate"`
+	//Build    BuildTaskConfig     `yaml:"build"`
+	//Test     []TestTaskConfig    `yaml:"test"`
+	//Deploy   DeployTaskConfig    `yaml:"deploy"`
+}
+
+type BaseTaskConf struct {
 	Name     string `yaml:"name"`
 	Describe string `yaml:"describe"`
 	Type     string `yaml:"type"`
+}
+
+// ContainerTaskConf note: no imageTag !!!
+type ContainerTaskConf struct {
+	Env     map[string]string `yaml:"env"`
+	WorkDir string            `yaml:"work_dir"`
+	Cmd     []string          `yaml:"cmd"`
 }
 
 func ParseCIConfig(input []byte) (*CIConfig, error) {
 	ciConfig := &CIConfig{}
 	err := yaml.Unmarshal(input, ciConfig)
 	return ciConfig, err
+}
+
+func (c *CIConfig) ShouldCI(branch string, pipeType PipeType) bool {
+	log.Trace("branch: %s", branch)
+	for branchName, events := range c.On {
+		if branchName == branch {
+			for _, event := range events {
+				if strings.ToLower(event) == strings.ToLower(string(pipeType)) {
+					return true
+				}
+			}
+			break
+		}
+	}
+	return false
 }
 
 func ReadConf(ownerName, repoName, refName string) (*CIConfig, error) {

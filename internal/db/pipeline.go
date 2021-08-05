@@ -45,6 +45,14 @@ const (
 	Finished
 )
 
+type PipeType string
+
+const (
+	PUSH   PipeType = "push"
+	PR     PipeType = "pr"
+	MANUAL PipeType = "manual"
+)
+
 type Pipeline struct {
 	ID           int64
 	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
@@ -54,6 +62,7 @@ type Pipeline struct {
 	RefName      string
 	Commit       string
 	ImageTag     string
+	PipeType     PipeType
 	ConfigString string `xorm:"text"`
 	CIPath       string
 	IsSuccessful bool
@@ -128,7 +137,7 @@ func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error)
 }
 
 func (pipeline *Pipeline) Validation(ctx *CIContext) error {
-	_ = pipeline.updateStatus(ValidStart)
+	_ = pipeline.UpdateStatus(ValidStart)
 	configs := pipeline.Pipeline.Config.Validate
 	for i := range configs {
 		task, err := pipeline.prepareValidstaionTask(i + 1)
@@ -142,11 +151,11 @@ func (pipeline *Pipeline) Validation(ctx *CIContext) error {
 		}
 		_ = task.success()
 	}
-	return pipeline.updateStatus(ValidEnd)
+	return pipeline.UpdateStatus(ValidEnd)
 }
 
 func (pipeline *Pipeline) Build(ctx *CIContext) error {
-	_ = pipeline.updateStatus(BuildStart)
+	_ = pipeline.UpdateStatus(BuildStart)
 	task, err := pipeline.prepareBuildTask(ctx, 1)
 	if err != nil {
 		return err
@@ -158,11 +167,11 @@ func (pipeline *Pipeline) Build(ctx *CIContext) error {
 	}
 	_ = task.success()
 
-	return pipeline.updateStatus(BuildEnd)
+	return pipeline.UpdateStatus(BuildEnd)
 }
 
 func (pipeline *Pipeline) Push(ctx *CIContext) error {
-	_ = pipeline.updateStatus(PushStart)
+	_ = pipeline.UpdateStatus(PushStart)
 	task, err := pipeline.preparePushTask(ctx)
 	if err != nil {
 		return err
@@ -173,11 +182,11 @@ func (pipeline *Pipeline) Push(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return pipeline.updateStatus(PushEnd)
+	return pipeline.UpdateStatus(PushEnd)
 }
 
 func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
-	_ = pipeline.updateStatus(DeployStart)
+	_ = pipeline.UpdateStatus(DeployStart)
 	task, err := pipeline.prepareDeployTask(ctx)
 	if err != nil {
 		return err
@@ -188,7 +197,7 @@ func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return pipeline.updateStatus(DeployEnd)
+	return pipeline.UpdateStatus(DeployEnd)
 }
 
 func preparePipeTask(pipeline *Pipeline, pusher *User) error {
@@ -256,21 +265,6 @@ func GetLatestPipeline(repoID int64) (*Pipeline, error) {
 		return nil, nil
 	}
 	return pipeline, nil
-}
-
-// GetLatestPipeTask 查找最新的pipeTask
-func GetLatestPipeTask(pipelineID int64) (*PipeTask, error) {
-	pipeTask := &PipeTask{
-		PipelineID: pipelineID,
-	}
-	has, err := x.OrderBy("created_unix desc").Get(pipeTask)
-	if err != nil {
-		return nil, err
-	}
-	if !has {
-		return nil, nil
-	}
-	return pipeTask, nil
 }
 
 func IsPipelineRunning(repoID int64, commit string) (bool, error) {
@@ -352,7 +346,7 @@ func (pipeline *Pipeline) Succeed() error {
 	pipeline.IsSuccessful = true
 	pipeline.EndUnix = time.Now().Unix()
 	pipeline.Status = Finished
-	row, err := x.ID(pipeline.ID).Cols("is_succeed", "status", "end_unix").Update(pipeline)
+	row, err := x.ID(pipeline.ID).Update(pipeline)
 	if err == nil && row != 1 {
 		err = errors.New("set ptask success failed")
 	}
@@ -364,48 +358,32 @@ func (pipeline *Pipeline) Fail(sourceErr error) error {
 	pipeline.EndUnix = time.Now().Unix()
 	pipeline.ErrMsg = sourceErr.Error()
 	pipeline.Status = Finished
-	row, err := x.ID(pipeline.ID).Cols("is_succeed", "status", "end_unix", "err_msg", "err_type").Update(pipeline)
+	row, err := x.ID(pipeline.ID).Update(pipeline)
 	if err == nil && row != 1 {
 		err = errors.New("update ptask failed")
 	}
 	return err
 }
 
-func (pipeline *Pipeline) updateStatus(status PipeStage) error {
+func (pipeline *Pipeline) UpdateStatus(status PipeStage) error {
 	pipeline.Stage = status
 	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
 	return err
 }
 
-func (pipeline *Pipeline) GetDeployTask() (dtask *DeployTask, err error) {
-	dtask = &DeployTask{
-		BasicTask: BasicTask{
-			PipeTaskID: pipeline.ID,
-		},
-	}
-	has, err := x.OrderBy("created_unix desc").Get(dtask)
+func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig) (*Pipeline, error) {
+	confS, err := yaml.Marshal(conf)
 	if err != nil {
-		return
+		return nil, err
 	}
-	if !has {
-		return nil, nil
-	}
-	return
-}
-
-func PreparePipeline(commit *git.Commit, configS []byte, repo *Repository, pusher *User, refName string) (*Pipeline, error) {
-	imageTag := fmt.Sprintf("%s/%s/%s:%s",
-		conf.Docker.Registry,
-		repo.MustOwner().LowerName,
-		repo.LowerName,
-		commit.ID.String()[:5])
 	pipeline := &Pipeline{
 		RepoID:       repo.ID,
 		PusherID:     pusher.ID,
 		RefName:      refName,
+		PipeType:     pipeType,
 		Commit:       commit.ID.String(),
-		ImageTag:     imageTag,
-		ConfigString: string(configS),
+		ConfigString: string(confS),
+		ImageTag:     genImageTag(repo, commit.ID.String()),
 		ProjectID:    repo.OwnerID,
 	}
 	id, err := createPipeline(x, pipeline)
@@ -439,38 +417,6 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 		return -1, err
 	}
 	return p.ID, nil
-}
-
-func (pipeline *Pipeline) loadAttributes() error {
-	if pipeline.repoDB == nil {
-		repo := new(Repository)
-		has, err := x.ID(pipeline.RepoID).Get(repo)
-		if err != nil {
-			return err
-		}
-		if !has {
-			return errors.New("repo not found")
-		}
-		pipeline.repoDB = repo
-	}
-
-	if pipeline.gitRepo == nil {
-		gitRepo, err := git.Open(pipeline.repoDB.RepoPath())
-		if err != nil {
-			return err
-		}
-		pipeline.gitRepo = gitRepo
-	}
-
-	if pipeline.gitCommit == nil {
-		gitCommit, err := pipeline.gitRepo.CatFileCommit(pipeline.Commit)
-		if err != nil {
-			return err
-		}
-		pipeline.gitCommit = gitCommit
-	}
-
-	return nil
 }
 
 func (pipeline *Pipeline) loadRepo() error {
@@ -507,22 +453,8 @@ func (pipeline *Pipeline) loadRepo() error {
 
 func (pipeline *Pipeline) BeforeInsert() {
 	pipeline.BaseModel.BeforeInsert()
-
-	// 保证 configString 不为空
-	if len(pipeline.ConfigString) <= 0 {
-		configS, err := yaml.Marshal(pipeline.Config)
-		if err != nil {
-			log.Error("%s, marchel config string error for %#v", err.Error(), pipeline)
-			return
-		}
-		pipeline.ConfigString = string(configS)
-	}
 }
 
 func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
 	pipeline.BaseModel.AfterSet(colName, cell)
-	switch colName {
-	case "config_string":
-		pipeline.Config, _ = ParseCIConfig([]byte(pipeline.ConfigString))
-	}
 }
