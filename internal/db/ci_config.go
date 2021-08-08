@@ -12,15 +12,10 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
+	"github.com/loheagn/loclo/docker/container"
 	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
 	log "unknwon.dev/clog/v2"
-)
-
-const (
-	DevopsPush string = "push"
-	DevopsPR   string = "pr"
-	DevopsMR   string = "mr"
 )
 
 type ErrConfFileNotFound struct {
@@ -40,13 +35,50 @@ type CIMeta struct {
 }
 
 type CIConfig struct {
-	Version string              `yaml:"version"`
-	Meta    CIMeta              `yaml:"meta"`
-	On      map[string][]string `yaml:"on"`
-	//Validate []ValidTaskConfig   `yaml:"validate"`
-	//Build    BuildTaskConfig     `yaml:"build"`
-	//Test     []TestTaskConfig    `yaml:"test"`
-	//Deploy   DeployTaskConfig    `yaml:"deploy"`
+	Version   string              `yaml:"version"`
+	Meta      CIMeta              `yaml:"meta"`
+	On        map[string][]string `yaml:"on"`
+	PreBuild  PreTaskConfig       `yaml:"pre_build"`
+	Build     BuildTaskConfig     `yaml:"build"`
+	PostBuild PostTaskConfig      `yaml:"post_build"`
+	Deploy    DeployTaskConfig    `yaml:"deploy"`
+}
+
+type PreTaskConfig struct {
+	BaseTaskConf      `yaml:",inline"`
+	Image             string `yaml:"image"`
+	ContainerTaskConf `yaml:",inline"`
+}
+
+type BuildTaskConfig struct {
+	BaseTaskConf `yaml:",inline"`
+	Dockerfile   string `yaml:"dockerfile"`
+	Scope        string `yaml:"scope"`
+}
+
+type PostTaskConfig struct {
+	BaseTaskConf      `yaml:",inline"`
+	ContainerTaskConf `yaml:",inline"`
+}
+
+type Port struct {
+	Name     string `yaml:"name" json:"name"`
+	Protocol string `yaml:"protocol" json:"protocol"`
+	Port     int32  `yaml:"port" json:"port"`
+}
+
+type Cmd struct {
+	Command []string `yaml:"command"`
+	Args    []string `yaml:"args"`
+}
+
+type DeployTaskConfig struct {
+	Envs       map[string]string `yaml:"envs"`
+	Ports      []Port            `yaml:"ports"`
+	Stateful   bool              `yaml:"stateful"`
+	Storage    bool              `yaml:"storage"`
+	WorkingDir string            `yaml:"workingDir"`
+	Cmd        Cmd               `yaml:"cmd"`
 }
 
 type BaseTaskConf struct {
@@ -55,11 +87,26 @@ type BaseTaskConf struct {
 	Type     string `yaml:"type"`
 }
 
-// ContainerTaskConf note: no imageTag !!!
+// ContainerTaskConf note: without imageTag !!!
 type ContainerTaskConf struct {
 	Env     map[string]string `yaml:"env"`
 	WorkDir string            `yaml:"work_dir"`
 	Cmd     []string          `yaml:"cmd"`
+	Mount   map[string]string `yaml:"mount"`
+}
+
+func (c ContainerTaskConf) ToRunConf(ctxPath, imageTag string) *container.RunOption {
+	mounts := make(map[string]string)
+	for src, dist := range c.Mount {
+		mounts[filepath.Join(ctxPath, src)] = dist
+	}
+	return &container.RunOption{
+		Image:   imageTag,
+		Cmd:     c.Cmd,
+		Envs:    c.Env,
+		WorkDir: c.WorkDir,
+		Mounts:  mounts,
+	}
 }
 
 func ParseCIConfig(input []byte) (*CIConfig, error) {

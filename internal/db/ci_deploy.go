@@ -8,29 +8,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-// Port
-type Port struct {
-	Name     string `yaml:"name" json:"name"`
-	Protocol string `yaml:"protocol" json:"protocol"`
-	Port     int32  `yaml:"port" json:"port"`
-}
-
-// Cmd
-type Cmd struct {
-	Command []string `yaml:"command"`
-	Args    []string `yaml:"args"`
-}
-
-// DeployTaskConfig
-type DeployTaskConfig struct {
-	Envs       map[string]string `yaml:"envs"`
-	Ports      []Port            `yaml:"ports"`
-	Stateful   bool              `yaml:"stateful"`
-	Storage    bool              `yaml:"storage"`
-	WorkingDir string            `yaml:"workingDir"`
-	Cmd        Cmd               `yaml:"cmd"`
-}
-
 type DeployTask struct {
 	SourceLog      string `xorm:"TEXT" json:"source_log"`
 	IP             string

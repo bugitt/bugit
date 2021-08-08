@@ -28,7 +28,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.10
-	github.com/loheagn/cloud v0.1.0
+	github.com/loheagn/loclo v0.1.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4

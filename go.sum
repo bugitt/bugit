@@ -750,6 +750,8 @@ github.com/lightstep/lightstep-tracer-common/golang/gogo v0.0.0-20190605223551-b
 github.com/lightstep/lightstep-tracer-go v0.18.1/go.mod h1:jlF1pusYV4pidLvZ+XD0UBX0ZE6WURAspgAczcDHrL4=
 github.com/loheagn/cloud v0.1.0 h1:NFr9zHb28l6OtuWpTAEitGHgOOA+X1kbvTBZvfFZhjQ=
 github.com/loheagn/cloud v0.1.0/go.mod h1:OEGPKxvrEqEdkWK3Q9uvnMcmOuc5X/tox8or9Cs063M=
+github.com/loheagn/loclo v0.1.0 h1:5I/5RKUPRqSjiEcFBp4XFPAc+zxplCmM4gx7xLm2SU8=
+github.com/loheagn/loclo v0.1.0/go.mod h1:Y0lek+LWfhKLoiI70ToP8kKrps7rTDBQo7xIUDCgdws=
 github.com/lunny/log v0.0.0-20160921050905-7887c61bf0de/go.mod h1:3q8WtuPQsoRbatJuy3nvq/hRSvuBJrHHr+ybPPiNvHQ=
 github.com/lunny/nodb v0.0.0-20160621015157-fc1ef06ad4af/go.mod h1:Cqz6pqow14VObJ7peltM+2n3PWOz7yTrfUuGbVFkzN0=
 github.com/lyft/protoc-gen-validate v0.0.13/go.mod h1:XbGvPuh87YZc5TdIa2/I4pLk0QoUACkjt2znoq26NVQ=

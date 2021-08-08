@@ -11,12 +11,6 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
-type BuildTaskConfig struct {
-	BaseTaskConfig `yaml:",inline"`
-	Dockerfile     string `yaml:"dockerfile"`
-	Scope          string `yaml:"scope"`
-}
-
 type TestTaskConfig struct {
 	BaseTaskConfig `yaml:",inline"`
 	WorkingDir     string `yaml:"workingDir"`
