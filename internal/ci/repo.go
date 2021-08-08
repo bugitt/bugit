@@ -13,7 +13,7 @@ import (
 )
 
 func loadRepo(ctx *Context) (err error) {
-	err = ctx.updateStage(db.LoadRepoStart)
+	err = ctx.updateStage(db.LoadRepoStart, -1)
 	if err != nil {
 		return
 	}
@@ -52,5 +52,5 @@ func loadRepo(ctx *Context) (err error) {
 		}
 	}
 
-	return ctx.updateStage(db.LoadRepoEnd)
+	return ctx.updateStage(db.LoadRepoEnd, -1)
 }

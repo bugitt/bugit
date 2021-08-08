@@ -63,6 +63,7 @@ type Pipeline struct {
 	ErrMsg       string `xorm:"text"`
 	Status       RunStatus
 	Stage        PipeStage
+	TaskNum      int
 	BeginUnix    int64 // 开始时间戳
 	EndUnix      int64 // 结束时间戳
 	BaseModel    `xorm:"extends"`
@@ -79,6 +80,86 @@ type BasicTask struct {
 	CusErrMsg    string `xorm:"text"`
 	BeginUnix    int64  // 开始时间戳
 	EndUnix      int64  // 结束时间戳
+}
+
+func (pipeline *Pipeline) Begin() error {
+	pipeline.BeginUnix = time.Now().Unix()
+	pipeline.Status = Running
+	_, err := x.ID(pipeline.ID).Update(pipeline)
+	return err
+}
+
+func (pipeline *Pipeline) Succeed() error {
+	pipeline.IsSuccessful = true
+	pipeline.EndUnix = time.Now().Unix()
+	pipeline.Status = Finished
+	row, err := x.ID(pipeline.ID).Update(pipeline)
+	if err == nil && row != 1 {
+		err = errors.New("set ptask success failed")
+	}
+	return err
+}
+
+func (pipeline *Pipeline) Fail(sourceErr error) error {
+	pipeline.IsSuccessful = false
+	pipeline.EndUnix = time.Now().Unix()
+	pipeline.ErrMsg = sourceErr.Error()
+	pipeline.Status = Finished
+	row, err := x.ID(pipeline.ID).Update(pipeline)
+	if err == nil && row != 1 {
+		err = errors.New("update ptask failed")
+	}
+	return err
+}
+
+func (pipeline *Pipeline) UpdateStage(status PipeStage, taskNum int) error {
+	pipeline.Stage = status
+	pipeline.TaskNum = taskNum
+	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
+	return err
+}
+
+func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig) (*Pipeline, error) {
+	confS, err := yaml.Marshal(conf)
+	if err != nil {
+		return nil, err
+	}
+	pipeline := &Pipeline{
+		RepoID:       repo.ID,
+		PusherID:     pusher.ID,
+		RefName:      refName,
+		PipeType:     pipeType,
+		Commit:       commit.ID.String(),
+		ConfigString: string(confS),
+		ImageTag:     genImageTag(repo, commit.ID.String()),
+		ProjectID:    repo.OwnerID,
+		Stage:        NotStart,
+		TaskNum:      -1,
+	}
+	id, err := createPipeline(x, pipeline)
+	if err != nil {
+		log.Error("%s", err.Error())
+		return nil, err
+	}
+	pipeline.ID = id
+	return pipeline, nil
+}
+
+func createPipeline(e Engine, p *Pipeline) (int64, error) {
+	p.UUID = gouuid.NewV4().String()
+	_, err := e.Insert(p)
+	if err != nil {
+		return -1, err
+	}
+	return p.ID, nil
+}
+
+func (pipeline *Pipeline) BeforeInsert() {
+	pipeline.BaseModel.BeforeInsert()
+}
+
+func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
+	pipeline.BaseModel.AfterSet(colName, cell)
 }
 
 func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
@@ -307,96 +388,4 @@ func (ptask *PipeTask) LoadRepo(context *CIContext) error {
 		return err
 	}
 	return ptask.updateStatus(LoadRepoEnd)
-}
-
-func (pipeline *Pipeline) Begin() error {
-	pipeline.BeginUnix = time.Now().Unix()
-	pipeline.Status = Running
-	_, err := x.ID(pipeline.ID).Update(pipeline)
-	return err
-}
-
-func (pipeline *Pipeline) Succeed() error {
-	pipeline.IsSuccessful = true
-	pipeline.EndUnix = time.Now().Unix()
-	pipeline.Status = Finished
-	row, err := x.ID(pipeline.ID).Update(pipeline)
-	if err == nil && row != 1 {
-		err = errors.New("set ptask success failed")
-	}
-	return err
-}
-
-func (pipeline *Pipeline) Fail(sourceErr error) error {
-	pipeline.IsSuccessful = false
-	pipeline.EndUnix = time.Now().Unix()
-	pipeline.ErrMsg = sourceErr.Error()
-	pipeline.Status = Finished
-	row, err := x.ID(pipeline.ID).Update(pipeline)
-	if err == nil && row != 1 {
-		err = errors.New("update ptask failed")
-	}
-	return err
-}
-
-func (pipeline *Pipeline) UpdateStage(status PipeStage) error {
-	pipeline.Stage = status
-	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
-	return err
-}
-
-func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig) (*Pipeline, error) {
-	confS, err := yaml.Marshal(conf)
-	if err != nil {
-		return nil, err
-	}
-	pipeline := &Pipeline{
-		RepoID:       repo.ID,
-		PusherID:     pusher.ID,
-		RefName:      refName,
-		PipeType:     pipeType,
-		Commit:       commit.ID.String(),
-		ConfigString: string(confS),
-		ImageTag:     genImageTag(repo, commit.ID.String()),
-		ProjectID:    repo.OwnerID,
-	}
-	id, err := createPipeline(x, pipeline)
-	if err != nil {
-		log.Error("%s", err.Error())
-		return nil, err
-	}
-	pipeline.ID = id
-	return pipeline, nil
-}
-
-func createPipeline(e Engine, p *Pipeline) (int64, error) {
-	p.UUID = gouuid.NewV4().String()
-	// 先检查一下是不是已经创建过相同的pipeline配置了
-	oldPipe := &Pipeline{
-		RepoID: p.RepoID,
-		Commit: p.Commit,
-	}
-	has, err := x.Get(oldPipe)
-	if err != nil {
-		return -1, err
-	}
-	if has {
-		// 如果有旧的，就更新一下
-		p.ID = oldPipe.ID
-		_, err = e.ID(p.ID).Update(p)
-	} else {
-		_, err = e.Insert(p)
-	}
-	if err != nil {
-		return -1, err
-	}
-	return p.ID, nil
-}
-
-func (pipeline *Pipeline) BeforeInsert() {
-	pipeline.BaseModel.BeforeInsert()
-}
-
-func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
-	pipeline.BaseModel.AfterSet(colName, cell)
 }
