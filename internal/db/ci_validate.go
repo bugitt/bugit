@@ -23,12 +23,6 @@ type ValidTaskConfig struct {
 	Path           string `yaml:"-"`
 }
 
-type ValidationTask struct {
-	Issues    []ValidationResult `xorm:"-" json:"-"`
-	BasicTask `xorm:"extends"`
-	BaseModel `xorm:"extends"`
-}
-
 type ValidationResult struct {
 	ID               int64
 	ValidationTaskID int64
@@ -52,7 +46,7 @@ type Linter interface {
 	ConvertValidationResult(taskID int64) []*ValidationResult
 }
 
-func (task *ValidationTask) Run(ctx *CIContext) error {
+func (task *PreBuildResult) Run(ctx *CIContext) error {
 	config := ctx.config.Validate[task.Number-1]
 	config.Path = filepath.Join(ctx.path, config.Scope)
 	var (
@@ -95,14 +89,14 @@ func (task *ValidationTask) Run(ctx *CIContext) error {
 	return errors.New("to many warnings")
 }
 
-func (task *ValidationTask) start() error {
+func (task *PreBuildResult) start() error {
 	task.Status = Running
 	task.BeginUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_started", "begin_unix").Update(task)
 	return err
 }
 
-func (task *ValidationTask) success() error {
+func (task *PreBuildResult) success() error {
 	task.Status = Finished
 	task.IsSuccessful = true
 	task.EndUnix = time.Now().Unix()
@@ -114,7 +108,7 @@ func (task *ValidationTask) success() error {
 	return err
 }
 
-func (task *ValidationTask) failed() error {
+func (task *PreBuildResult) failed() error {
 	task.Status = Finished
 	task.IsSuccessful = false
 	task.EndUnix = time.Now().Unix()

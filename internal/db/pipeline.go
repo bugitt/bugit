@@ -15,19 +15,19 @@ import (
 type PipeStage int
 
 const (
-	NotStart      PipeStage = iota + 1 // 1
-	LoadRepoStart                      // 2
-	LoadRepoEnd                        // 3
-	ValidStart                         // 4
-	ValidEnd                           // 5
-	BuildStart                         // 6
-	BuildEnd                           // 7
-	TestStart                          // 8
-	TestEnd                            // 9
-	PushStart                          // 10
-	PushEnd                            // 11
-	DeployStart                        // 12
-	DeployEnd                          // 13
+	NotStart       PipeStage = iota + 1 // 1
+	LoadRepoStart                       // 2
+	LoadRepoEnd                         // 3
+	PreBuildStart                       // 4
+	PreBuildEnd                         // 5
+	BuildStart                          // 6
+	BuildEnd                            // 7
+	PostBuildStart                      // 8
+	PostBuildEnd                        // 9
+	PushStart                           // 10
+	PushEnd                             // 11
+	DeployStart                         // 12
+	DeployEnd                           // 13
 )
 
 type RunStatus int
@@ -71,15 +71,24 @@ type Pipeline struct {
 
 type BasicTask struct {
 	ID           int64
-	PipeTaskID   int64
-	Number       int
-	Status       RunStatus
+	PipelineID   int64
 	IsSuccessful bool
-	ErrType      CIErrType
-	SrcErrMsg    string `xorm:"text"`
-	CusErrMsg    string `xorm:"text"`
-	BeginUnix    int64  // 开始时间戳
-	EndUnix      int64  // 结束时间戳
+	Log          string `xorm:"text"`
+	ErrMsg       string `xorm:"text"`
+	Duration     int64
+	BeginUnix    int64 // 开始时间戳
+	EndUnix      int64 // 结束时间戳
+}
+
+type PreBuildResult struct {
+	Number    int
+	BasicTask `xorm:"extends"`
+	BaseModel `xorm:"extends"`
+}
+
+func SaveCIResult(result interface{}) error {
+	_, err := x.Insert(result)
+	return err
 }
 
 func (pipeline *Pipeline) Begin() error {
@@ -172,9 +181,9 @@ func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	return tasks, err
 }
 
-func (pipeline *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, error) {
-	task := &ValidationTask{}
-	task.PipeTaskID = pipeline.ID
+func (pipeline *Pipeline) prepareValidstaionTask(index int) (*PreBuildResult, error) {
+	task := &PreBuildResult{}
+	task.PipelineID = pipeline.ID
 	task.Number = index
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
@@ -183,7 +192,7 @@ func (pipeline *Pipeline) prepareValidstaionTask(index int) (*ValidationTask, er
 
 func (pipeline *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
 	task := &BuildTask{}
-	task.PipeTaskID = pipeline.ID
+	task.PipelineID = pipeline.ID
 	task.Number = index
 	task.Status = BeforeStart
 	task.ImageTag = context.imageTag
@@ -193,7 +202,7 @@ func (pipeline *Pipeline) prepareBuildTask(context *CIContext, index int) (*Buil
 
 func (pipeline *Pipeline) preparePushTask(context *CIContext) (*PushTask, error) {
 	task := &PushTask{}
-	task.PipeTaskID = pipeline.ID
+	task.PipelineID = pipeline.ID
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
@@ -201,7 +210,7 @@ func (pipeline *Pipeline) preparePushTask(context *CIContext) (*PushTask, error)
 
 func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
 	task := &DeployTask{}
-	task.PipeTaskID = pipeline.ID
+	task.PipelineID = pipeline.ID
 	task.Status = BeforeStart
 	task.NameSpace = fmt.Sprintf("%d", ctx.owner.ID)
 	task.DeploymentName = ctx.repo.DeployName() + "-deployment"
@@ -211,7 +220,7 @@ func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error)
 }
 
 func (pipeline *Pipeline) Validation(ctx *CIContext) error {
-	_ = pipeline.UpdateStage(ValidStart)
+	_ = pipeline.UpdateStage(PreBuildStart)
 	configs := pipeline.Pipeline.Config.Validate
 	for i := range configs {
 		task, err := pipeline.prepareValidstaionTask(i + 1)
@@ -225,7 +234,7 @@ func (pipeline *Pipeline) Validation(ctx *CIContext) error {
 		}
 		_ = task.success()
 	}
-	return pipeline.UpdateStage(ValidEnd)
+	return pipeline.UpdateStage(PreBuildEnd)
 }
 
 func (pipeline *Pipeline) Build(ctx *CIContext) error {
@@ -351,17 +360,17 @@ func PrettyStage(stage PipeStage) string {
 		des = "推送镜像已完成"
 	case PushStart:
 		des = "正在推送镜像中……"
-	case TestEnd:
+	case PostBuildEnd:
 		des = "已完成测试"
-	case TestStart:
+	case PostBuildStart:
 		des = "正在测试中……"
 	case BuildEnd:
 		des = "镜像构建完成"
 	case BuildStart:
 		des = "镜像构建中……"
-	case ValidEnd:
+	case PreBuildEnd:
 		des = "静态代码检查已完成"
-	case ValidStart:
+	case PreBuildStart:
 		des = "静态代码检查中……"
 	case LoadRepoEnd:
 		des = "仓库文件准备完成……"

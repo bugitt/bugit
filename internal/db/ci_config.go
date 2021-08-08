@@ -38,9 +38,9 @@ type CIConfig struct {
 	Version   string              `yaml:"version"`
 	Meta      CIMeta              `yaml:"meta"`
 	On        map[string][]string `yaml:"on"`
-	PreBuild  PreTaskConfig       `yaml:"pre_build"`
+	PreBuild  []PreTaskConfig     `yaml:"pre_build"`
 	Build     BuildTaskConfig     `yaml:"build"`
-	PostBuild PostTaskConfig      `yaml:"post_build"`
+	PostBuild []PostTaskConfig    `yaml:"post_build"`
 	Deploy    DeployTaskConfig    `yaml:"deploy"`
 }
 
@@ -48,6 +48,7 @@ type PreTaskConfig struct {
 	BaseTaskConf      `yaml:",inline"`
 	Image             string `yaml:"image"`
 	ContainerTaskConf `yaml:",inline"`
+	CanSkip           bool `yaml:"can_skip"`
 }
 
 type BuildTaskConfig struct {
@@ -59,6 +60,7 @@ type BuildTaskConfig struct {
 type PostTaskConfig struct {
 	BaseTaskConf      `yaml:",inline"`
 	ContainerTaskConf `yaml:",inline"`
+	CanSkip           bool `yaml:"can_skip"`
 }
 
 type Port struct {
