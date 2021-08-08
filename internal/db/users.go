@@ -304,7 +304,7 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.EncodePassword()
 
-	harborID, harborName, err := harbor.CreateUser(context.Background(), user.StudentID, user.Email, user.Name)
+	harborID, harborName, err := harbor.CreateUser(context.Background(), user.StudentID, user.Name, user.Email, user.Name)
 	if err != nil {
 		return nil, err
 	}

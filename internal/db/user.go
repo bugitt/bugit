@@ -626,7 +626,7 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	harborID, harborName, err := harbor.CreateUser(context.Background(), u.StudentID, u.Email, u.Name)
+	harborID, harborName, err := harbor.CreateUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
 	if err != nil {
 		return err
 	}

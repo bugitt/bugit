@@ -3,7 +3,6 @@ package harbor
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/mittwald/goharbor-client/v4/apiv2"
@@ -27,15 +26,14 @@ func getUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName
 }
 
 // CreateUser post a user to harbor
-func CreateUser(ctx context.Context, username, email, realname string) (int64, string, error) {
-	username = PrettyName(username)
+func CreateUser(ctx context.Context, studentID, projectName, email, realname string) (int64, string, error) {
 	client, err := getClient()
 	if err != nil {
 		return 0, "", err
 	}
 
 	// check whether user already exists
-	_, err = client.GetUser(ctx, username)
+	_, err = client.GetUser(ctx, studentID)
 	if err != nil {
 		if _, ok := err.(*user.ErrUserNotFound); !ok {
 			return 0, "", err
@@ -45,12 +43,12 @@ func CreateUser(ctx context.Context, username, email, realname string) (int64, s
 	}
 
 	// create
-	u, err := client.NewUser(ctx, username, email, realname, conf.Harbor.DefaultPasswd, "User created by BuGit")
+	u, err := client.NewUser(ctx, studentID, email, realname, conf.Harbor.DefaultPasswd, "User created by BuGit")
 	if err != nil {
 		return 0, "", err
 	}
 
-	return CreateProject(ctx, strings.ToLower(username), u.Username)
+	return CreateProject(ctx, PrettyName(projectName), u.Username)
 }
 
 func CreateProject(ctx context.Context, name, username string) (int64, string, error) {
