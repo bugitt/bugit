@@ -86,6 +86,12 @@ type PreBuildResult struct {
 	BaseModel `xorm:"extends"`
 }
 
+type PostBuildResult struct {
+	Number    int
+	BasicTask `xorm:"extends"`
+	BaseModel `xorm:"extends"`
+}
+
 func SaveCIResult(result interface{}) error {
 	_, err := x.Insert(result)
 	return err
