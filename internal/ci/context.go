@@ -2,8 +2,11 @@ package ci
 
 import (
 	"context"
+	"path/filepath"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
+	"gopkg.in/yaml.v3"
 )
 
 type Context struct {
@@ -33,16 +36,22 @@ func prepareCtx(c context.Context, p *db.Pipeline) (*Context, error) {
 		return nil, err
 	}
 
+	config := &db.CIConfig{}
+	err = yaml.Unmarshal([]byte(p.ConfigString), config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Context{
 		Context:  c,
 		pusher:   pusher,
 		owner:    repo.Owner,
 		repo:     repo,
-		path:     "",
+		path:     filepath.Join(conf.Devops.Tmpdir, repo.MustOwner().Name, repo.Name, p.Commit),
 		imageTag: []string{p.ImageTag},
 		commit:   p.Commit,
 		refName:  p.RefName,
-		config:   nil,
+		config:   config,
 		pipeline: p,
 	}, nil
 }
