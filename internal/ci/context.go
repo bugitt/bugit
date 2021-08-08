@@ -55,3 +55,7 @@ func prepareCtx(c context.Context, p *db.Pipeline) (*Context, error) {
 		pipeline: p,
 	}, nil
 }
+
+func (ctx *Context) updateStage(stage db.PipeStage) error {
+	return ctx.pipeline.UpdateStage(stage)
+}

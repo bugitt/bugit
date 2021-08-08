@@ -3,17 +3,10 @@ package db
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
 	"time"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
-	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
 	gouuid "github.com/satori/go.uuid"
-	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
 	log "unknwon.dev/clog/v2"
 	"xorm.io/xorm"
@@ -137,7 +130,7 @@ func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error)
 }
 
 func (pipeline *Pipeline) Validation(ctx *CIContext) error {
-	_ = pipeline.UpdateStatus(ValidStart)
+	_ = pipeline.UpdateStage(ValidStart)
 	configs := pipeline.Pipeline.Config.Validate
 	for i := range configs {
 		task, err := pipeline.prepareValidstaionTask(i + 1)
@@ -151,11 +144,11 @@ func (pipeline *Pipeline) Validation(ctx *CIContext) error {
 		}
 		_ = task.success()
 	}
-	return pipeline.UpdateStatus(ValidEnd)
+	return pipeline.UpdateStage(ValidEnd)
 }
 
 func (pipeline *Pipeline) Build(ctx *CIContext) error {
-	_ = pipeline.UpdateStatus(BuildStart)
+	_ = pipeline.UpdateStage(BuildStart)
 	task, err := pipeline.prepareBuildTask(ctx, 1)
 	if err != nil {
 		return err
@@ -167,11 +160,11 @@ func (pipeline *Pipeline) Build(ctx *CIContext) error {
 	}
 	_ = task.success()
 
-	return pipeline.UpdateStatus(BuildEnd)
+	return pipeline.UpdateStage(BuildEnd)
 }
 
 func (pipeline *Pipeline) Push(ctx *CIContext) error {
-	_ = pipeline.UpdateStatus(PushStart)
+	_ = pipeline.UpdateStage(PushStart)
 	task, err := pipeline.preparePushTask(ctx)
 	if err != nil {
 		return err
@@ -182,11 +175,11 @@ func (pipeline *Pipeline) Push(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return pipeline.UpdateStatus(PushEnd)
+	return pipeline.UpdateStage(PushEnd)
 }
 
 func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
-	_ = pipeline.UpdateStatus(DeployStart)
+	_ = pipeline.UpdateStage(DeployStart)
 	task, err := pipeline.prepareDeployTask(ctx)
 	if err != nil {
 		return err
@@ -197,20 +190,7 @@ func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
 		return err
 	}
 	_ = task.success()
-	return pipeline.UpdateStatus(DeployEnd)
-}
-
-func preparePipeTask(pipeline *Pipeline, pusher *User) error {
-	pipeTask := &PipeTask{
-		PipelineID: pipeline.ID,
-		RepoID:     pipeline.RepoID,
-		SenderID:   pusher.ID,
-		ImageTag:   pipeline.ImageTag,
-		Stage:      NotStart,
-		Status:     BeforeStart,
-		ProjectID:  pipeline.ProjectID,
-	}
-	return createPipeTask(x, pipeTask)
+	return pipeline.UpdateStage(DeployEnd)
 }
 
 func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
@@ -228,12 +208,6 @@ func GetPipelinesByRepoList(repoIDs []int64) ([]*Pipeline, error) {
 func GetPipelinesByIDList(ids []int64) ([]*Pipeline, error) {
 	ps := make([]*Pipeline, 0)
 	err := x.In("id", ids).Find(&ps)
-	return ps, err
-}
-
-func GetPipeTasksByProject(projectID int64) ([]*PipeTask, error) {
-	ps := make([]*PipeTask, 0)
-	err := x.Where("project_id = ?", projectID).Find(&ps)
 	return ps, err
 }
 
@@ -365,7 +339,7 @@ func (pipeline *Pipeline) Fail(sourceErr error) error {
 	return err
 }
 
-func (pipeline *Pipeline) UpdateStatus(status PipeStage) error {
+func (pipeline *Pipeline) UpdateStage(status PipeStage) error {
 	pipeline.Stage = status
 	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
 	return err
@@ -417,38 +391,6 @@ func createPipeline(e Engine, p *Pipeline) (int64, error) {
 		return -1, err
 	}
 	return p.ID, nil
-}
-
-func (pipeline *Pipeline) loadRepo() error {
-	// 如果已经存在了，那么就不用再load一次了
-	if com.IsDir(pipeline.CIPath) {
-		return nil
-	}
-	hash := tool.ShortSHA1(pipeline.Commit)
-	archivePath := filepath.Join(pipeline.gitRepo.Path(), "archives", "zip")
-	if !com.IsDir(archivePath) {
-		if err := os.MkdirAll(archivePath, os.ModePerm); err != nil {
-			return err
-		}
-	}
-	archivePath = path.Join(archivePath, hash+".zip")
-	if !com.IsFile(archivePath) {
-		if err := pipeline.gitCommit.CreateArchive(git.ArchiveZip, archivePath); err != nil {
-			return err
-		}
-	}
-
-	repoPath := filepath.Join(conf.Devops.Tmpdir, pipeline.repoDB.MustOwner().Name, pipeline.repoDB.Name, hash)
-	if !com.IsDir(repoPath) {
-		uz := unzip.New(archivePath, repoPath)
-		if err := uz.Extract(); err != nil {
-			return err
-		}
-	}
-	pipeline.CIPath = repoPath
-	// 更新数据库
-	_, err := x.ID(pipeline.ID).Update(pipeline)
-	return err
 }
 
 func (pipeline *Pipeline) BeforeInsert() {
