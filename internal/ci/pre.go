@@ -29,24 +29,16 @@ func preBuildNum(ctx *Context, num int) (err error) {
 	var (
 		outputLog string
 		begin     = time.Now()
+		result    = db.PreBuildResult{
+			Number: num + 1,
+			BasicTaskResult: db.BasicTaskResult{
+				PipelineID: ctx.pipeline.ID,
+			},
+		}
 	)
 
 	defer func() {
-		result := db.PreBuildResult{
-			Number: num + 1,
-			BasicTask: db.BasicTask{
-				PipelineID: ctx.pipeline.ID,
-				Log:        outputLog,
-				Duration:   time.Since(begin).Milliseconds(),
-				BeginUnix:  begin.Unix(),
-				EndUnix:    time.Now().Unix(),
-			},
-		}
-		if err != nil {
-			result.ErrMsg = err.Error()
-		} else {
-			result.IsSuccessful = true
-		}
+		result.End(begin, err, outputLog)
 		dbErr := db.SaveCIResult(result)
 		if dbErr != nil {
 			if err != nil {

@@ -69,7 +69,7 @@ type Pipeline struct {
 	BaseModel    `xorm:"extends"`
 }
 
-type BasicTask struct {
+type BasicTaskResult struct {
 	ID           int64
 	PipelineID   int64
 	IsSuccessful bool
@@ -81,15 +81,15 @@ type BasicTask struct {
 }
 
 type PreBuildResult struct {
-	Number    int
-	BasicTask `xorm:"extends"`
-	BaseModel `xorm:"extends"`
+	Number          int
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
 }
 
 type PostBuildResult struct {
-	Number    int
-	BasicTask `xorm:"extends"`
-	BaseModel `xorm:"extends"`
+	Number          int
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
 }
 
 func SaveCIResult(result interface{}) error {
@@ -132,6 +132,18 @@ func (pipeline *Pipeline) UpdateStage(status PipeStage, taskNum int) error {
 	pipeline.TaskNum = taskNum
 	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
 	return err
+}
+
+func (result *BasicTaskResult) End(begin time.Time, err error, logs string) {
+	result.BeginUnix = begin.Unix()
+	result.Duration = time.Since(begin).Milliseconds()
+	result.EndUnix = time.Now().Unix()
+	if err != nil {
+		result.ErrMsg = err.Error()
+	} else {
+		result.IsSuccessful = true
+	}
+	result.Log = logs
 }
 
 func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig) (*Pipeline, error) {
