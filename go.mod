@@ -7,7 +7,6 @@ require (
 	github.com/aofei/cameron v1.1.6
 	github.com/artdarek/go-unzip v1.0.0
 	github.com/bugitt/git-module v1.2.3
-	github.com/docker/docker v20.10.7+incompatible
 	github.com/editorconfig/editorconfig-core-go/v2 v2.3.9
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-macaron/binding v1.1.1
@@ -28,7 +27,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.10
-	github.com/loheagn/loclo v0.1.0 // indirect
+	github.com/loheagn/loclo v0.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
@@ -52,8 +51,8 @@ require (
 	github.com/unknwon/paginater v0.0.0-20170405233947-45e5d631308e
 	github.com/urfave/cli v1.22.5
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-	golang.org/x/text v0.3.5
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
+	golang.org/x/text v0.3.6
 	gopkg.in/DATA-DOG/go-sqlmock.v2 v2.0.0-20180914054222-c19298f520d0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect

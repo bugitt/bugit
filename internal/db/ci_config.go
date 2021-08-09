@@ -109,6 +109,9 @@ func (c ContainerTaskConf) ToRunConf(ctxPath, imageTag string) *container.RunOpt
 		Envs:    c.Env,
 		WorkDir: c.WorkDir,
 		Mounts:  mounts,
+		Resources: container.Resources{
+			Memory: "2g", // 默认对每个容器限定2g
+		},
 	}
 }
 
