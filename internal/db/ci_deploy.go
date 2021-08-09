@@ -9,15 +9,15 @@ import (
 )
 
 type DeployTask struct {
-	SourceLog      string `xorm:"TEXT" json:"source_log"`
-	IP             string
-	Ports          []Port `xorm:"-" gorm:"-"`
-	PortsS         string `xorm:"TEXT 'ports_s'" json:"ports_s"`
-	NameSpace      string
-	DeploymentName string
-	ServiceName    string
-	BasicTask      `xorm:"extends"`
-	BaseModel      `xorm:"extends"`
+	SourceLog       string `xorm:"TEXT" json:"source_log"`
+	IP              string
+	Ports           []Port `xorm:"-" gorm:"-"`
+	PortsS          string `xorm:"TEXT 'ports_s'" json:"ports_s"`
+	NameSpace       string
+	DeploymentName  string
+	ServiceName     string
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
 }
 
 type GetCITaskDepDetail interface {

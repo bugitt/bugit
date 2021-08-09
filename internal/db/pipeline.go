@@ -92,6 +92,12 @@ type PostBuildResult struct {
 	BaseModel       `xorm:"extends"`
 }
 
+type BuildResult struct {
+	ImageTag        string `xorm:"text"`
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
+}
+
 func SaveCIResult(result interface{}) error {
 	_, err := x.Insert(result)
 	return err

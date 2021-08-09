@@ -19,6 +19,14 @@ func run(ctx *Context) (err error) {
 	}
 	log.Info("pre build successfully: %d", ctx.pipeline.ID)
 
+	// build
+	err = build(ctx)
+	if err != nil {
+		log.Error("build failed: %d, error message: %s", ctx.pipeline.ID, err.Error())
+		return
+	}
+	log.Info("build successfully: %d", ctx.pipeline.ID)
+
 	// post build
 	err = postBuild(ctx)
 	if err != nil {

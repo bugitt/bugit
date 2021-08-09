@@ -18,11 +18,11 @@ type TestTaskConfig struct {
 }
 
 type BuildTask struct {
-	SourceLog      string `xorm:"TEXT" json:"source_log"`
-	ImageTag       string
-	BuildErrString string `xorm:"build_err TEXT"`
-	BasicTask      `xorm:"extends"`
-	BaseModel      `xorm:"extends"`
+	SourceLog       string `xorm:"TEXT" json:"source_log"`
+	ImageTag        string
+	BuildErrString  string `xorm:"build_err TEXT"`
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
 }
 
 func (task *BuildTask) Run(ctx *CIContext) error {

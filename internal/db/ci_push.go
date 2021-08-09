@@ -8,11 +8,11 @@ import (
 )
 
 type PushTask struct {
-	SourceLog     string `xorm:"TEXT" json:"source_log"`
-	ImageTag      string
-	PushErrString string `xorm:"push_err TEXT"`
-	BasicTask     `xorm:"extends"`
-	BaseModel     `xorm:"extends"`
+	SourceLog       string `xorm:"TEXT" json:"source_log"`
+	ImageTag        string
+	PushErrString   string `xorm:"push_err TEXT"`
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
 }
 
 func (task *PushTask) Run(ctx *CIContext) error {
