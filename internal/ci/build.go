@@ -1,10 +1,12 @@
 package ci
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 	"github.com/loheagn/loclo/docker/image"
 	"github.com/pkg/errors"
@@ -59,7 +61,7 @@ func dockerBuild(ctx *Context) (err error) {
 
 	config := ctx.config.Build
 	if len(config.DockerTag) > 0 {
-		ctx.imageTag = append(ctx.imageTag, config.DockerTag)
+		ctx.imageTag = append(ctx.imageTag, genImageTag(ctx, config.DockerTag))
 	}
 
 	buildConf := &image.BuildOption{
@@ -84,4 +86,9 @@ func dockerBuild(ctx *Context) (err error) {
 	}
 	outputLog = string(bs)
 	return
+}
+
+func genImageTag(ctx *Context, tag string) string {
+	_ = ctx.repo.LoadAttributes()
+	return fmt.Sprintf("%s/%s/%s:%s", conf.Docker.Registry, ctx.repo.Owner.HarborName, ctx.repo.LowerName, tag)
 }
