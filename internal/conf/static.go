@@ -324,6 +324,9 @@ var (
 		Tmpdir     string   `ini:"tmpdir"`
 		KubeIP     []string `ini:"kubeip" delim:"|"`
 		KubeConfig string   `ini:"kubeconfig"`
+
+		DeployCPU string `ini:"deploy_cpu"`
+		DeployMem string `ini:"deploy_memory"`
 	}
 
 	// Docker settings
@@ -340,7 +343,7 @@ var (
 		DefaultPasswd string `ini:"default_password"`
 	}
 
-	// cloud api settings
+	// CloudAPI settings
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`
 		SupperDebug bool   `ini:"supper_debug"`

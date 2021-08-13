@@ -120,7 +120,10 @@ func CreateDeploy(opt *db.DeployOption) (err error) {
 	// 2. 检查对应的commit中是否有合法的 CIConfig 配置文件
 	ciConfig, err := db.GetCIConfigFromCommit(opt.GitCommit)
 	if err != nil {
-		return err
+		_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, err)
+		if err != nil {
+			return err
+		}
 	}
 	if ciConfig == nil || !ciConfig.ShouldCI(opt.Branch, db.MANUAL) {
 		return &db.ErrNoValidCIConfig{
@@ -141,7 +144,7 @@ func CreateDeploy(opt *db.DeployOption) (err error) {
 	}
 
 	// 4. 好了，终于确定了，可以触发新的部署了
-	_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig)
+	_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, nil)
 	if err != nil {
 		return err
 	}

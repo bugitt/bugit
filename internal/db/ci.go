@@ -36,7 +36,11 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 
 	config, err := ParseCIConfig(fileContent)
 	if err != nil {
-		return false, err
+		_, err := PreparePipeline(commit, PUSH, repo, pusher, refName, config, err)
+		if err != nil {
+			log.Error("%s", err.Error())
+			return false, err
+		}
 	}
 
 	if !config.ShouldCI(refName, PUSH) {
@@ -44,7 +48,7 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 	}
 
 	// 创建 pipeline
-	pipeline, err := PreparePipeline(commit, PUSH, repo, pusher, refName, config)
+	pipeline, err := PreparePipeline(commit, PUSH, repo, pusher, refName, config, err)
 	if err != nil {
 		log.Error("%s", err.Error())
 		return false, err

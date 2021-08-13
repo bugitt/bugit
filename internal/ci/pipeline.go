@@ -26,6 +26,11 @@ func runHandle(pipeline *db.Pipeline) {
 		}
 	}()
 
+	err = pipeline.Begin()
+	if err != nil {
+		return
+	}
+
 	// work
 	done := make(chan error)
 	go func() {

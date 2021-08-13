@@ -22,7 +22,7 @@ import (
 
 type DeployContext struct {
 	*CIContext
-	*DeployTask
+	*DeployResult
 
 	labels    map[string]string
 	svcLabels map[string]string
@@ -85,20 +85,20 @@ func ensureNS(ns string) error {
 	return nil
 }
 
-func Deploy(ctx *CIContext, task *DeployTask) (err error) {
+func Deploy(ctx *CIContext, task *DeployResult) (err error) {
 	deployCtx := &DeployContext{
-		CIContext:  ctx,
-		DeployTask: task,
-		repNum:     int32(1),
-		labels:     GetPodLabels(ctx.repo, ctx.refName, ctx.commit),
-		svcLabels:  GetSvcLabels(ctx.repo),
-		stateful:   ctx.config.Deploy.Stateful,
+		CIContext:    ctx,
+		DeployResult: task,
+		repNum:       int32(1),
+		labels:       GetPodLabels(ctx.repo, ctx.refName, ctx.commit),
+		svcLabels:    GetSvcLabels(ctx.repo),
+		stateful:     ctx.config.Deploy.Stateful,
 	}
 	config := ctx.config.Deploy
 
 	// ensure namespace
 	// TODO: 每个namespace中进行资源配额限制
-	if err = ensureNS(task.NameSpace); err != nil {
+	if err = ensureNS(task.Namespace); err != nil {
 		return
 	}
 
@@ -172,7 +172,7 @@ func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 	}
 
 	// 删除之前存在的service
-	serviceClient := clientSet.CoreV1().Services(ctx.NameSpace)
+	serviceClient := clientSet.CoreV1().Services(ctx.Namespace)
 
 	// 先检查是不是存在之前的service
 	oldService, err := serviceClient.Get(context.TODO(), serviceName, metav1.GetOptions{})
@@ -263,7 +263,7 @@ func deployDeployment(ctx *DeployContext) (err error) {
 	}
 
 	// 看看之前部署的deployment还存不存在
-	deploymentsClient := clientSet.AppsV1().Deployments(ctx.NameSpace)
+	deploymentsClient := clientSet.AppsV1().Deployments(ctx.Namespace)
 	_, err = deploymentsClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
 	if err != nil {
 		if kerrors.IsNotFound(err) {
@@ -313,7 +313,7 @@ func deployStatefulSet(ctx *DeployContext) (err error) {
 	}
 
 	// 看看之前部署的StatefulSet还存不存在
-	statefulSetClient := clientSet.AppsV1().StatefulSets(ctx.NameSpace)
+	statefulSetClient := clientSet.AppsV1().StatefulSets(ctx.Namespace)
 	_, err = statefulSetClient.Get(context.TODO(), ctx.DeploymentName, metav1.GetOptions{})
 	if err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -356,7 +356,7 @@ func deployStatefulSet(ctx *DeployContext) (err error) {
 
 func waitForPodsDone(ctx *DeployContext) error {
 	return waitForDone(ctx, 5*time.Second, func() (bool, error) {
-		pods, err := listPods(ctx.labels, ctx.NameSpace)
+		pods, err := listPods(ctx.labels, ctx.Namespace)
 		if err != nil {
 			return false, err
 		}

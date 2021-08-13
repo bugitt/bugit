@@ -8,18 +8,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-type DeployTask struct {
-	SourceLog       string `xorm:"TEXT" json:"source_log"`
-	IP              string
-	Ports           []Port `xorm:"-" gorm:"-"`
-	PortsS          string `xorm:"TEXT 'ports_s'" json:"ports_s"`
-	NameSpace       string
-	DeploymentName  string
-	ServiceName     string
-	BasicTaskResult `xorm:"extends"`
-	BaseModel       `xorm:"extends"`
-}
-
 type GetCITaskDepDetail interface {
 	IsSingle() bool
 	IsSuccessful() bool
@@ -28,7 +16,7 @@ type GetCITaskDepDetail interface {
 	GetSourceLog() string
 }
 
-func (task *DeployTask) GetURLs() []string {
+func (task *DeployResult) GetURLs() []string {
 	urls := make([]string, len(task.Ports))
 	for _, port := range task.Ports {
 		urls = append(urls, fmt.Sprintf("%s:%d", task.IP, port.Port))
@@ -36,7 +24,7 @@ func (task *DeployTask) GetURLs() []string {
 	return urls
 }
 
-func (task *DeployTask) Run(ctx *CIContext) error {
+func (task *DeployResult) Run(ctx *CIContext) error {
 	// Deploy
 	err := Deploy(ctx, task)
 	if err != nil {
@@ -45,14 +33,14 @@ func (task *DeployTask) Run(ctx *CIContext) error {
 	return nil
 }
 
-func (task *DeployTask) start() error {
+func (task *DeployResult) start() error {
 	task.Status = Running
 	task.BeginUnix = time.Now().Unix()
 	_, err := x.ID(task.ID).Cols("status", "is_started", "begin_unix").Update(task)
 	return err
 }
 
-func (task *DeployTask) success() error {
+func (task *DeployResult) success() error {
 	task.Status = Finished
 	task.IsSuccessful = true
 	task.EndUnix = time.Now().Unix()
@@ -64,7 +52,7 @@ func (task *DeployTask) success() error {
 	return err
 }
 
-func (task *DeployTask) failed() error {
+func (task *DeployResult) failed() error {
 	task.Status = Finished
 	task.IsSuccessful = false
 	task.EndUnix = time.Now().Unix()
@@ -76,12 +64,12 @@ func (task *DeployTask) failed() error {
 	return err
 }
 
-func (task *DeployTask) StringPorts() {
+func (task *DeployResult) StringPorts() {
 	bytes, _ := jsoniter.Marshal(task.Ports)
 	task.PortsS = string(bytes)
 }
 
-func (task *DeployTask) GetPorts() []Port {
+func (task *DeployResult) GetPorts() []Port {
 	ports := make([]Port, 0)
 	_ = jsoniter.Unmarshal([]byte(task.PortsS), &ports)
 	task.Ports = ports

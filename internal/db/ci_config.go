@@ -36,12 +36,12 @@ type CIMeta struct {
 
 type CIConfig struct {
 	Version   string              `yaml:"version"`
-	Meta      CIMeta              `yaml:"meta"`
+	Meta      *CIMeta             `yaml:"meta"`
 	On        map[string][]string `yaml:"on"`
-	PreBuild  []PreTaskConfig     `yaml:"pre_build"`
-	Build     BuildTaskConfig     `yaml:"build"`
-	PostBuild []PostTaskConfig    `yaml:"post_build"`
-	Deploy    DeployTaskConfig    `yaml:"deploy"`
+	PreBuild  []*PreTaskConfig    `yaml:"pre_build"`
+	Build     *BuildTaskConfig    `yaml:"build"`
+	PostBuild []*PostTaskConfig   `yaml:"post_build"`
+	Deploy    *DeployTaskConfig   `yaml:"deploy"`
 }
 
 type PreTaskConfig struct {
@@ -76,12 +76,15 @@ type Cmd struct {
 }
 
 type DeployTaskConfig struct {
-	Envs       map[string]string `yaml:"envs"`
-	Ports      []Port            `yaml:"ports"`
-	Stateful   bool              `yaml:"stateful"`
-	Storage    bool              `yaml:"storage"`
-	WorkingDir string            `yaml:"workingDir"`
-	Cmd        Cmd               `yaml:"cmd"`
+	Envs     map[string]string `yaml:"envs"`
+	Ports    []Port            `yaml:"ports"`
+	Stateful bool              `yaml:"stateful"`
+	WorkDir  string            `yaml:"work_dir"`
+	Cmd      Cmd               `yaml:"cmd"`
+	Mount    map[string]string `yaml:"mount"`
+	Storage  bool              `yaml:"storage"`
+	CPU      string            `yaml:"cpu"`
+	Memory   string            `yaml:"memory"`
 }
 
 type BaseTaskConf struct {
@@ -96,6 +99,21 @@ type ContainerTaskConf struct {
 	WorkDir string            `yaml:"work_dir"`
 	Cmd     []string          `yaml:"cmd"`
 	Mount   map[string]string `yaml:"mount"`
+}
+
+func (config *DeployTaskConfig) Pretty() {
+	if len(config.CPU) <= 0 {
+		config.CPU = conf.Devops.DeployCPU
+	}
+	if len(config.Memory) <= 0 {
+		config.Memory = conf.Devops.DeployMem
+	}
+	config.Memory = strings.ReplaceAll(config.Memory, "g", "G")
+}
+
+func (config *CIConfig) Pretty() {
+	// Pretty Deploy Config
+	config.Deploy.Pretty()
 }
 
 func (c ContainerTaskConf) ToRunConf(ctxPath, imageTag string) *container.RunOption {
@@ -121,9 +139,9 @@ func ParseCIConfig(input []byte) (*CIConfig, error) {
 	return ciConfig, err
 }
 
-func (c *CIConfig) ShouldCI(branch string, pipeType PipeType) bool {
+func (config *CIConfig) ShouldCI(branch string, pipeType PipeType) bool {
 	log.Trace("branch: %s", branch)
-	for branchName, events := range c.On {
+	for branchName, events := range config.On {
 		if branchName == branch {
 			for _, event := range events {
 				if strings.ToLower(event) == strings.ToLower(string(pipeType)) {

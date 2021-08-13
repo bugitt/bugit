@@ -2,7 +2,6 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/bugitt/git-module"
@@ -98,6 +97,18 @@ type BuildResult struct {
 	BaseModel       `xorm:"extends"`
 }
 
+type DeployResult struct {
+	SourceLog       string `xorm:"TEXT" json:"source_log"`
+	IP              string
+	Ports           []Port `xorm:"-" gorm:"-"`
+	PortsS          string `xorm:"TEXT 'ports_s'" json:"ports_s"`
+	Namespace       string
+	DeploymentName  string
+	ServiceName     string
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
+}
+
 func SaveCIResult(result interface{}) error {
 	_, err := x.Insert(result)
 	return err
@@ -136,6 +147,7 @@ func (pipeline *Pipeline) Fail(sourceErr error) error {
 func (pipeline *Pipeline) UpdateStage(status PipeStage, taskNum int) error {
 	pipeline.Stage = status
 	pipeline.TaskNum = taskNum
+	pipeline.Status = Running
 	_, err := x.Where("id = ?", pipeline.ID).Update(pipeline)
 	return err
 }
@@ -152,23 +164,30 @@ func (result *BasicTaskResult) End(begin time.Time, err error, logs string) {
 	result.Log = logs
 }
 
-func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig) (*Pipeline, error) {
-	confS, err := yaml.Marshal(conf)
-	if err != nil {
-		return nil, err
-	}
+func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig, confErr error) (*Pipeline, error) {
 	pipeline := &Pipeline{
-		RepoID:       repo.ID,
-		PusherID:     pusher.ID,
-		RefName:      refName,
-		PipeType:     pipeType,
-		Commit:       commit.ID.String(),
-		ConfigString: string(confS),
-		ImageTag:     genImageTag(repo, commit.ID.String()),
-		ProjectID:    repo.OwnerID,
-		Stage:        NotStart,
-		TaskNum:      -1,
+		RepoID:    repo.ID,
+		PusherID:  pusher.ID,
+		RefName:   refName,
+		PipeType:  pipeType,
+		Commit:    commit.ID.String(),
+		ImageTag:  genImageTag(repo, commit.ID.String()),
+		ProjectID: repo.OwnerID,
+		Stage:     NotStart,
+		Status:    BeforeStart,
+		TaskNum:   -1,
 	}
+
+	if confErr != nil {
+		pipeline.ErrMsg = confErr.Error()
+		pipeline.IsSuccessful = false
+		pipeline.Status = Finished
+	} else {
+		conf.Pretty()
+		confS, _ := yaml.Marshal(conf)
+		pipeline.ConfigString = string(confS)
+	}
+
 	id, err := createPipeline(x, pipeline)
 	if err != nil {
 		log.Error("%s", err.Error())
@@ -197,7 +216,7 @@ func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
 
 func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	tasks := make([]*Pipeline, 0)
-	query := x.Where("stage = ?", NotStart)
+	query := x.Where("stage = ?", NotStart).And("status <= ?", BeforeStart)
 	if repoID > 0 {
 		query = query.And("repo_id = ?", repoID)
 	}
@@ -212,99 +231,6 @@ func (pipeline *Pipeline) prepareValidstaionTask(index int) (*PreBuildResult, er
 	task.Status = BeforeStart
 	_, err := x.Insert(task)
 	return task, err
-}
-
-func (pipeline *Pipeline) prepareBuildTask(context *CIContext, index int) (*BuildTask, error) {
-	task := &BuildTask{}
-	task.PipelineID = pipeline.ID
-	task.Number = index
-	task.Status = BeforeStart
-	task.ImageTag = context.imageTag
-	_, err := x.Insert(task)
-	return task, err
-}
-
-func (pipeline *Pipeline) preparePushTask(context *CIContext) (*PushTask, error) {
-	task := &PushTask{}
-	task.PipelineID = pipeline.ID
-	task.Status = BeforeStart
-	_, err := x.Insert(task)
-	return task, err
-}
-
-func (pipeline *Pipeline) prepareDeployTask(ctx *CIContext) (*DeployTask, error) {
-	task := &DeployTask{}
-	task.PipelineID = pipeline.ID
-	task.Status = BeforeStart
-	task.NameSpace = fmt.Sprintf("%d", ctx.owner.ID)
-	task.DeploymentName = ctx.repo.DeployName() + "-deployment"
-	task.ServiceName = ctx.repo.DeployName() + "-service"
-	_, err := x.Insert(task)
-	return task, err
-}
-
-func (pipeline *Pipeline) Validation(ctx *CIContext) error {
-	_ = pipeline.UpdateStage(PreBuildStart)
-	configs := pipeline.Pipeline.Config.Validate
-	for i := range configs {
-		task, err := pipeline.prepareValidstaionTask(i + 1)
-		if err != nil {
-			return err
-		}
-		_ = task.start()
-		if err = task.Run(ctx); err != nil {
-			_ = task.failed()
-			return err
-		}
-		_ = task.success()
-	}
-	return pipeline.UpdateStage(PreBuildEnd)
-}
-
-func (pipeline *Pipeline) Build(ctx *CIContext) error {
-	_ = pipeline.UpdateStage(BuildStart)
-	task, err := pipeline.prepareBuildTask(ctx, 1)
-	if err != nil {
-		return err
-	}
-	_ = task.start()
-	if err = task.Run(ctx); err != nil {
-		_ = task.failed()
-		return err
-	}
-	_ = task.success()
-
-	return pipeline.UpdateStage(BuildEnd)
-}
-
-func (pipeline *Pipeline) Push(ctx *CIContext) error {
-	_ = pipeline.UpdateStage(PushStart)
-	task, err := pipeline.preparePushTask(ctx)
-	if err != nil {
-		return err
-	}
-	_ = task.start()
-	if err = task.Run(ctx); err != nil {
-		_ = task.failed()
-		return err
-	}
-	_ = task.success()
-	return pipeline.UpdateStage(PushEnd)
-}
-
-func (pipeline *Pipeline) Deploy(ctx *CIContext) error {
-	_ = pipeline.UpdateStage(DeployStart)
-	task, err := pipeline.prepareDeployTask(ctx)
-	if err != nil {
-		return err
-	}
-	_ = task.start()
-	if err = task.Run(ctx); err != nil {
-		_ = task.failed()
-		return err
-	}
-	_ = task.success()
-	return pipeline.UpdateStage(DeployEnd)
 }
 
 func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
@@ -404,21 +330,4 @@ func PrettyStage(stage PipeStage) string {
 		des = "等待开始……"
 	}
 	return des
-}
-
-func createPipeTask(e Engine, p *PipeTask) error {
-	p.UUID = gouuid.NewV4().String()
-	_, err := e.Insert(p)
-	return err
-}
-
-func (ptask *PipeTask) LoadRepo(context *CIContext) error {
-	err := ptask.updateStatus(LoadRepoStart)
-	if err != nil {
-		return nil
-	}
-	if err := ptask.Pipeline.loadRepo(); err != nil {
-		return err
-	}
-	return ptask.updateStatus(LoadRepoEnd)
 }
