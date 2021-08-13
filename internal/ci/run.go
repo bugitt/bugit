@@ -19,6 +19,10 @@ func run(ctx *Context) (err error) {
 	}
 	log.Info("pre build successfully: %d", ctx.pipeline.ID)
 
+	if ctx.config.Build == nil {
+		return nil
+	}
+
 	// build
 	err = build(ctx)
 	if err != nil {
