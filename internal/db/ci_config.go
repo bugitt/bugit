@@ -26,11 +26,6 @@ func (err ErrConfFileNotFound) Error() string {
 	return fmt.Sprintf("devops conf file not found: repo: %s", err.repoPath)
 }
 
-func IsErrConfFileNotFound(err error) bool {
-	_, ok := err.(ErrConfFileNotFound)
-	return ok
-}
-
 type CIMeta struct {
 }
 
@@ -112,6 +107,36 @@ func (config *DeployTaskConfig) Pretty() {
 }
 
 func (config *CIConfig) Pretty() {
+	// Pre config
+	for i, c := range config.PreBuild {
+		shouldName := fmt.Sprintf("pre-build-%d", i+1)
+		if len(c.Name) < 0 {
+			c.Name = shouldName
+		}
+		if len(c.Describe) < 0 {
+			c.Describe = shouldName
+		}
+	}
+	// Build
+	{
+		shouldName := "build"
+		if len(config.Build.Name) < 0 {
+			config.Build.Name = shouldName
+		}
+		if len(config.Build.Describe) < 0 {
+			config.Build.Describe = shouldName
+		}
+	}
+	// Post config
+	for i, c := range config.PostBuild {
+		shouldName := fmt.Sprintf("post-build-%d", i+1)
+		if len(c.Name) < 0 {
+			c.Name = shouldName
+		}
+		if len(c.Describe) < 0 {
+			c.Name = shouldName
+		}
+	}
 	// Pretty Deploy Config
 	config.Deploy.Pretty()
 }
