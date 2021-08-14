@@ -16,7 +16,7 @@ func preBuild(ctx *Context) (err error) {
 	}
 
 	for i, preConf := range ctx.config.PreBuild {
-		err = preBuildNum(ctx, i)
+		err = preBuildNum(ctx, i, preConf)
 		if err != nil && !preConf.CanSkip {
 			return err
 		}
@@ -25,7 +25,7 @@ func preBuild(ctx *Context) (err error) {
 	return ctx.updateStage(db.PreBuildEnd, -1)
 }
 
-func preBuildNum(ctx *Context, num int) (err error) {
+func preBuildNum(ctx *Context, num int, config *db.PreTaskConfig) (err error) {
 	var (
 		outputLog string
 		begin     = time.Now()
@@ -33,8 +33,8 @@ func preBuildNum(ctx *Context, num int) (err error) {
 			Number: num + 1,
 			BasicTaskResult: db.BasicTaskResult{
 				PipelineID: ctx.pipeline.ID,
-				Name:       ctx.config.PreBuild[num].Name,
-				Describe:   ctx.config.PreBuild[num].Describe,
+				Name:       config.Name,
+				Describe:   config.Describe,
 			},
 		}
 	)
@@ -51,8 +51,7 @@ func preBuildNum(ctx *Context, num int) (err error) {
 		}
 	}()
 
-	preConf := ctx.config.PreBuild[num]
-	runConf := preConf.ToRunConf(ctx.path, preConf.Image)
+	runConf := config.ToRunConf(ctx.path, config.Image)
 
 	outputLog, exitCode, err := container.Run(ctx, runConf)
 	if err != nil {

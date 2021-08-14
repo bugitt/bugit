@@ -39,5 +39,13 @@ func run(ctx *Context) (err error) {
 	}
 	log.Info("post build successfully: %d", ctx.pipeline.ID)
 
+	// push image
+	err = push(ctx)
+	if err != nil {
+		log.Error("push image failed: %d, error message: %s", ctx.pipeline.ID, err.Error())
+		return
+	}
+	log.Info("push image successfully: %d", ctx.pipeline.ID)
+
 	return nil
 }

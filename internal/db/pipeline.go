@@ -99,14 +99,19 @@ type BuildResult struct {
 	BaseModel       `xorm:"extends"`
 }
 
+type PushResult struct {
+	ImageTag        string
+	BasicTaskResult `xorm:"extends"`
+	BaseModel       `xorm:"extends"`
+}
+
 type DeployResult struct {
-	SourceLog       string `xorm:"TEXT" json:"source_log"`
 	IP              string
-	Ports           []Port `xorm:"-" gorm:"-"`
-	PortsS          string `xorm:"TEXT 'ports_s'" json:"ports_s"`
+	Ports           string `xorm:"TEXT 'ports_s'" json:"ports_s"`
 	Namespace       string
 	DeploymentName  string
 	ServiceName     string
+	LogStart        int64 // 查询日志时，假定的开始时间
 	BasicTaskResult `xorm:"extends"`
 	BaseModel       `xorm:"extends"`
 }

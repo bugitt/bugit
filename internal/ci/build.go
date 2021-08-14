@@ -22,7 +22,7 @@ func build(ctx *Context) (err error) {
 	config := ctx.config.Build
 	switch strings.ToLower(config.Type) {
 	case "docker":
-		err = dockerBuild(ctx)
+		err = dockerBuild(ctx, config)
 	default:
 		err = errors.New("not support build type")
 	}
@@ -33,7 +33,7 @@ func build(ctx *Context) (err error) {
 	return ctx.updateStage(db.BuildEnd, -1)
 }
 
-func dockerBuild(ctx *Context) (err error) {
+func dockerBuild(ctx *Context, config *db.BuildTaskConfig) (err error) {
 	var (
 		outputLog string
 		begin     = time.Now()
@@ -61,7 +61,6 @@ func dockerBuild(ctx *Context) (err error) {
 		}
 	}()
 
-	config := ctx.config.Build
 	if len(config.DockerTag) > 0 {
 		ctx.imageTag = append(ctx.imageTag, genImageTag(ctx, config.DockerTag))
 	}

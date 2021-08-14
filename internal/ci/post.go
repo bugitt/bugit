@@ -16,7 +16,7 @@ func postBuild(ctx *Context) (err error) {
 	}
 
 	for i, postConf := range ctx.config.PostBuild {
-		err = postBuildNum(ctx, i)
+		err = postBuildNum(ctx, i, postConf)
 		if err != nil && !postConf.CanSkip {
 			return err
 		}
@@ -25,7 +25,7 @@ func postBuild(ctx *Context) (err error) {
 	return ctx.updateStage(db.PostBuildEnd, -1)
 }
 
-func postBuildNum(ctx *Context, num int) (err error) {
+func postBuildNum(ctx *Context, num int, config *db.PostTaskConfig) (err error) {
 	var (
 		outputLog string
 		begin     = time.Now()
@@ -33,8 +33,8 @@ func postBuildNum(ctx *Context, num int) (err error) {
 			Number: num + 1,
 			BasicTaskResult: db.BasicTaskResult{
 				PipelineID: ctx.pipeline.ID,
-				Name:       ctx.config.PostBuild[num].Name,
-				Describe:   ctx.config.PostBuild[num].Describe,
+				Name:       config.Name,
+				Describe:   config.Describe,
 			},
 		}
 	)
@@ -51,8 +51,7 @@ func postBuildNum(ctx *Context, num int) (err error) {
 		}
 	}()
 
-	postConf := ctx.config.PostBuild[num]
-	runConf := postConf.ToRunConf(ctx.path, ctx.imageTag[0])
+	runConf := config.ToRunConf(ctx.path, ctx.imageTag[0])
 
 	outputLog, exitCode, err := container.Run(ctx, runConf)
 	if err != nil {
