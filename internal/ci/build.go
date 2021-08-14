@@ -40,6 +40,8 @@ func dockerBuild(ctx *Context) (err error) {
 		result    = db.BuildResult{
 			BasicTaskResult: db.BasicTaskResult{
 				PipelineID: ctx.pipeline.ID,
+				Name:       ctx.config.Build.Name,
+				Describe:   ctx.config.Build.Describe,
 			},
 		}
 	)

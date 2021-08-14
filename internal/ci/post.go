@@ -33,6 +33,8 @@ func postBuildNum(ctx *Context, num int) (err error) {
 			Number: num + 1,
 			BasicTaskResult: db.BasicTaskResult{
 				PipelineID: ctx.pipeline.ID,
+				Name:       ctx.config.PostBuild[num].Name,
+				Describe:   ctx.config.PostBuild[num].Describe,
 			},
 		}
 	)

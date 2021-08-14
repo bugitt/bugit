@@ -70,6 +70,8 @@ type Pipeline struct {
 
 type BasicTaskResult struct {
 	ID           int64
+	Name         string
+	Describe     string `xorm:"text"`
 	PipelineID   int64
 	IsSuccessful bool
 	Log          string `xorm:"text"`

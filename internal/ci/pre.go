@@ -33,6 +33,8 @@ func preBuildNum(ctx *Context, num int) (err error) {
 			Number: num + 1,
 			BasicTaskResult: db.BasicTaskResult{
 				PipelineID: ctx.pipeline.ID,
+				Name:       ctx.config.PreBuild[num].Name,
+				Describe:   ctx.config.PreBuild[num].Describe,
 			},
 		}
 	)
