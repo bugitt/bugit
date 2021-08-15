@@ -13,6 +13,7 @@ import (
 	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
 	"github.com/loheagn/loclo/docker/container"
+	"github.com/loheagn/loclo/kube"
 	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
 	log "unknwon.dev/clog/v2"
@@ -65,6 +66,8 @@ type Port struct {
 	Port     int32  `yaml:"port" json:"port"`
 }
 
+type Ports []Port
+
 type Cmd struct {
 	Command []string `yaml:"command"`
 	Args    []string `yaml:"args"`
@@ -72,7 +75,7 @@ type Cmd struct {
 
 type DeployTaskConfig struct {
 	Envs     map[string]string `yaml:"envs"`
-	Ports    []Port            `yaml:"ports"`
+	Ports    Ports             `yaml:"ports"`
 	Stateful bool              `yaml:"stateful"`
 	WorkDir  string            `yaml:"work_dir"`
 	Cmd      Cmd               `yaml:"cmd"`
@@ -94,6 +97,18 @@ type ContainerTaskConf struct {
 	WorkDir string            `yaml:"work_dir"`
 	Cmd     []string          `yaml:"cmd"`
 	Mount   map[string]string `yaml:"mount"`
+}
+
+func (ps Ports) KubePorts() []kube.Port {
+	var ports []kube.Port
+	for _, p := range ps {
+		ports = append(ports, kube.Port{
+			Name:     p.Name,
+			Protocol: p.Protocol,
+			Port:     p.Port,
+		})
+	}
+	return ports
 }
 
 func (config *DeployTaskConfig) Pretty() {

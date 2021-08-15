@@ -338,6 +338,7 @@ var (
 	// Harbor settings
 	Harbor struct {
 		Url           string `ini:"url"`
+		Host          string `ini:"host"`
 		AdminName     string `ini:"admin_name"`
 		AdminPasswd   string `ini:"admin_password"`
 		DefaultPasswd string `ini:"default_password"`

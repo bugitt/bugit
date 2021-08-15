@@ -107,7 +107,7 @@ type PushResult struct {
 
 type DeployResult struct {
 	IP              string
-	Ports           string `xorm:"TEXT 'ports_s'" json:"ports_s"`
+	Ports           string `xorm:"TEXT"`
 	Namespace       string
 	DeploymentName  string
 	ServiceName     string
@@ -231,15 +231,6 @@ func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	return tasks, err
 }
 
-func (pipeline *Pipeline) prepareValidstaionTask(index int) (*PreBuildResult, error) {
-	task := &PreBuildResult{}
-	task.PipelineID = pipeline.ID
-	task.Number = index
-	task.Status = BeforeStart
-	_, err := x.Insert(task)
-	return task, err
-}
-
 func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
 	ps := make([]*Pipeline, 0)
 	err := x.Where("repo_id = ?", repoID).Find(&ps)
@@ -286,24 +277,6 @@ func GetLatestPipeline(repoID int64) (*Pipeline, error) {
 		return nil, nil
 	}
 	return pipeline, nil
-}
-
-func IsPipelineRunning(repoID int64, commit string) (bool, error) {
-	pipeline, err := GetPipeline(repoID, commit)
-	if err != nil {
-		return false, err
-	}
-	if pipeline == nil {
-		return false, nil
-	}
-	ptask, err := GetLatestPipeTask(pipeline.ID)
-	if err != nil {
-		return false, err
-	}
-	if ptask == nil {
-		return false, nil
-	}
-	return ptask.Status == BeforeStart || ptask.Status == Running, nil
 }
 
 func PrettyStage(stage PipeStage) string {
