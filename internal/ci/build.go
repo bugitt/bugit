@@ -2,7 +2,6 @@ package ci
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -71,21 +70,7 @@ func dockerBuild(ctx *Context, config *db.BuildTaskConfig) (err error) {
 		Tags:           ctx.imageTag,
 	}
 
-	output, err := image.Build(ctx, buildConf)
-	defer func() {
-		err := output.Close()
-		if err != nil {
-			log.Error("close reader from docker build failed: %s", err.Error())
-		}
-	}()
-	if err != nil {
-		return
-	}
-	bs, err := ioutil.ReadAll(output)
-	if err != nil {
-		return
-	}
-	outputLog = string(bs)
+	outputLog, err = image.Build(ctx, buildConf)
 	return
 }
 

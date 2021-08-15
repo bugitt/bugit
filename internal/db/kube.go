@@ -9,7 +9,6 @@ import (
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	appsv1 "k8s.io/api/apps/v1"
-	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +25,7 @@ type DeployContext struct {
 
 	labels    map[string]string
 	svcLabels map[string]string
-	container *apiv1.Container
+	container *v1.Container
 	repNum    int32
 	stateful  bool
 }
@@ -59,30 +58,6 @@ func getKubeClient() (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return kubernetes.NewForConfig(config)
-}
-
-// ensureNS 确保 namespace 存在
-func ensureNS(ns string) error {
-	clientSet, err := getKubeClient()
-	if err != nil {
-		return err
-	}
-	namespace := &apiv1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: ns},
-	}
-	_, err = clientSet.CoreV1().Namespaces().Get(context.TODO(), ns, metav1.GetOptions{})
-	if err != nil {
-		if kerrors.IsNotFound(err) {
-			// 没有找到就create
-			_, err = clientSet.CoreV1().Namespaces().Create(context.TODO(), namespace, metav1.CreateOptions{})
-			if err != nil {
-				return nil
-			}
-		} else {
-			return err
-		}
-	}
-	return nil
 }
 
 func Deploy(ctx *CIContext, task *DeployResult) (err error) {
@@ -145,9 +120,9 @@ func Deploy(ctx *CIContext, task *DeployResult) (err error) {
 func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 	// service 系列端口
 	serviceName := ctx.ServiceName
-	var svcPorts []apiv1.ServicePort
+	var svcPorts []v1.ServicePort
 	for _, port := range ctx.container.Ports {
-		p := apiv1.ServicePort{
+		p := v1.ServicePort{
 			Name:     port.Name,
 			Protocol: port.Protocol,
 			Port:     port.ContainerPort,
@@ -158,20 +133,20 @@ func deployService(ctx *DeployContext) (result *v1.Service, err error) {
 		}
 		svcPorts = append(svcPorts, p)
 	}
-	service := &apiv1.Service{
+	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   serviceName,
 			Labels: ctx.svcLabels,
 		},
 
-		Spec: apiv1.ServiceSpec{
-			Type:     apiv1.ServiceTypeNodePort,
+		Spec: v1.ServiceSpec{
+			Type:     v1.ServiceTypeNodePort,
 			Selector: ctx.svcLabels,
 			Ports:    svcPorts,
 		},
 	}
 
-	// 删除之前存在的service
+	// 删除之前存在的service
 	serviceClient := clientSet.CoreV1().Services(ctx.Namespace)
 
 	// 先检查是不是存在之前的service
@@ -249,12 +224,12 @@ func deployDeployment(ctx *DeployContext) (err error) {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ctx.svcLabels,
 			},
-			Template: apiv1.PodTemplateSpec{
+			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ctx.labels,
 				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
 						*ctx.container,
 					},
 				},
@@ -299,12 +274,12 @@ func deployStatefulSet(ctx *DeployContext) (err error) {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ctx.svcLabels,
 			},
-			Template: apiv1.PodTemplateSpec{
+			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: ctx.labels,
 				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
 						*ctx.container,
 					},
 				},
@@ -365,9 +340,9 @@ func waitForPodsDone(ctx *DeployContext) error {
 		}
 		cntOK := 0
 		for _, pod := range pods {
-			if phase := pod.Status.Phase; phase == apiv1.PodRunning || phase == apiv1.PodSucceeded {
+			if phase := pod.Status.Phase; phase == v1.PodRunning || phase == v1.PodSucceeded {
 				cntOK++
-			} else if phase != apiv1.PodPending {
+			} else if phase != v1.PodPending {
 				return false, fmt.Errorf("pod(%s) failed: %s", pod.Name, pod.Status.Message)
 			}
 		}
@@ -375,8 +350,8 @@ func waitForPodsDone(ctx *DeployContext) error {
 	})
 }
 
-func getContainer(ctx *DeployContext) *apiv1.Container {
-	container := &apiv1.Container{
+func getContainer(ctx *DeployContext) *v1.Container {
+	container := &v1.Container{
 		Name:  ctx.repo.DeployName() + "-pod",
 		Image: ctx.imageTag,
 	}
@@ -387,9 +362,9 @@ func getContainer(ctx *DeployContext) *apiv1.Container {
 	container.Ports = getContainerPorts(config.Ports)
 
 	// 环境变量
-	var envs []apiv1.EnvVar
+	var envs []v1.EnvVar
 	for k, v := range config.Envs {
-		envs = append(envs, apiv1.EnvVar{
+		envs = append(envs, v1.EnvVar{
 			Name:  k,
 			Value: v,
 		})
@@ -425,7 +400,7 @@ func CheckKubeHealthy(labels map[string]string, namespace, svcName string) (bool
 	}
 	podOK := false
 	for _, pod := range pods {
-		if phase := pod.Status.Phase; phase == apiv1.PodRunning || phase == apiv1.PodSucceeded {
+		if phase := pod.Status.Phase; phase == v1.PodRunning || phase == v1.PodSucceeded {
 			podOK = true
 			break
 		}
@@ -458,10 +433,10 @@ func listPods(labels map[string]string, namespace string) ([]v1.Pod, error) {
 	return podList.Items, nil
 }
 
-func getContainerPorts(dbPorts []Port) []apiv1.ContainerPort {
-	var ports []apiv1.ContainerPort
+func getContainerPorts(dbPorts []Port) []v1.ContainerPort {
+	var ports []v1.ContainerPort
 	for i, port := range dbPorts {
-		p := apiv1.ContainerPort{}
+		p := v1.ContainerPort{}
 
 		// 处理端口名称
 		if port.Name != "" {
@@ -471,14 +446,14 @@ func getContainerPorts(dbPorts []Port) []apiv1.ContainerPort {
 		}
 
 		// 处理端口协议，默认为tcp
-		var protocol apiv1.Protocol
+		var protocol v1.Protocol
 		switch strings.ToLower(port.Protocol) {
 		case "udp":
-			protocol = apiv1.ProtocolTCP
+			protocol = v1.ProtocolTCP
 		case "sctp":
-			protocol = apiv1.ProtocolSCTP
+			protocol = v1.ProtocolSCTP
 		default:
-			protocol = apiv1.ProtocolTCP
+			protocol = v1.ProtocolTCP
 		}
 		p.Protocol = protocol
 
@@ -490,7 +465,7 @@ func getContainerPorts(dbPorts []Port) []apiv1.ContainerPort {
 	return ports
 }
 
-func getSvcNodePortBySourcePort(ports []apiv1.ServicePort, sourcePort int32) int32 {
+func getSvcNodePortBySourcePort(ports []v1.ServicePort, sourcePort int32) int32 {
 	for _, v := range ports {
 		if v.Port == sourcePort {
 			return v.NodePort
@@ -499,7 +474,7 @@ func getSvcNodePortBySourcePort(ports []apiv1.ServicePort, sourcePort int32) int
 	return 0
 }
 
-func getSvcNodePortByName(ports []apiv1.ServicePort, name string) int32 {
+func getSvcNodePortByName(ports []v1.ServicePort, name string) int32 {
 	for _, v := range ports {
 		if v.Name == name {
 			return v.NodePort
