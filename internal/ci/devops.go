@@ -85,13 +85,13 @@ type DeployDes struct {
 }
 
 type DeployOption struct {
-	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
-	Repo      *db.Repository  `json:"-"`
-	GitRepo   *git.Repository `json:"-"`
-	Branch    string          `json:"Branch" form:"Branch"`
-	Commit    string          `json:"Commit" form:"Commit"`
-	GitCommit *git.Commit     `json:"-"`
-	Pusher    *db.User        `json:"-"`
+	RepoID    int64 `json:"repo_id" form:"repo_id" binding:"Required"`
+	Repo      *db.Repository
+	gitRepo   *git.Repository
+	Branch    string `json:"branch" form:"branch"`
+	Commit    string `json:"commit" form:"commit"`
+	gitCommit *git.Commit
+	Pusher    *db.User
 }
 
 func CreateDeploy(opt *DeployOption) (err error) {
@@ -105,7 +105,7 @@ func CreateDeploy(opt *DeployOption) (err error) {
 		}
 		opt.Repo = repo
 	}
-	opt.GitRepo, err = git.Open(opt.Repo.RepoPath())
+	opt.gitRepo, err = git.Open(opt.Repo.RepoPath())
 	if err != nil {
 		return err
 	}
@@ -115,22 +115,22 @@ func CreateDeploy(opt *DeployOption) (err error) {
 	}
 
 	if len(opt.Commit) <= 0 {
-		opt.GitCommit, err = opt.GitRepo.BranchCommit(opt.Branch)
+		opt.gitCommit, err = opt.gitRepo.BranchCommit(opt.Branch)
 		if err != nil {
 			return
 		}
-		opt.Commit = opt.GitCommit.ID.String()
+		opt.Commit = opt.gitCommit.ID.String()
 	} else {
-		opt.GitCommit, err = opt.GitRepo.CatFileCommit(opt.Commit)
+		opt.gitCommit, err = opt.gitRepo.CatFileCommit(opt.Commit)
 		if err != nil {
 			return
 		}
 	}
 
 	// 2. 检查对应的commit中是否有合法的 CIConfig 配置文件
-	ciConfig, err := db.GetCIConfigFromCommit(opt.GitCommit)
+	ciConfig, err := db.GetCIConfigFromCommit(opt.gitCommit)
 	if err != nil {
-		_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, err)
+		_, err = db.PreparePipeline(opt.gitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, err)
 		if err != nil {
 			return err
 		}
@@ -143,18 +143,8 @@ func CreateDeploy(opt *DeployOption) (err error) {
 		}
 	}
 
-	// 3. 首先检查是不是真的需要进行一次 deploy
-	//    当前的计划是，如果当前有同样commit的deploy正在执行，那么就忽略本次部署请求
-	isRunning, err := db.IsPipelineRunning(opt.RepoID, opt.Commit)
-	if err != nil {
-		return err
-	}
-	if isRunning {
-		return &db.ErrNoNeedDeploy{"the deployment of the current commit is in progress, please stay calm"}
-	}
-
-	// 4. 好了，终于确定了，可以触发新的部署了
-	_, err = db.PreparePipeline(opt.GitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, nil)
+	// 3. 好了，终于确定了，可以触发新的部署了
+	_, err = db.PreparePipeline(opt.gitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, nil)
 	if err != nil {
 		return err
 	}
