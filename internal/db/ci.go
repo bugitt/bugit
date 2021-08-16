@@ -83,13 +83,3 @@ func GetCIConfigFromCommit(commit *git.Commit) (*CIConfig, error) {
 	}
 	return ciConfig, nil
 }
-
-type DeployOption struct {
-	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
-	Repo      *Repository     `json:"-"`
-	GitRepo   *git.Repository `json:"-"`
-	Branch    string          `json:"Branch" form:"Branch"`
-	Commit    string          `json:"Commit" form:"Commit"`
-	GitCommit *git.Commit     `json:"-"`
-	Pusher    *User           `json:"-"`
-}

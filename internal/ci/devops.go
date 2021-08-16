@@ -84,7 +84,17 @@ type DeployDes struct {
 	Ports      []db.Port
 }
 
-func CreateDeploy(opt *db.DeployOption) (err error) {
+type DeployOption struct {
+	RepoID    int64           `json:"RepoID" form:"RepoID" binding:"Required"`
+	Repo      *db.Repository  `json:"-"`
+	GitRepo   *git.Repository `json:"-"`
+	Branch    string          `json:"Branch" form:"Branch"`
+	Commit    string          `json:"Commit" form:"Commit"`
+	GitCommit *git.Commit     `json:"-"`
+	Pusher    *db.User        `json:"-"`
+}
+
+func CreateDeploy(opt *DeployOption) (err error) {
 	// 1. 完善参数
 	if opt.Repo != nil {
 		opt.RepoID = opt.Repo.ID
