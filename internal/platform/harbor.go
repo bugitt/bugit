@@ -1,4 +1,4 @@
-package harbor
+package platform
 
 import (
 	"context"
@@ -63,12 +63,12 @@ func CreateProject(ctx context.Context, name, username string) (int64, string, e
 	p, err := client.GetProject(ctx, name)
 	if err != nil {
 		if _, ok := err.(*project.ErrProjectNotFound); !ok {
+			// 如果是异常错误，而不是没找到
 			return 0, "", err
 		}
 	} else {
-		if err = client.DeleteProject(ctx, p); err != nil {
-			return 0, "", err
-		}
+		// 否则的话，说明项目名称重复了，提醒用户该换名字了
+		return 0, "", ErrProjectNameDuplicate
 	}
 
 	p, err = client.NewProject(ctx, name, getInt64Ptr(-1))

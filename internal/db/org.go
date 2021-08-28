@@ -15,7 +15,7 @@ import (
 	"xorm.io/xorm"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 )
 
 var (
@@ -158,7 +158,7 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.NumMembers = 1
 
 	// create harbor project
-	harborID, harborName, err := harbor.CreateProject(context.Background(), org.Name, owner.StudentID)
+	harborID, harborName, err := platform.CreateProject(context.Background(), org.Name, owner.StudentID)
 	if err != nil {
 		return err
 	}
@@ -270,7 +270,7 @@ func DeleteOrganization(org *User) (err error) {
 		return err
 	}
 
-	return harbor.DeleteProject(context.Background(), org.Name)
+	return platform.DeleteProject(context.Background(), org.Name)
 }
 
 // ExistOrgByExpStudent 检查是不是存在这样一个org，其实验ID是eid，而且还包含一个id为uid的用户
@@ -438,7 +438,7 @@ func AddOrgUser(orgID, uid int64) error {
 	if err != nil {
 		return err
 	}
-	return harbor.AddProjectMember(context.Background(), org.HarborID, user.StudentID)
+	return platform.AddProjectMember(context.Background(), org.HarborID, user.StudentID)
 }
 
 // RemoveOrgUser removes user from given organization.
@@ -520,7 +520,7 @@ func RemoveOrgUser(orgID, userID int64) error {
 		return err
 	}
 
-	return harbor.DeleteProjectMember(context.Background(), org.HarborID, user.StudentID)
+	return platform.DeleteProjectMember(context.Background(), org.HarborID, user.StudentID)
 }
 
 func removeOrgRepo(e Engine, orgID, repoID int64) error {

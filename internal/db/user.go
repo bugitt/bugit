@@ -33,7 +33,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
@@ -626,7 +626,7 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	harborID, harborName, err := harbor.CreateUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
+	harborID, harborName, err := platform.CreateUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
 	if err != nil {
 		return err
 	}

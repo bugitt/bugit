@@ -17,7 +17,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/harbor"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 )
 
 // UsersStore is the persistent interface for users.
@@ -304,7 +304,7 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.EncodePassword()
 
-	harborID, harborName, err := harbor.CreateUser(context.Background(), user.StudentID, user.Name, user.Email, user.Name)
+	harborID, harborName, err := platform.CreateUser(context.Background(), user.StudentID, user.Name, user.Email, user.Name)
 	if err != nil {
 		return nil, err
 	}
