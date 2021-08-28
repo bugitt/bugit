@@ -12,7 +12,7 @@ import (
 	"github.com/mittwald/goharbor-client/v4/apiv2/user"
 )
 
-func getClient() (*apiv2.RESTClient, error) {
+func getHarborClient() (*apiv2.RESTClient, error) {
 	return apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
 }
 
@@ -27,7 +27,7 @@ func getUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName
 
 // CreateUser post a user to harbor
 func CreateUser(ctx context.Context, studentID, projectName, email, realname string) (int64, string, error) {
-	client, err := getClient()
+	client, err := getHarborClient()
 	if err != nil {
 		return 0, "", err
 	}
@@ -53,7 +53,7 @@ func CreateUser(ctx context.Context, studentID, projectName, email, realname str
 
 func CreateProject(ctx context.Context, name, username string) (int64, string, error) {
 	name = PrettyName(name)
-	client, err := getClient()
+	client, err := getHarborClient()
 	if err != nil {
 		return 0, "", err
 	}
@@ -88,7 +88,7 @@ func CreateProject(ctx context.Context, name, username string) (int64, string, e
 
 // AddProjectMember 默认添加的每个member都有管理员权限
 func AddProjectMember(ctx context.Context, projectID int64, uName string) error {
-	client, err := getClient()
+	client, err := getHarborClient()
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func AddProjectMember(ctx context.Context, projectID int64, uName string) error 
 }
 
 func DeleteProjectMember(ctx context.Context, projectID int64, uName string) error {
-	client, err := getClient()
+	client, err := getHarborClient()
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func DeleteProjectMember(ctx context.Context, projectID int64, uName string) err
 
 func DeleteProject(ctx context.Context, projectID string) error {
 	// FIXME: 补充删除项目中的repo的api后，再启用删除Harbor中项目的逻辑
-	// client, err := getClient()
+	// client, err := getHarborClient()
 	// if err != nil {
 	// 	return err
 	// }
