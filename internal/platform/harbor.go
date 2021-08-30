@@ -16,7 +16,7 @@ func getHarborClient() (*apiv2.RESTClient, error) {
 	return apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
 }
 
-func getUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName string) (*legacymodel.User, *modelv2.Project, error) {
+func getHarborUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName string) (*legacymodel.User, *modelv2.Project, error) {
 	u, err := client.GetUser(ctx, uName)
 	if err != nil {
 		return nil, nil, err
@@ -92,7 +92,7 @@ func AddProjectMember(ctx context.Context, projectID int64, uName string) error 
 	if err != nil {
 		return err
 	}
-	u, p, err := getUP(ctx, client, projectID, uName)
+	u, p, err := getHarborUP(ctx, client, projectID, uName)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func DeleteProjectMember(ctx context.Context, projectID int64, uName string) err
 	if err != nil {
 		return err
 	}
-	u, p, err := getUP(ctx, client, projectID, uName)
+	u, p, err := getHarborUP(ctx, client, projectID, uName)
 	if err != nil {
 		return err
 	}
