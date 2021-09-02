@@ -12,115 +12,98 @@ import (
 	"github.com/mittwald/goharbor-client/v4/apiv2/user"
 )
 
-func getHarborClient() (*apiv2.RESTClient, error) {
-	return apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
+type HarborCli struct {
+	*apiv2.RESTClient
 }
 
-func getHarborUP(ctx context.Context, client *apiv2.RESTClient, projectID int64, uName string) (*legacymodel.User, *modelv2.Project, error) {
-	u, err := client.GetUser(ctx, uName)
+func getHarborClient() (*HarborCli, error) {
+	cli, err := apiv2.NewRESTClientForHost(conf.Harbor.Url, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
+	if err != nil {
+		return nil, err
+	}
+	return &HarborCli{cli}, nil
+}
+
+func (cli HarborCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
+	userName := opt.StudentID
+	// check whether user already exists
+	u, err := cli.GetUser(ctx, userName)
+	if err != nil {
+		if _, ok := err.(*user.ErrUserNotFound); ok {
+			// 如果用户不存在，则创建用户
+			u, err = cli.NewUser(ctx, userName, opt.Email, opt.RealName, conf.Harbor.DefaultPasswd, "User created by BuGit")
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return &User{u.Username, u.UserID}, nil
+}
+
+func (cli *HarborCli) getHarborUP(ctx context.Context, userID, projectID int64) (*legacymodel.User, *modelv2.Project, error) {
+	u, err := cli.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, nil, err
 	}
-	p, err := client.GetProject(ctx, strconv.FormatInt(projectID, 10))
+	p, err := cli.GetProject(ctx, strconv.FormatInt(projectID, 10))
 	return u, p, err
 }
 
-// CreateUser post a user to harbor
-func CreateUser(ctx context.Context, studentID, projectName, email, realname string) (int64, string, error) {
-	client, err := getHarborClient()
-	if err != nil {
-		return 0, "", err
-	}
-
-	// check whether user already exists
-	_, err = client.GetUser(ctx, studentID)
-	if err != nil {
-		if _, ok := err.(*user.ErrUserNotFound); !ok {
-			return 0, "", err
-		}
-	} else {
-		return 0, "", nil
-	}
-
-	// create
-	u, err := client.NewUser(ctx, studentID, email, realname, conf.Harbor.DefaultPasswd, "User created by BuGit")
-	if err != nil {
-		return 0, "", err
-	}
-
-	return CreateProject(ctx, PrettyName(projectName), u.Username)
-}
-
-func CreateProject(ctx context.Context, name, username string) (int64, string, error) {
-	name = PrettyName(name)
-	client, err := getHarborClient()
-	if err != nil {
-		return 0, "", err
-	}
+func (cli HarborCli) CreateProject(ctx context.Context, opt *CreateProject) (*Project, error) {
+	projectName := PrettyName(opt.ProjectName)
 
 	// check whether project already exists
-	// if yes, delete it
-	p, err := client.GetProject(ctx, name)
+	// if yes, return error
+	_, err := cli.GetProject(ctx, projectName)
 	if err != nil {
 		if _, ok := err.(*project.ErrProjectNotFound); !ok {
 			// 如果是异常错误，而不是没找到
-			return 0, "", err
+			return nil, err
 		}
 	} else {
 		// 否则的话，说明项目名称重复了，提醒用户该换名字了
-		return 0, "", ErrProjectNameDuplicate
+		return nil, ErrProjectNameDuplicate
 	}
 
-	p, err = client.NewProject(ctx, name, getInt64Ptr(-1))
+	p, err := cli.NewProject(ctx, projectName, getInt64Ptr(-1))
 	if err != nil {
-		return 0, "", err
-	}
-
-	// 将BuGit中的项目的创建这作为管理员，添加到Harbor项目中
-	u, err := client.GetUser(ctx, username)
-	if err != nil {
-		return 0, "", err
+		return nil, err
 	}
 
 	// The role id 1 for projectAdmin, 2 for developer, 3 for guest, 4 for maintainer
-	return int64(p.ProjectID), name, client.AddProjectMember(ctx, p, u, 1)
+	return &Project{projectName, int64(p.ProjectID)}, nil
 }
 
-// AddProjectMember 默认添加的每个member都有管理员权限
-func AddProjectMember(ctx context.Context, projectID int64, uName string) error {
-	client, err := getHarborClient()
-	if err != nil {
-		return err
-	}
-	u, p, err := getHarborUP(ctx, client, projectID, uName)
-	if err != nil {
-		return err
-	}
-	return client.AddProjectMember(ctx, p, u, 1)
+func (cli HarborCli) AddAdmin(ctx context.Context, u *User, p *Project) error {
+	return cli.addMember(ctx, u, p, 1)
 }
 
-func DeleteProjectMember(ctx context.Context, projectID int64, uName string) error {
-	client, err := getHarborClient()
+func (cli HarborCli) addMember(ctx context.Context, u *User, p *Project, roleID int) error {
+	nu, np, err := cli.getHarborUP(ctx, u.ID, p.ID)
 	if err != nil {
 		return err
 	}
-	u, p, err := getHarborUP(ctx, client, projectID, uName)
-	if err != nil {
-		return err
-	}
-	return client.DeleteProjectMember(ctx, p, u)
+	return cli.AddProjectMember(ctx, np, nu, roleID)
 }
 
-func DeleteProject(ctx context.Context, projectID string) error {
-	// FIXME: 补充删除项目中的repo的api后，再启用删除Harbor中项目的逻辑
-	// client, err := getHarborClient()
-	// if err != nil {
-	// 	return err
-	// }
-	// p, err := client.GetProject(ctx, projectID)
-	// if err != nil {
-	// 	return err
-	// }
-	// return client.DeleteProject(ctx, p)
-	return nil
+func (cli HarborCli) RemoveProjectMember(ctx context.Context, u *User, p *Project) error {
+	nu, np, err := cli.getHarborUP(ctx, u.ID, p.ID)
+	if err != nil {
+		return err
+	}
+	return cli.DeleteProjectMember(ctx, np, nu)
 }
+
+//func DeleteProject(ctx context.Context, projectID string) error {
+//	// FIXME: 补充删除项目中的repo的api后，再启用删除Harbor中项目的逻辑
+//	// client, err := getHarborClient()
+//	// if err != nil {
+//	// 	return err
+//	// }
+//	// p, err := client.GetProject(ctx, projectID)
+//	// if err != nil {
+//	// 	return err
+//	// }
+//	// return client.DeleteProject(ctx, p)
+//	return nil
+//}
