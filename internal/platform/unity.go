@@ -29,3 +29,16 @@ type User struct {
 	Name string
 	ID   int64
 }
+
+var (
+	harborCli *HarborCli
+)
+
+// Init 初始化各个平台的客户端
+func Init() (err error) {
+	harborCli, err = getHarborClient()
+	if err != nil {
+		return err
+	}
+	return nil
+}

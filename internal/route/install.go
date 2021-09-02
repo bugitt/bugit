@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	"github.com/unknwon/com"
@@ -110,6 +111,12 @@ func GlobalInit(customConf string) error {
 		if err := db.RewriteAuthorizedKeys(); err != nil {
 			log.Warn("Failed to rewrite authorized_keys file: %v", err)
 		}
+	}
+
+	// 初始化Platform的各个客户端
+	err = platform.Init()
+	if err != nil {
+		return err
 	}
 
 	return nil
