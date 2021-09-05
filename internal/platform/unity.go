@@ -29,11 +29,14 @@ type User struct {
 	ID   int64
 }
 
-var cliSet []Actor
+var (
+	harborCli *HarborCli
+	cliSet    []Actor
+)
 
 // Init 初始化各个平台的客户端
-func Init() error {
-	harborCli, err := getHarborClient()
+func Init() (err error) {
+	harborCli, err = getHarborClient()
 	if err != nil {
 		return err
 	}
