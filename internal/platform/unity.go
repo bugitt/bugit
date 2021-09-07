@@ -45,27 +45,36 @@ func Init() (err error) {
 	return nil
 }
 
-func CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
-	var user *User
-	for _, cli := range cliSet {
-		// 先创建用户本身
-		u, err := cli.CreateUser(ctx, opt)
-		if err != nil {
-			return nil, err
-		}
-		user = u
+func CreateHarborUser(ctx context.Context, studentID, userName, email, realName string) (userID int64, err error) {
+	u, err := createUser(ctx, harborCli, &CreateUserOpt{
+		StudentID: studentID,
+		UserName:  userName,
+		Email:     email,
+		RealName:  realName,
+	})
+	if err != nil {
+		return
+	}
+	return u.ID, err
+}
 
-		// 然后创建用户的个人项目
-		p, err := cli.CreateProject(ctx, &CreateProject{ProjectName: u.Name})
-		if err != nil {
-			return nil, err
-		}
-
-		// 然后将这个用户设置为自己个人项目的管理员
-		if err = cli.AddAdmin(ctx, u, p); err != nil {
-			return nil, err
-		}
+func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
+	// 先创建用户本身
+	u, err := cli.CreateUser(ctx, opt)
+	if err != nil {
+		return nil, err
 	}
 
-	return user, nil
+	// 然后创建用户的个人项目
+	p, err := cli.CreateProject(ctx, &CreateProject{ProjectName: u.Name})
+	if err != nil {
+		return nil, err
+	}
+
+	// 然后将这个用户设置为自己个人项目的管理员
+	if err = cli.AddAdmin(ctx, u, p); err != nil {
+		return nil, err
+	}
+
+	return u, err
 }
