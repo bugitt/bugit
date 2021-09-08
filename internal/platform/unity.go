@@ -58,6 +58,10 @@ func CreateHarborUser(ctx context.Context, studentID, userName, email, realName 
 	return u.ID, err
 }
 
+func CreateHarborProject(ctx context.Context, userID int64, projectName string) (projectID int64, err error) {
+
+}
+
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
 	// 先创建用户本身
 	u, err := cli.CreateUser(ctx, opt)
