@@ -59,7 +59,11 @@ func CreateHarborUser(ctx context.Context, studentID, userName, email, realName 
 }
 
 func CreateHarborProject(ctx context.Context, userID int64, projectName string) (projectID int64, err error) {
-
+	p, err := createProject(ctx, harborCli, &User{ID: userID}, projectName)
+	if err != nil {
+		return 0, err
+	}
+	return p.ID, err
 }
 
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
@@ -81,4 +85,17 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, erro
 	}
 
 	return u, err
+}
+
+func createProject(ctx context.Context, cli Actor, u *User, projectName string) (p *Project, err error) {
+	p, err = cli.CreateProject(ctx, &CreateProject{ProjectName: projectName})
+	if err != nil {
+		return
+	}
+
+	err = cli.AddAdmin(ctx, u, p)
+	if err != nil {
+		return
+	}
+	return p, err
 }
