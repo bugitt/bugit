@@ -16,7 +16,7 @@ type CreateProject struct {
 type Actor interface {
 	CreateUser(context.Context, *CreateUserOpt) (*User, error)
 	CreateProject(context.Context, *CreateProject) (*Project, error)
-	AddAdmin(context.Context, *User, *Project) error
+	AddOwner(context.Context, *User, *Project) error
 }
 
 type Project struct {
@@ -80,7 +80,7 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, erro
 	}
 
 	// 然后将这个用户设置为自己个人项目的管理员
-	if err = cli.AddAdmin(ctx, u, p); err != nil {
+	if err = cli.AddOwner(ctx, u, p); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func createProject(ctx context.Context, cli Actor, u *User, projectName string) 
 		return
 	}
 
-	err = cli.AddAdmin(ctx, u, p)
+	err = cli.AddOwner(ctx, u, p)
 	if err != nil {
 		return
 	}

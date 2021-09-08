@@ -74,7 +74,7 @@ func (cli HarborCli) CreateProject(ctx context.Context, opt *CreateProject) (*Pr
 	return &Project{projectName, int64(p.ProjectID)}, nil
 }
 
-func (cli HarborCli) AddAdmin(ctx context.Context, u *User, p *Project) error {
+func (cli HarborCli) AddOwner(ctx context.Context, u *User, p *Project) error {
 	return cli.addMember(ctx, u, p, 1)
 }
 
