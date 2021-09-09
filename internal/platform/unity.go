@@ -66,6 +66,10 @@ func CreateHarborProject(ctx context.Context, userID int64, projectName string) 
 	return p.ID, err
 }
 
+func AddHarborOwner(ctx context.Context, userID int64, projectID int64) (err error) {
+	return addOwner(ctx, harborCli, &User{ID: userID}, &Project{ID: projectID})
+}
+
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
 	// 先创建用户本身
 	u, err := cli.CreateUser(ctx, opt)
@@ -98,4 +102,8 @@ func createProject(ctx context.Context, cli Actor, u *User, projectName string) 
 		return
 	}
 	return p, err
+}
+
+func addOwner(ctx context.Context, cli Actor, u *User, p *Project) (err error) {
+	return cli.AddOwner(ctx, u, p)
 }
