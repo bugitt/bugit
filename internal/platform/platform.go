@@ -16,7 +16,9 @@ type CreateProject struct {
 type Actor interface {
 	CreateUser(context.Context, *CreateUserOpt) (*User, error)
 	CreateProject(context.Context, *CreateProject) (*Project, error)
+	DeleteProject(context.Context, *Project) error
 	AddOwner(context.Context, *User, *Project) error
+	RemoveMember(ctx context.Context, u *User, p *Project) error
 }
 
 type Project struct {
@@ -72,6 +74,14 @@ func AddHarborOwner(ctx context.Context, userID int64, projectID int64) (err err
 	return addOwner(ctx, harborCli, &User{IntID: userID}, &Project{IntID: projectID})
 }
 
+func DeleteHarborProject(ctx context.Context, projectID int64) (err error) {
+	return deleteProject(ctx, harborCli, &Project{IntID: projectID})
+}
+
+func RemoveHarborProjectMember(ctx context.Context, userID, projectID int64) (err error) {
+	return removeMember(ctx, harborCli, &User{IntID: userID}, &Project{IntID: projectID})
+}
+
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
 	// 先创建用户本身
 	u, err := cli.CreateUser(ctx, opt)
@@ -108,4 +118,12 @@ func createProject(ctx context.Context, cli Actor, u *User, projectName string) 
 
 func addOwner(ctx context.Context, cli Actor, u *User, p *Project) (err error) {
 	return cli.AddOwner(ctx, u, p)
+}
+
+func deleteProject(ctx context.Context, cli Actor, p *Project) (err error) {
+	return cli.DeleteProject(ctx, p)
+}
+
+func removeMember(ctx context.Context, cli Actor, u *User, p *Project) (err error) {
+	return cli.RemoveMember(ctx, u, p)
 }

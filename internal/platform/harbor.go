@@ -86,12 +86,20 @@ func (cli HarborCli) addMember(ctx context.Context, u *User, p *Project, roleID 
 	return cli.AddProjectMember(ctx, np, nu, roleID)
 }
 
-func (cli HarborCli) RemoveProjectMember(ctx context.Context, u *User, p *Project) error {
+func (cli HarborCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
 	nu, np, err := cli.getHarborUP(ctx, u.IntID, p.IntID)
 	if err != nil {
 		return err
 	}
 	return cli.DeleteProjectMember(ctx, np, nu)
+}
+
+func (cli HarborCli) DeleteProject(ctx context.Context, p *Project) error {
+	harborProject, err := cli.GetProject(ctx, strconv.FormatInt(p.IntID, 10))
+	if err != nil {
+		return err
+	}
+	return cli.RESTClient.DeleteProject(ctx, harborProject)
 }
 
 //func DeleteProject(ctx context.Context, projectID string) error {
