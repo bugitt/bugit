@@ -37,7 +37,7 @@ func (cli HarborCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User,
 			}
 		}
 	}
-	return &User{u.Username, u.UserID}, nil
+	return &User{Name: u.Username, IntID: u.UserID}, nil
 }
 
 func (cli *HarborCli) getHarborUP(ctx context.Context, userID, projectID int64) (*legacymodel.User, *modelv2.Project, error) {
@@ -71,7 +71,7 @@ func (cli HarborCli) CreateProject(ctx context.Context, opt *CreateProject) (*Pr
 	}
 
 	// The role id 1 for projectAdmin, 2 for developer, 3 for guest, 4 for maintainer
-	return &Project{projectName, int64(p.ProjectID)}, nil
+	return &Project{Name: projectName, IntID: int64(p.ProjectID)}, nil
 }
 
 func (cli HarborCli) AddOwner(ctx context.Context, u *User, p *Project) error {
@@ -79,7 +79,7 @@ func (cli HarborCli) AddOwner(ctx context.Context, u *User, p *Project) error {
 }
 
 func (cli HarborCli) addMember(ctx context.Context, u *User, p *Project, roleID int) error {
-	nu, np, err := cli.getHarborUP(ctx, u.ID, p.ID)
+	nu, np, err := cli.getHarborUP(ctx, u.IntID, p.IntID)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (cli HarborCli) addMember(ctx context.Context, u *User, p *Project, roleID 
 }
 
 func (cli HarborCli) RemoveProjectMember(ctx context.Context, u *User, p *Project) error {
-	nu, np, err := cli.getHarborUP(ctx, u.ID, p.ID)
+	nu, np, err := cli.getHarborUP(ctx, u.IntID, p.IntID)
 	if err != nil {
 		return err
 	}

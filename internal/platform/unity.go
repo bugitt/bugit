@@ -20,13 +20,15 @@ type Actor interface {
 }
 
 type Project struct {
-	Name string
-	ID   int64
+	Name     string
+	IntID    int64
+	StringID string
 }
 
 type User struct {
-	Name string
-	ID   int64
+	Name     string
+	IntID    int64
+	StringID string
 }
 
 var (
@@ -55,19 +57,19 @@ func CreateHarborUser(ctx context.Context, studentID, userName, email, realName 
 	if err != nil {
 		return
 	}
-	return u.ID, err
+	return u.IntID, err
 }
 
 func CreateHarborProject(ctx context.Context, userID int64, projectName string) (projectID int64, err error) {
-	p, err := createProject(ctx, harborCli, &User{ID: userID}, projectName)
+	p, err := createProject(ctx, harborCli, &User{IntID: userID}, projectName)
 	if err != nil {
 		return 0, err
 	}
-	return p.ID, err
+	return p.IntID, err
 }
 
 func AddHarborOwner(ctx context.Context, userID int64, projectID int64) (err error) {
-	return addOwner(ctx, harborCli, &User{ID: userID}, &Project{ID: projectID})
+	return addOwner(ctx, harborCli, &User{IntID: userID}, &Project{IntID: projectID})
 }
 
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
