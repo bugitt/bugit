@@ -27,3 +27,6 @@ __debug_bin
 
 # deploy
 gogs-deploy
+
+# 产物
+bugit
