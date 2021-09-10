@@ -114,8 +114,8 @@ type User struct {
 	CourseName string      `json:"course_name"`
 
 	// Harbor
-	HarborID   int64
-	HarborName string
+	HarborUserID    int64
+	HarborProjectID int64
 }
 
 func (u *User) BeforeInsert() {
@@ -490,6 +490,11 @@ func (u *User) IsMailable() bool {
 	return u.IsActive
 }
 
+// GetHarborProjectName 获取项目所对应的Harbor项目的名称
+func (u *User) GetHarborProjectName() (string, error) {
+	return platform.GetHarborProjectName(context.Background(), u.HarborProjectID)
+}
+
 // IsUserExist checks if given user name exist,
 // the user name should be noncased unique.
 // If uid is presented, then check will rule out that one,
@@ -626,11 +631,11 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	harborID, harborName, err := platform.CreateUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
+	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
 	if err != nil {
 		return err
 	}
-	u.HarborID, u.HarborName = harborID, harborName
+	u.HarborUserID, u.HarborProjectID = harborUserID, harborProjectID
 
 	sess := x.NewSession()
 	defer sess.Close()
@@ -657,7 +662,7 @@ func CountUsers() int64 {
 	return countUsers(x)
 }
 
-// Users returns number of users in given page.
+// ListUsers returns number of users in given page.
 func ListUsers(page, pageSize int) ([]*User, error) {
 	users := make([]*User, 0, pageSize)
 	return users, x.Limit(pageSize, (page-1)*pageSize).Where("type=0").Asc("id").Find(&users)
@@ -683,7 +688,7 @@ func parseUserFromCode(code string) (user *User) {
 	return nil
 }
 
-// verify active code when active account
+// VerifyUserActiveCode verify active code when active account
 func VerifyUserActiveCode(code string) (user *User) {
 	minutes := conf.Auth.ActivateCodeLives
 

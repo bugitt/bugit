@@ -11,15 +11,16 @@ import (
 
 type Context struct {
 	context.Context
-	pusher   *db.User
-	owner    *db.User
-	repo     *db.Repository
-	path     string
-	imageTag []string
-	commit   string
-	refName  string
-	config   *db.CIConfig
-	pipeline *db.Pipeline
+	pusher            *db.User
+	owner             *db.User
+	repo              *db.Repository
+	path              string
+	imageTag          []string
+	harborProjectName string
+	commit            string
+	refName           string
+	config            *db.CIConfig
+	pipeline          *db.Pipeline
 }
 
 func prepareCtx(c context.Context, p *db.Pipeline) (*Context, error) {
@@ -43,16 +44,17 @@ func prepareCtx(c context.Context, p *db.Pipeline) (*Context, error) {
 	}
 
 	return &Context{
-		Context:  c,
-		pusher:   pusher,
-		owner:    repo.Owner,
-		repo:     repo,
-		path:     filepath.Join(conf.Devops.Tmpdir, repo.MustOwner().Name, repo.Name, p.Commit),
-		imageTag: []string{p.ImageTag},
-		commit:   p.Commit,
-		refName:  p.RefName,
-		config:   config,
-		pipeline: p,
+		Context:           c,
+		pusher:            pusher,
+		owner:             repo.Owner,
+		repo:              repo,
+		path:              filepath.Join(conf.Devops.Tmpdir, repo.MustOwner().Name, repo.Name, p.Commit),
+		imageTag:          []string{p.ImageTag},
+		harborProjectName: p.HarborProjectName,
+		commit:            p.Commit,
+		refName:           p.RefName,
+		config:            config,
+		pipeline:          p,
 	}, nil
 }
 

@@ -76,5 +76,5 @@ func dockerBuild(ctx *Context, config *db.BuildTaskConfig) (err error) {
 
 func genImageTag(ctx *Context, tag string) string {
 	_ = ctx.repo.LoadAttributes()
-	return fmt.Sprintf("%s/%s/%s:%s", conf.Docker.Registry, ctx.repo.Owner.HarborName, ctx.repo.LowerName, tag)
+	return fmt.Sprintf("%s/%s/%s:%s", conf.Docker.Registry, ctx.harborProjectName, ctx.repo.LowerName, tag)
 }

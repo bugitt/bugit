@@ -49,8 +49,8 @@ func Init() (err error) {
 	return nil
 }
 
-func CreateHarborUser(ctx context.Context, studentID, userName, email, realName string) (userID int64, err error) {
-	u, err := createUser(ctx, harborCli, &CreateUserOpt{
+func CreateHarborUser(ctx context.Context, studentID, userName, email, realName string) (userID, projectID int64, err error) {
+	u, p, err := createUser(ctx, harborCli, &CreateUserOpt{
 		StudentID: studentID,
 		UserName:  userName,
 		Email:     email,
@@ -59,7 +59,7 @@ func CreateHarborUser(ctx context.Context, studentID, userName, email, realName 
 	if err != nil {
 		return
 	}
-	return u.IntID, err
+	return u.IntID, p.IntID, nil
 }
 
 func CreateHarborProject(ctx context.Context, userID int64, projectName string) (projectID int64, err error) {
@@ -82,25 +82,33 @@ func RemoveHarborProjectMember(ctx context.Context, userID, projectID int64) (er
 	return removeMember(ctx, harborCli, &User{IntID: userID}, &Project{IntID: projectID})
 }
 
-func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, error) {
+func GetHarborProjectName(ctx context.Context, projectID int64) (name string, err error) {
+	harborP, err := harborCli.GetProject(ctx, int2Str(projectID))
+	if err != nil {
+		return "", err
+	}
+	return harborP.Name, nil
+}
+
+func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Project, error) {
 	// 先创建用户本身
 	u, err := cli.CreateUser(ctx, opt)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// 然后创建用户的个人项目
 	p, err := cli.CreateProject(ctx, &CreateProject{ProjectName: u.Name})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// 然后将这个用户设置为自己个人项目的管理员
 	if err = cli.AddOwner(ctx, u, p); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return u, err
+	return u, p, nil
 }
 
 func createProject(ctx context.Context, cli Actor, u *User, projectName string) (p *Project, err error) {

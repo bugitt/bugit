@@ -1,7 +1,6 @@
 package ci
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -153,101 +152,101 @@ func CreateDeploy(opt *DeployOption) (err error) {
 	return nil
 }
 
-func DescribePipeTask(pipeline *db.Pipeline, repos ...*db.Repository) (re *DeployDes, err error) {
-	var repo *db.Repository
-	if len(repos) <= 0 {
-		repo, err = db.GetRepositoryByID(pipeline.RepoID)
-		if err != nil {
-			return
-		}
-	} else {
-		repo = repos[0]
-	}
+//func DescribePipeTask(pipeline *db.Pipeline, repos ...*db.Repository) (re *DeployDes, err error) {
+//	var repo *db.Repository
+//	if len(repos) <= 0 {
+//		repo, err = db.GetRepositoryByID(pipeline.RepoID)
+//		if err != nil {
+//			return
+//		}
+//	} else {
+//		repo = repos[0]
+//	}
+//
+//	pusher, err := db.GetUserByID(pipeline.PusherID)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	re = &DeployDes{
+//		Repo:         repo,
+//		RepoID:       repo.ID,
+//		RepoName:     repo.Name,
+//		Branch:       pipeline.RefName,
+//		BranchURL:    fmt.Sprintf("%s/src/%s", repo.Link(), pipeline.RefName),
+//		Commit:       pipeline.Commit,
+//		CommitURL:    fmt.Sprintf("%s/commit/%s", repo.Link(), pipeline.Commit),
+//		PrettyCommit: pipeline.Commit[:10],
+//		Status:       pipeline.Status,
+//		Stage:        pipeline.Stage,
+//		StageString:  db.PrettyStage(pipeline.Stage),
+//		IsSuccessful: pipeline.IsSuccessful,
+//		ErrMsg:       pipeline.ErrMsg,
+//		BeginUnix:    pipeline.BeginUnix,
+//		EndUnix:      pipeline.EndUnix,
+//		Pusher:       pusher,
+//		CreatedUnix:  pipeline.CreatedUnix,
+//		Created:      time.Unix(pipeline.CreatedUnix, 0),
+//
+//		ImageTag: pipeline.ImageTag,
+//	}
+//
+//	dtask, err := pipeline.GetDeployTask()
+//	if err != nil {
+//		return
+//	}
+//	if dtask == nil {
+//		re.HasDeploy = false
+//		re.IsHealthy = re.IsSuccessful
+//		return
+//	}
+//
+//	// 下面处理部署部分的内容
+//	re.Namespace = dtask.NameSpace
+//	re.IP = dtask.IP
+//	re.Deployment = dtask.DeploymentName
+//	re.Service = dtask.ServiceName
+//	re.Ports = dtask.GetPorts()
+//	re.PodLabels = db.GetPodLabels(repo, pipeline.RefName, pipeline.Commit)
+//	re.DepLabels = db.GetSvcLabels(repo)
+//	re.SvcLabels = re.DepLabels
+//
+//	// 检查已经部署的各个resource是否 working well
+//	ok, err := db.CheckKubeHealthy(re.PodLabels, re.Namespace, re.Service)
+//	if err != nil {
+//		return
+//	}
+//	re.IsHealthy = ok
+//	return
+//}
 
-	pusher, err := db.GetUserByID(pipeline.PusherID)
-	if err != nil {
-		return nil, err
-	}
-
-	re = &DeployDes{
-		Repo:         repo,
-		RepoID:       repo.ID,
-		RepoName:     repo.Name,
-		Branch:       pipeline.RefName,
-		BranchURL:    fmt.Sprintf("%s/src/%s", repo.Link(), pipeline.RefName),
-		Commit:       pipeline.Commit,
-		CommitURL:    fmt.Sprintf("%s/commit/%s", repo.Link(), pipeline.Commit),
-		PrettyCommit: pipeline.Commit[:10],
-		Status:       pipeline.Status,
-		Stage:        pipeline.Stage,
-		StageString:  db.PrettyStage(pipeline.Stage),
-		IsSuccessful: pipeline.IsSuccessful,
-		ErrMsg:       pipeline.ErrMsg,
-		BeginUnix:    pipeline.BeginUnix,
-		EndUnix:      pipeline.EndUnix,
-		Pusher:       pusher,
-		CreatedUnix:  pipeline.CreatedUnix,
-		Created:      time.Unix(pipeline.CreatedUnix, 0),
-
-		ImageTag: pipeline.ImageTag,
-	}
-
-	dtask, err := pipeline.GetDeployTask()
-	if err != nil {
-		return
-	}
-	if dtask == nil {
-		re.HasDeploy = false
-		re.IsHealthy = re.IsSuccessful
-		return
-	}
-
-	// 下面处理部署部分的内容
-	re.Namespace = dtask.NameSpace
-	re.IP = dtask.IP
-	re.Deployment = dtask.DeploymentName
-	re.Service = dtask.ServiceName
-	re.Ports = dtask.GetPorts()
-	re.PodLabels = db.GetPodLabels(repo, pipeline.RefName, pipeline.Commit)
-	re.DepLabels = db.GetSvcLabels(repo)
-	re.SvcLabels = re.DepLabels
-
-	// 检查已经部署的各个resource是否 working well
-	ok, err := db.CheckKubeHealthy(re.PodLabels, re.Namespace, re.Service)
-	if err != nil {
-		return
-	}
-	re.IsHealthy = ok
-	return
-}
-
-func GetDeployByRepo(repo *db.Repository) (re *DeployDes, err error) {
-	defer func() {
-		if err != nil && db.IsErrPipeNotFound(err) {
-			re = &DeployDes{
-				RepoID:   repo.ID,
-				RepoName: repo.Name,
-				ErrMsg:   err.Error(),
-			}
-		}
-	}()
-	repoID := repo.ID
-	pipeline, err := db.GetLatestPipeline(repoID)
-	if err != nil {
-		return
-	}
-	if pipeline == nil {
-		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
-		return
-	}
-	//ptask, err := db.GetLatestPipeTask(pipeline.ID)
-	if err != nil {
-		return
-	}
-	if ptask == nil {
-		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
-		return
-	}
-
-	return DescribePipeTask(pipeline, ptask, repo)
-}
+//func GetDeployByRepo(repo *db.Repository) (re *DeployDes, err error) {
+//	defer func() {
+//		if err != nil && db.IsErrPipeNotFound(err) {
+//			re = &DeployDes{
+//				RepoID:   repo.ID,
+//				RepoName: repo.Name,
+//				ErrMsg:   err.Error(),
+//			}
+//		}
+//	}()
+//	repoID := repo.ID
+//	pipeline, err := db.GetLatestPipeline(repoID)
+//	if err != nil {
+//		return
+//	}
+//	if pipeline == nil {
+//		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
+//		return
+//	}
+//	//ptask, err := db.GetLatestPipeTask(pipeline.ID)
+//	if err != nil {
+//		return
+//	}
+//	if ptask == nil {
+//		err = &db.ErrPipeNotFound{RepoID: repoID, RepoName: repo.Name}
+//		return
+//	}
+//
+//	return DescribePipeTask(pipeline, ptask, repo)
+//}

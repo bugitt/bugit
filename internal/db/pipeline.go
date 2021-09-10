@@ -46,26 +46,27 @@ const (
 )
 
 type Pipeline struct {
-	ID           int64
-	PusherID     int64 // 推送者，表示谁触发了该Pipeline的创建
-	RepoID       int64
-	ProjectID    int64 // 项目ID
-	UUID         string
-	RefName      string
-	Commit       string
-	ImageTag     string
-	PipeType     PipeType
-	ConfigString string `xorm:"text"`
-	CIPath       string
-	IsSuccessful bool
-	Log          string `xorm:"text"`
-	ErrMsg       string `xorm:"text"`
-	Status       RunStatus
-	Stage        PipeStage
-	TaskNum      int
-	BeginUnix    int64 // 开始时间戳
-	EndUnix      int64 // 结束时间戳
-	BaseModel    `xorm:"extends"`
+	ID                int64
+	PusherID          int64 // 推送者，表示谁触发了该Pipeline的创建
+	RepoID            int64
+	ProjectID         int64 // 项目ID
+	UUID              string
+	RefName           string
+	Commit            string
+	ImageTag          string
+	HarborProjectName string
+	PipeType          PipeType
+	ConfigString      string `xorm:"text"`
+	CIPath            string
+	IsSuccessful      bool
+	Log               string `xorm:"text"`
+	ErrMsg            string `xorm:"text"`
+	Status            RunStatus
+	Stage             PipeStage
+	TaskNum           int
+	BeginUnix         int64 // 开始时间戳
+	EndUnix           int64 // 结束时间戳
+	BaseModel         `xorm:"extends"`
 }
 
 type BasicTaskResult struct {
@@ -178,12 +179,17 @@ func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pu
 		RefName:   refName,
 		PipeType:  pipeType,
 		Commit:    commit.ID.String(),
-		ImageTag:  genImageTag(repo, commit.ID.String()),
 		ProjectID: repo.OwnerID,
 		Stage:     NotStart,
 		Status:    BeforeStart,
 		TaskNum:   -1,
 	}
+
+	harborProjectName, err := repo.Owner.GetHarborProjectName()
+	if err != nil {
+		return nil, err
+	}
+	pipeline.ImageTag = GenImageTag(repo, harborProjectName, commit.ID.String())
 
 	if confErr != nil {
 		pipeline.ErrMsg = confErr.Error()

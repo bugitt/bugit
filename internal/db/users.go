@@ -201,7 +201,7 @@ func (err ErrUserExpConflict) Error() string {
 	return fmt.Sprintf("user doesn't belong to this experiment: %v", err.args)
 }
 
-// ErrUserExpConflict 用户是不是属于这门实验
+// ErrUserOrgExpConflict 用户是不是属于这门实验
 type ErrUserOrgExpConflict struct {
 	args errutil.Args
 }
@@ -304,11 +304,12 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.EncodePassword()
 
-	harborID, harborName, err := platform.CreateUser(context.Background(), user.StudentID, user.Name, user.Email, user.Name)
+	// create harbor user
+	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), user.StudentID, user.Name, user.Email, user.Name)
 	if err != nil {
 		return nil, err
 	}
-	user.HarborID, user.HarborName = harborID, harborName
+	user.HarborUserID, user.HarborProjectID = harborUserID, harborProjectID
 
 	return user, db.DB.Create(user).Error
 }

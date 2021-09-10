@@ -158,11 +158,11 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.NumMembers = 1
 
 	// create harbor project
-	harborID, harborName, err := platform.CreateProject(context.Background(), org.Name, owner.StudentID)
+	harborID, err := platform.CreateHarborProject(context.Background(), owner.HarborProjectID, org.Name)
 	if err != nil {
 		return err
 	}
-	org.HarborID, org.HarborName = harborID, harborName
+	org.HarborProjectID = harborID
 
 	sess := x.NewSession()
 	defer sess.Close()
@@ -270,7 +270,7 @@ func DeleteOrganization(org *User) (err error) {
 		return err
 	}
 
-	return platform.DeleteProject(context.Background(), org.Name)
+	return platform.DeleteHarborProject(context.Background(), org.HarborProjectID)
 }
 
 // ExistOrgByExpStudent 检查是不是存在这样一个org，其实验ID是eid，而且还包含一个id为uid的用户
@@ -438,7 +438,7 @@ func AddOrgUser(orgID, uid int64) error {
 	if err != nil {
 		return err
 	}
-	return platform.AddProjectMember(context.Background(), org.HarborID, user.StudentID)
+	return platform.AddHarborOwner(context.Background(), user.HarborUserID, org.HarborProjectID)
 }
 
 // RemoveOrgUser removes user from given organization.
@@ -520,7 +520,7 @@ func RemoveOrgUser(orgID, userID int64) error {
 		return err
 	}
 
-	return platform.DeleteProjectMember(context.Background(), org.HarborID, user.StudentID)
+	return platform.RemoveHarborProjectMember(context.Background(), user.HarborUserID, org.HarborProjectID)
 }
 
 func removeOrgRepo(e Engine, orgID, repoID int64) error {

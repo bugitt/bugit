@@ -59,9 +59,9 @@ func shouldCIOnPush(commit *git.Commit, repo *Repository, pusher *User, refName 
 	return true, nil
 }
 
-func genImageTag(repo *Repository, commit string) string {
+func GenImageTag(repo *Repository, harborProjectName, commit string) string {
 	_ = repo.LoadAttributes()
-	return fmt.Sprintf("%s/%s/%s:%s", conf.Docker.Registry, repo.Owner.HarborName, repo.LowerName, commit)
+	return fmt.Sprintf("%s/%s/%s:%s", conf.Docker.Registry, harborProjectName, repo.LowerName, commit)
 }
 
 func GetCIConfigFromCommit(commit *git.Commit) (*CIConfig, error) {
