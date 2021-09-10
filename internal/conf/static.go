@@ -350,6 +350,7 @@ var (
 		AccessKey     string `ini:"access_key"`
 		SecretKey     string `ini:"secret_key"`
 		Token         string `ini:"token"`
+		AdminID       string `ini:"admin_id"`
 		Cluster       string `ini:"cluster"`
 		DefaultPasswd string `ini:"default_password"`
 	}

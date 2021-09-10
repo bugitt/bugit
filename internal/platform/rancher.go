@@ -27,16 +27,15 @@ func NewRancherCli() (*RancherCli, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RancherCli{mClient: mClient, globalCliOpt: opt}, nil
-}
 
-func (cli *RancherCli) ensureClusterClient() (err error) {
-	if cli.cclient == nil {
-		opt := cli.globalCliOpt
-		opt.URL = fmt.Sprintf("%s/clusters/%s", opt.URL, conf.Rancher.Cluster)
-		cli.cclient, err = clusterClient.NewClient(opt)
-	}
-	return
+	copt := opt
+	copt.URL = fmt.Sprintf("%s/clusters/%s", opt.URL, conf.Rancher.Cluster)
+	cc, err := clusterClient.NewClient(copt)
+	return &RancherCli{
+		globalCliOpt: opt,
+		cclient:      cc,
+		mClient:      mClient,
+	}, nil
 }
 
 func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
@@ -44,6 +43,9 @@ func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User
 
 	// 创建用户
 	u, err := mc.User.Create(&managementClient.User{
+		Annotations: map[string]string{
+			"from": "BuGit",
+		},
 		Description:        "User is created by BuGit.",
 		Enabled:            getBoolPtr(true),
 		MustChangePassword: true,
@@ -51,6 +53,7 @@ func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User
 		Password:           conf.Harbor.DefaultPasswd,
 		State:              "unknown",
 		Username:           opt.StudentID,
+		CreatorID:          conf.Rancher.AdminID,
 	})
 	if err != nil {
 		return nil, err
