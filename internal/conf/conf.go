@@ -361,6 +361,14 @@ func Init(customConf string) error {
 	}
 
 	// *************************
+	// ----- rancher settings -----
+	// *************************
+
+	if err = File.Section("rancher").MapTo(&Rancher); err != nil {
+		return errors.Wrap(err, "mapping [rancher] section")
+	}
+
+	// *************************
 	// ----- cloud api settings -----
 	// *************************
 

@@ -344,6 +344,16 @@ var (
 		DefaultPasswd string `ini:"default_password"`
 	}
 
+	// Rancher settings
+	Rancher struct {
+		Url           string `ini:"url"`
+		AccessKey     string `ini:"access_key"`
+		SecretKey     string `ini:"secret_key"`
+		Token         string `ini:"token"`
+		Cluster       string `ini:"cluster"`
+		DefaultPasswd string `ini:"default_password"`
+	}
+
 	// CloudAPI settings
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`

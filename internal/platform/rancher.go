@@ -2,22 +2,41 @@ package platform
 
 import (
 	"context"
+	"fmt"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"github.com/rancher/norman/clientbase"
+	clusterClient "github.com/rancher/rancher/pkg/client/generated/cluster/v3"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 )
 
 type RancherCli struct {
-	mClient *managementClient.Client
+	globalCliOpt *clientbase.ClientOpts
+	cclient      *clusterClient.Client
+	mClient      *managementClient.Client
 }
 
 func NewRancherCli() (*RancherCli, error) {
-	// TODO: 完善 OPT
-	mClient, err := managementClient.NewClient(nil)
+	opt := &clientbase.ClientOpts{
+		URL:       conf.Rancher.Url,
+		AccessKey: conf.Rancher.AccessKey,
+		SecretKey: conf.Rancher.SecretKey,
+		TokenKey:  conf.Rancher.Token,
+	}
+	mClient, err := managementClient.NewClient(opt)
 	if err != nil {
 		return nil, err
 	}
-	return &RancherCli{mClient: mClient}, nil
+	return &RancherCli{mClient: mClient, globalCliOpt: opt}, nil
+}
+
+func (cli *RancherCli) ensureClusterClient() (err error) {
+	if cli.cclient == nil {
+		opt := cli.globalCliOpt
+		opt.URL = fmt.Sprintf("%s/clusters/%s", opt.URL, conf.Rancher.Cluster)
+		cli.cclient, err = clusterClient.NewClient(opt)
+	}
+	return
 }
 
 func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
