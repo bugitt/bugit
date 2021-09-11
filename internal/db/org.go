@@ -158,11 +158,18 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.NumMembers = 1
 
 	// create harbor project
-	harborID, err := platform.CreateHarborProject(context.Background(), owner.HarborProjectID, org.Name)
+	harborID, err := platform.CreateHarborProject(context.Background(), owner.HarborUserID, org.Name)
 	if err != nil {
 		return err
 	}
 	org.HarborProjectID = harborID
+
+	// create rancher project
+	rancherID, err := platform.CreateRancherProject(owner.RancherUserID, org.Name)
+	if err != nil {
+		return err
+	}
+	org.RancherProjectID = rancherID
 
 	sess := x.NewSession()
 	defer sess.Close()
@@ -270,7 +277,15 @@ func DeleteOrganization(org *User) (err error) {
 		return err
 	}
 
-	return platform.DeleteHarborProject(context.Background(), org.HarborProjectID)
+	if err = platform.DeleteHarborProject(context.Background(), org.HarborProjectID); err != nil {
+		return err
+	}
+
+	if err = platform.DeleteRancherProject(org.RancherProjectID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ExistOrgByExpStudent 检查是不是存在这样一个org，其实验ID是eid，而且还包含一个id为uid的用户
@@ -438,7 +453,15 @@ func AddOrgUser(orgID, uid int64) error {
 	if err != nil {
 		return err
 	}
-	return platform.AddHarborOwner(context.Background(), user.HarborUserID, org.HarborProjectID)
+	if err = platform.AddHarborOwner(context.Background(), user.HarborUserID, org.HarborProjectID); err != nil {
+		return err
+	}
+
+	if err = platform.AddRancherOwner(user.RancherUserID, org.RancherProjectID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RemoveOrgUser removes user from given organization.
@@ -520,7 +543,15 @@ func RemoveOrgUser(orgID, userID int64) error {
 		return err
 	}
 
-	return platform.RemoveHarborProjectMember(context.Background(), user.HarborUserID, org.HarborProjectID)
+	if err = platform.RemoveHarborProjectMember(context.Background(), user.HarborUserID, org.HarborProjectID); err != nil {
+		return err
+	}
+
+	if err = platform.RemoveRancherProjectMember(user.RancherUserID, org.RancherProjectID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func removeOrgRepo(e Engine, orgID, repoID int64) error {

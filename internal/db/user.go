@@ -116,6 +116,10 @@ type User struct {
 	// Harbor
 	HarborUserID    int64
 	HarborProjectID int64
+
+	// Rancher
+	RancherUserID    string
+	RancherProjectID string
 }
 
 func (u *User) BeforeInsert() {
@@ -636,6 +640,13 @@ func CreateUser(u *User) (err error) {
 		return err
 	}
 	u.HarborUserID, u.HarborProjectID = harborUserID, harborProjectID
+
+	// create rancher user
+	rancherUserID, rancherProjectID, err := platform.CreateRancherUser(u.StudentID, u.Name)
+	if err != nil {
+		return err
+	}
+	u.RancherUserID, u.RancherProjectID = rancherUserID, rancherProjectID
 
 	sess := x.NewSession()
 	defer sess.Close()

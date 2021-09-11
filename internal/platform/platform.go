@@ -77,7 +77,7 @@ func CreateHarborProject(ctx context.Context, userID int64, projectName string) 
 	return p.IntID, err
 }
 
-func AddHarborOwner(ctx context.Context, userID int64, projectID int64) (err error) {
+func AddHarborOwner(ctx context.Context, userID, projectID int64) (err error) {
 	return addOwner(ctx, harborCli, &User{IntID: userID}, &Project{IntID: projectID})
 }
 
@@ -95,6 +95,37 @@ func GetHarborProjectName(ctx context.Context, projectID int64) (name string, er
 		return "", err
 	}
 	return harborP.Name, nil
+}
+
+func CreateRancherUser(studentID, realName string) (userID, projectID string, err error) {
+	u, p, err := createUser(context.Background(), rancherCli, &CreateUserOpt{
+		StudentID: studentID,
+		RealName:  realName,
+	})
+	if err != nil {
+		return
+	}
+	return u.StringID, p.StringID, nil
+}
+
+func CreateRancherProject(userID, projectName string) (projectID string, err error) {
+	p, err := createProject(context.Background(), harborCli, &User{StringID: userID}, projectName)
+	if err != nil {
+		return "", err
+	}
+	return p.StringID, err
+}
+
+func AddRancherOwner(userID, projectID string) (err error) {
+	return addOwner(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
+}
+
+func DeleteRancherProject(projectID string) (err error) {
+	return deleteProject(context.Background(), harborCli, &Project{StringID: projectID})
+}
+
+func RemoveRancherProjectMember(userID, projectID string) (err error) {
+	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
 }
 
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Project, error) {

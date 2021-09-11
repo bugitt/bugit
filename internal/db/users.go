@@ -311,6 +311,13 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	}
 	user.HarborUserID, user.HarborProjectID = harborUserID, harborProjectID
 
+	// create rancher user
+	rancherUserID, rancherProjectID, err := platform.CreateRancherUser(user.StudentID, user.Name)
+	if err != nil {
+		return nil, err
+	}
+	user.RancherUserID, user.RancherProjectID = rancherUserID, rancherProjectID
+
 	return user, db.DB.Create(user).Error
 }
 
