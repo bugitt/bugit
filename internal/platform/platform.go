@@ -34,8 +34,9 @@ type User struct {
 }
 
 var (
-	harborCli *HarborCli
-	cliSet    []Actor
+	harborCli  *HarborCli
+	rancherCli *RancherCli
+	cliSet     []Actor
 )
 
 // Init 初始化各个平台的客户端
@@ -45,6 +46,12 @@ func Init() (err error) {
 		return err
 	}
 	cliSet = append(cliSet, harborCli)
+
+	rancherCli, err = NewRancherCli()
+	if err != nil {
+		return err
+	}
+	cliSet = append(cliSet, rancherCli)
 
 	return nil
 }

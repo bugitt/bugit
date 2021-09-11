@@ -8,6 +8,7 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	json "github.com/json-iterator/go"
 	"github.com/rancher/norman/clientbase"
+	"github.com/rancher/norman/types"
 	clusterClient "github.com/rancher/rancher/pkg/client/generated/cluster/v3"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 	projectClient "github.com/rancher/rancher/pkg/client/generated/project/v3"
@@ -151,7 +152,7 @@ func (cli *RancherCli) CreateProject(_ context.Context, opt *CreateProjectOpt) (
 		CreatorID:   conf.Rancher.AdminID,
 		Description: "Pull images from Harbor.",
 		Immutable:   getBoolPtr(true),
-		Name:        ns.Name + "-docker-registry",
+		Name:        ns.Name + "-default-docker-registry",
 		Kind:        "Secret",
 		NamespaceId: ns.ID,
 		ProjectID:   p.ID,
@@ -202,10 +203,53 @@ func (cli *RancherCli) DeleteProject(_ context.Context, project *Project) error 
 	return cli.mClient.Project.Delete(p)
 }
 
-func (cli *RancherCli) AddOwner(ctx context.Context, user *User, project *Project) error {
-	panic("implement me")
+func (cli *RancherCli) getUserAndProject(uID, pID string) (*managementClient.User, *managementClient.Project, error) {
+	u, err := cli.mClient.User.ByID(uID)
+	if err != nil {
+		return nil, nil, err
+	}
+	p, err := cli.mClient.Project.ByID(pID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return u, p, nil
 }
 
-func (cli *RancherCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
-	panic("implement me")
+func (cli *RancherCli) AddOwner(_ context.Context, user *User, project *Project) error {
+	u, p, err := cli.getUserAndProject(user.StringID, project.StringID)
+	if err != nil {
+		return err
+	}
+	_, err = cli.mClient.ProjectRoleTemplateBinding.Create(&managementClient.ProjectRoleTemplateBinding{
+		CreatorID:       conf.Rancher.AdminID,
+		ProjectID:       p.ID,
+		RoleTemplateID:  "project-member",
+		UserPrincipalID: u.ID,
+	})
+	return err
+}
+
+func (cli *RancherCli) RemoveMember(_ context.Context, u *User, p *Project) error {
+	filter := &types.ListOpts{
+		Filters: map[string]interface{}{
+			"limit": -1,
+			"all":   true,
+		},
+	}
+	filter.Filters["projectId"] = p.StringID
+	filter.Filters["roleTemplateId"] = "project-member"
+	filter.Filters["userPrincipalId"] = u.StringID
+
+	bindings, err := cli.mClient.ProjectRoleTemplateBinding.List(filter)
+	if err != nil {
+		return err
+	}
+
+	for _, binding := range bindings.Data {
+		err = cli.mClient.ProjectRoleTemplateBinding.Delete(&binding)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
