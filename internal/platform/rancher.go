@@ -8,7 +8,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	json "github.com/json-iterator/go"
 	"github.com/rancher/norman/clientbase"
-	"github.com/rancher/norman/types"
 	clusterClient "github.com/rancher/rancher/pkg/client/generated/cluster/v3"
 	managementClient "github.com/rancher/rancher/pkg/client/generated/management/v3"
 	projectClient "github.com/rancher/rancher/pkg/client/generated/project/v3"
@@ -44,7 +43,22 @@ func NewRancherCli() (*RancherCli, error) {
 	}, nil
 }
 
-func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
+func (cli *RancherCli) getProjectClient(id string) (*projectClient.Client, error) {
+	var err error
+	pClient := cli.pClientMap[id]
+	if pClient == nil {
+		pClientOpt := cli.globalCliOpt
+		pClientOpt.URL = fmt.Sprintf("%s/projects/%s", cli.globalCliOpt.URL, id)
+		pClient, err = projectClient.NewClient(pClientOpt)
+		if err != nil {
+			return nil, err
+		}
+		cli.pClientMap[id] = pClient
+	}
+	return pClient, nil
+}
+
+func (cli *RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
 	mc := cli.mClient
 
 	// 创建用户
@@ -81,7 +95,7 @@ func (cli RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User
 	}, nil
 }
 
-func (cli RancherCli) createUserRole(userID, roleID string) error {
+func (cli *RancherCli) createUserRole(userID, roleID string) error {
 	_, err := cli.mClient.GlobalRoleBinding.Create(&managementClient.GlobalRoleBinding{
 		GlobalRoleID: roleID,
 		UserID:       userID,
@@ -89,7 +103,7 @@ func (cli RancherCli) createUserRole(userID, roleID string) error {
 	return err
 }
 
-func (cli RancherCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
+func (cli *RancherCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
 	limit := &managementClient.ResourceQuotaLimit{
 		LimitsCPU:    conf.Deploy.DefaultNSCPULimit,
 		LimitsMemory: conf.Deploy.DefaultNSMemLimit,
@@ -129,20 +143,11 @@ func (cli RancherCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) 
 	}
 
 	// 为 namespace 创建 secret，以允许其从Harbor中拉取镜像
-	pClient := cli.pClientMap[p.ID]
-	if pClient == nil {
-		pClientOpt := cli.globalCliOpt
-		pClientOpt.URL = fmt.Sprintf("%s/projects/%s", cli.globalCliOpt.URL, p.ID)
-		pClient, err = projectClient.NewClient(pClientOpt)
-		if err != nil {
-			return nil, err
-		}
-		cli.pClientMap[p.ID] = pClient
+	pClient, err := cli.getProjectClient(p.ID)
+	if err != nil {
+		return nil, err
 	}
 	_, err = pClient.Secret.Create(&projectClient.Secret{
-		Resource: types.Resource{
-			Type: "kubernetes.io/dockerconfigjson",
-		},
 		CreatorID:   conf.Rancher.AdminID,
 		Description: "Pull images from Harbor.",
 		Immutable:   getBoolPtr(true),
@@ -185,14 +190,14 @@ func encodeDockerRegistryConfig() string {
 	return string(data)
 }
 
-func (cli RancherCli) DeleteProject(ctx context.Context, project *Project) error {
+func (cli *RancherCli) DeleteProject(ctx context.Context, project *Project) error {
 	panic("implement me")
 }
 
-func (cli RancherCli) AddOwner(ctx context.Context, user *User, project *Project) error {
+func (cli *RancherCli) AddOwner(ctx context.Context, user *User, project *Project) error {
 	panic("implement me")
 }
 
-func (cli RancherCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
+func (cli *RancherCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
 	panic("implement me")
 }
