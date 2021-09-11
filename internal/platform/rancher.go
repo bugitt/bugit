@@ -58,7 +58,7 @@ func (cli *RancherCli) getProjectClient(id string) (*projectClient.Client, error
 	return pClient, nil
 }
 
-func (cli *RancherCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
+func (cli *RancherCli) CreateUser(_ context.Context, opt *CreateUserOpt) (*User, error) {
 	mc := cli.mClient
 
 	// 创建用户
@@ -103,7 +103,7 @@ func (cli *RancherCli) createUserRole(userID, roleID string) error {
 	return err
 }
 
-func (cli *RancherCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
+func (cli *RancherCli) CreateProject(_ context.Context, opt *CreateProjectOpt) (*Project, error) {
 	limit := &managementClient.ResourceQuotaLimit{
 		LimitsCPU:    conf.Deploy.DefaultNSCPULimit,
 		LimitsMemory: conf.Deploy.DefaultNSMemLimit,
@@ -190,8 +190,16 @@ func encodeDockerRegistryConfig() string {
 	return string(data)
 }
 
-func (cli *RancherCli) DeleteProject(ctx context.Context, project *Project) error {
-	panic("implement me")
+func (cli *RancherCli) GetProject(id string) (*managementClient.Project, error) {
+	return cli.mClient.Project.ByID(id)
+}
+
+func (cli *RancherCli) DeleteProject(_ context.Context, project *Project) error {
+	p, err := cli.GetProject(project.StringID)
+	if err != nil {
+		return err
+	}
+	return cli.mClient.Project.Delete(p)
 }
 
 func (cli *RancherCli) AddOwner(ctx context.Context, user *User, project *Project) error {
