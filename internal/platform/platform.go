@@ -9,13 +9,13 @@ type CreateUserOpt struct {
 	RealName  string
 }
 
-type CreateProject struct {
+type CreateProjectOpt struct {
 	ProjectName string
 }
 
 type Actor interface {
 	CreateUser(context.Context, *CreateUserOpt) (*User, error)
-	CreateProject(context.Context, *CreateProject) (*Project, error)
+	CreateProject(context.Context, *CreateProjectOpt) (*Project, error)
 	DeleteProject(context.Context, *Project) error
 	AddOwner(context.Context, *User, *Project) error
 	RemoveMember(ctx context.Context, u *User, p *Project) error
@@ -98,7 +98,7 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Pro
 	}
 
 	// 然后创建用户的个人项目
-	p, err := cli.CreateProject(ctx, &CreateProject{ProjectName: u.Name})
+	p, err := cli.CreateProject(ctx, &CreateProjectOpt{ProjectName: u.Name})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,7 +112,7 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Pro
 }
 
 func createProject(ctx context.Context, cli Actor, u *User, projectName string) (p *Project, err error) {
-	p, err = cli.CreateProject(ctx, &CreateProject{ProjectName: projectName})
+	p, err = cli.CreateProject(ctx, &CreateProjectOpt{ProjectName: projectName})
 	if err != nil {
 		return
 	}

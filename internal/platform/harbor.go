@@ -49,7 +49,7 @@ func (cli *HarborCli) getHarborUP(ctx context.Context, userID, projectID int64) 
 	return u, p, err
 }
 
-func (cli HarborCli) CreateProject(ctx context.Context, opt *CreateProject) (*Project, error) {
+func (cli HarborCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
 	projectName := PrettyName(opt.ProjectName)
 
 	// check whether project already exists

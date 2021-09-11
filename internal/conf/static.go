@@ -355,6 +355,14 @@ var (
 		DefaultPasswd string `ini:"default_password"`
 	}
 
+	// Deploy settings
+	Deploy struct {
+		DefaultNSCPULimit        string `ini:"default_ns_cpu_limit"`
+		DefaultNSMemLimit        string `ini:"default_ns_memory_limit"`
+		DefaultContainerCPULimit string `ini:"default_container_cpu_limit"`
+		DefaultContainerMemLimit string `ini:"default_container_memory_limit"`
+	}
+
 	// CloudAPI settings
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`
