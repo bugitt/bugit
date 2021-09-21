@@ -7,6 +7,7 @@ type CreateUserOpt struct {
 	UserName  string
 	Email     string
 	RealName  string
+	Password  string
 }
 
 type CreateProjectOpt struct {
