@@ -369,6 +369,22 @@ func Init(customConf string) error {
 	}
 
 	// *************************
+	// ----- deploy settings -----
+	// *************************
+
+	if err = File.Section("deploy").MapTo(&Deploy); err != nil {
+		return errors.Wrap(err, "mapping [deploy] section")
+	}
+
+	// *************************
+	// ----- ks settings -----
+	// *************************
+
+	if err = File.Section("ks").MapTo(&KS); err != nil {
+		return errors.Wrap(err, "mapping [ks] section")
+	}
+
+	// *************************
 	// ----- cloud api settings -----
 	// *************************
 

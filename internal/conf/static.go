@@ -363,6 +363,13 @@ var (
 		DefaultContainerMemLimit string `ini:"default_container_memory_limit"`
 	}
 
+	// KS KubeSphere settings
+	KS struct {
+		KubernetesURL string `ini:"kubernetes_url"`
+		KSAdmin       string `ini:"ks_admin"`
+		KSPassword    string `ini:"ks_password"`
+	}
+
 	// CloudAPI settings
 	CloudAPI struct {
 		RedisHost   string `ini:"redis_host"`
