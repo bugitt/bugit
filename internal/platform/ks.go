@@ -59,6 +59,8 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: 添加到 main workspace 中
 	return &User{
 		Name:     u.Name,
 		StringID: u.Name,
