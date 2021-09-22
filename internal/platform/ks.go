@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
-	"github.com/loheagn/ksclient/client"
-	"github.com/loheagn/ksclient/client/generic"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -16,6 +14,8 @@ import (
 	"kubesphere.io/api/constants"
 	iam "kubesphere.io/api/iam/v1alpha2"
 	tenant "kubesphere.io/api/tenant/v1alpha1"
+	"kubesphere.io/client-go/client"
+	"kubesphere.io/client-go/client/generic"
 )
 
 type KSCli struct {

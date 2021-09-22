@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/loheagn/ksclient/client"
+	"kubesphere.io/client-go/client"
 )
 
 func TestKSCli_CreateUser(t *testing.T) {
@@ -70,7 +70,7 @@ func TestKSCli_CreateProject(t *testing.T) {
 		wantDelErr bool
 	}{
 		{
-			name:   "simple create simple project",
+			name:   "simple create and delete simple project",
 			fields: fields{Client: NewKSCli("10.251.0.40:31889", "admin", "qAs.wChKwF5iKf#4")},
 			args: args{
 				ctx: context.Background(),

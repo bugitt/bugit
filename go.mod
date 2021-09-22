@@ -27,7 +27,6 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/json-iterator/go v1.1.11
-	github.com/loheagn/ksclient v1.1.0
 	github.com/loheagn/loclo v0.10.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2 // indirect
@@ -73,6 +72,7 @@ require (
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v12.0.0+incompatible
 	kubesphere.io/api v0.0.0-20210917114432-19cb9aacd65f
+	kubesphere.io/client-go v0.3.2-0.20210825154317-202fce29e5cd
 	unknwon.dev/clog/v2 v2.2.0
 	xorm.io/builder v0.3.6
 	xorm.io/core v0.7.2

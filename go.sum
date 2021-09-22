@@ -803,8 +803,6 @@ github.com/lib/pq v1.3.0 h1:/qkRGz8zljWiDcFvgpwUpwIAPu3r07TDvs3Rws+o/pU=
 github.com/lib/pq v1.3.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de/go.mod h1:zAbeS9B/r2mtpb6U+EI2rYA5OAXxsYw6wTamcNW+zcE=
 github.com/lithammer/dedent v1.1.0/go.mod h1:jrXYCQtgg0nJiN+StA2KgR7w6CiQNv9Fd/Z9BP0jIOc=
-github.com/loheagn/ksclient v1.1.0 h1:VfifoRKYPjMr6nQcO8RcfQ3TryD65c4fXUYozh3+8AE=
-github.com/loheagn/ksclient v1.1.0/go.mod h1:8geIVcBSj/Q9d9n+EK/qWq66iBTMYPZcqZOFxY1WW2w=
 github.com/loheagn/loclo v0.10.0 h1:8GijEGw/QO6PWo/m4M5G/4E8V2jIIqWLTyiNssLaBPM=
 github.com/loheagn/loclo v0.10.0/go.mod h1:1TRCh/aHpvb+caF2xM86PsaMYz06W0ApSiC0jhWGhMs=
 github.com/lunny/log v0.0.0-20160921050905-7887c61bf0de/go.mod h1:3q8WtuPQsoRbatJuy3nvq/hRSvuBJrHHr+ybPPiNvHQ=
@@ -1829,6 +1827,8 @@ k8s.io/utils v0.0.0-20210527160623-6fdb442a123b h1:MSqsVQ3pZvPGTqCjptfimO2WjG7A9
 k8s.io/utils v0.0.0-20210527160623-6fdb442a123b/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kubesphere.io/api v0.0.0-20210917114432-19cb9aacd65f h1:cz7/19PZSy9AkPs9ksyFXRQRWRiRX5Ujoc3EAZ/M6CU=
 kubesphere.io/api v0.0.0-20210917114432-19cb9aacd65f/go.mod h1:jPX7xM01k8B/mIDNNeX7M4p3nsmyr1rPqeLT3zLr4w0=
+kubesphere.io/client-go v0.3.2-0.20210825154317-202fce29e5cd h1:tnl9nBPyrBvf0TTs6UffOhPu36Q8bKcvhIRq3UGDsB0=
+kubesphere.io/client-go v0.3.2-0.20210825154317-202fce29e5cd/go.mod h1:BTodY1qH+CCC1AKNOPY9fxURq0bFiKdhEprNcW5vdBc=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=
