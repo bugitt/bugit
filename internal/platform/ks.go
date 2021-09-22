@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/loheagn/ksclient/client"
@@ -114,6 +115,7 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 }
 
 func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
+	opt.ProjectName = "project-" + strings.ToLower(opt.ProjectName)
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        opt.ProjectName,
