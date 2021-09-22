@@ -172,7 +172,10 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 }
 
 func (cli KSCli) DeleteProject(ctx context.Context, project *Project) error {
-	panic("implement me")
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: project.Name},
+	}
+	return cli.Delete(ctx, ns)
 }
 
 func (cli KSCli) AddOwner(ctx context.Context, user *User, project *Project) error {

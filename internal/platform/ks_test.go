@@ -62,11 +62,12 @@ func TestKSCli_CreateProject(t *testing.T) {
 		opt *CreateProjectOpt
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *Project
-		wantErr bool
+		name       string
+		fields     fields
+		args       args
+		want       *Project
+		wantErr    bool
+		wantDelErr bool
 	}{
 		{
 			name:   "simple create simple project",
@@ -90,6 +91,13 @@ func TestKSCli_CreateProject(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CreateProject() got = %v, want %v", got, tt.want)
+			}
+
+			// 测试删除
+			delErr := cli.DeleteProject(tt.args.ctx, got)
+			if (delErr != nil) != tt.wantDelErr {
+				t.Errorf("DeleteProject() error = %v, wantErr %v", delErr, tt.wantDelErr)
+				return
 			}
 		})
 	}
