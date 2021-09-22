@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform/ks"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -20,6 +21,9 @@ import (
 
 type KSCli struct {
 	client.Client
+	username string
+	password string
+	url      string
 }
 
 var (
@@ -57,7 +61,7 @@ func NewKSCli(url, adminName, adminPassword string) *KSCli {
 		panic(err)
 	}
 	cli := generic.NewForConfigOrDie(config, client.Options{Scheme: scheme.Scheme})
-	return &KSCli{cli}
+	return &KSCli{Client: cli, username: adminName, password: adminPassword, url: url}
 }
 
 func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
@@ -180,8 +184,12 @@ func (cli KSCli) DeleteProject(ctx context.Context, project *Project) error {
 	return cli.Delete(ctx, ns)
 }
 
-func (cli KSCli) AddOwner(ctx context.Context, user *User, project *Project) error {
-	panic("implement me")
+func (cli KSCli) AddOwner(_ context.Context, user *User, project *Project) error {
+	rc, err := ks.NewRClient(cli.username, cli.password, cli.url)
+	if err != nil {
+		return err
+	}
+	return rc.AddProjectMember(project.Name, user.Name, "operator")
 }
 
 func (cli KSCli) RemoveMember(ctx context.Context, u *User, p *Project) error {

@@ -102,3 +102,38 @@ func TestKSCli_CreateProject(t *testing.T) {
 		})
 	}
 }
+
+func TestKSCli_AddOwner(t *testing.T) {
+	type fields struct {
+		cli *KSCli
+	}
+	type args struct {
+		in0     context.Context
+		user    *User
+		project *Project
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:   "simple add member",
+			fields: fields{NewKSCli("10.251.0.40:31889", "admin", "qAs.wChKwF5iKf#4")},
+			args: args{
+				in0:     nil,
+				user:    &User{Name: "15131057"},
+				project: &Project{Name: "project-15131059"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cli := tt.fields.cli
+			if err := cli.AddOwner(tt.args.in0, tt.args.user, tt.args.project); (err != nil) != tt.wantErr {
+				t.Errorf("AddOwner() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
