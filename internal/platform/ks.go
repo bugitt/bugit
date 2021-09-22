@@ -8,6 +8,7 @@ import (
 	"github.com/loheagn/ksclient/client/generic"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -29,6 +30,10 @@ var (
 	_ = &client.URLOptions{
 		Group:   "tenant.kubesphere.io",
 		Version: "v1alpha2",
+	}
+
+	AdminCreatorAnnotation = map[string]string{
+		constants.CreatorAnnotationKey: AdminName,
 	}
 )
 
@@ -111,16 +116,55 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: opt.ProjectName,
-			Annotations: map[string]string{
-				constants.CreatorAnnotationKey: AdminName,
-			},
+			Name:        opt.ProjectName,
+			Annotations: AdminCreatorAnnotation,
 			Labels: map[string]string{
 				tenant.WorkspaceLabel: MainWorkspace,
 			},
 		},
 	}
 	if err := cli.Create(ctx, ns); err != nil {
+		return nil, err
+	}
+
+	// 设置Namespace中的资源限额
+	quota := &v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        opt.ProjectName + "-ns-resource-limit",
+			Namespace:   opt.ProjectName,
+			Annotations: AdminCreatorAnnotation,
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: map[v1.ResourceName]resource.Quantity{
+				v1.ResourceName("limits.cpu"):    resource.MustParse("2"),
+				v1.ResourceName("limits.memory"): resource.MustParse("4096Mi"),
+			},
+		},
+	}
+	if err := cli.Create(ctx, quota); err != nil {
+		return nil, err
+	}
+
+	// 设置容器默认的CPU和内存占用
+	limitRange := &v1.LimitRange{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:   opt.ProjectName,
+			Name:        opt.ProjectName + "-default-container-resource-limit",
+			Annotations: AdminCreatorAnnotation,
+		},
+		Spec: v1.LimitRangeSpec{
+			Limits: []v1.LimitRangeItem{
+				{
+					Default: map[v1.ResourceName]resource.Quantity{
+						v1.ResourceCPU:    resource.MustParse("0.25"),
+						v1.ResourceMemory: resource.MustParse("500Mi"),
+					},
+					Type: v1.LimitTypeContainer,
+				},
+			},
+		},
+	}
+	if err := cli.Create(ctx, limitRange); err != nil {
 		return nil, err
 	}
 
