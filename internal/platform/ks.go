@@ -6,10 +6,12 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/loheagn/ksclient/client"
 	"github.com/loheagn/ksclient/client/generic"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	iam "kubesphere.io/api/iam/v1alpha2"
+	tenant "kubesphere.io/api/tenant/v1alpha1"
 )
 
 type KSCli struct {
@@ -17,10 +19,18 @@ type KSCli struct {
 }
 
 var (
-	iamUrlOpt = &client.URLOptions{
+	_ = &client.URLOptions{
 		Group:   "iam.kubesphere.io",
 		Version: "v1alpha2",
 	}
+)
+
+const (
+	MainWorkspace             = "main-workspace"
+	MainWorkspaceViewer       = "main-workspace-viewer"
+	ApiGroupIAM               = "iam.kubesphere.io"
+	ApiGroupRBACAuthorization = "rbac.authorization.k8s.io"
+	KindUser                  = "User"
 )
 
 func NewKSCli(url, adminName, adminPassword string) *KSCli {
@@ -55,12 +65,35 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 			EncryptedPassword: password,
 		},
 	}
-	err := cli.Create(ctx, u)
-	if err != nil {
+	if err := cli.Create(ctx, u); err != nil {
 		return nil, err
 	}
 
-	// TODO: 添加到 main workspace 中
+	workspaceRoleBinding := &iam.WorkspaceRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				iam.UserReferenceLabel: opt.StudentID,
+				tenant.WorkspaceLabel:  MainWorkspace,
+			},
+			Name: opt.StudentID + "-" + MainWorkspaceViewer,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: ApiGroupIAM,
+			Kind:     iam.ResourceKindWorkspaceRole,
+			Name:     MainWorkspaceViewer,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				APIGroup: ApiGroupRBACAuthorization,
+				Kind:     KindUser,
+				Name:     opt.StudentID,
+			},
+		},
+	}
+	if err := cli.Create(ctx, workspaceRoleBinding); err != nil {
+		return nil, err
+	}
+
 	return &User{
 		Name:     u.Name,
 		StringID: u.Name,

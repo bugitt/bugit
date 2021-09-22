@@ -368,6 +368,7 @@ var (
 		KubernetesURL string `ini:"kubernetes_url"`
 		KSAdmin       string `ini:"ks_admin"`
 		KSPassword    string `ini:"ks_password"`
+		MainWorkspace string `ini:"main_workspace"`
 	}
 
 	// CloudAPI settings

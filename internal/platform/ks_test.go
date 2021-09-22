@@ -28,9 +28,9 @@ func TestKSCli_CreateUser(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				opt: &CreateUserOpt{
-					StudentID: "15131052",
+					StudentID: "15131057",
 					UserName:  "wurilege",
-					Email:     "15131052@buaa.edu.cn",
+					Email:     "15131057@buaa.edu.cn",
 					RealName:  "wurilege",
 					Password:  "newpass",
 				},
