@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/loheagn/ksclient/client"
@@ -48,6 +49,48 @@ func TestKSCli_CreateUser(t *testing.T) {
 				return
 			}
 			t.Log(got)
+		})
+	}
+}
+
+func TestKSCli_CreateProject(t *testing.T) {
+	type fields struct {
+		Client client.Client
+	}
+	type args struct {
+		ctx context.Context
+		opt *CreateProjectOpt
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *Project
+		wantErr bool
+	}{
+		{
+			name:   "simple create simple project",
+			fields: fields{Client: NewKSCli("10.251.0.40:31889", "admin", "qAs.wChKwF5iKf#4")},
+			args: args{
+				ctx: context.Background(),
+				opt: &CreateProjectOpt{ProjectName: "15131059"},
+			},
+			want: &Project{Name: "15131059"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cli := KSCli{
+				Client: tt.fields.Client,
+			}
+			got, err := cli.CreateProject(tt.args.ctx, tt.args.opt)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateProject() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateProject() got = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

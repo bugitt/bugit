@@ -6,10 +6,12 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"github.com/loheagn/ksclient/client"
 	"github.com/loheagn/ksclient/client/generic"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"kubesphere.io/api/constants"
 	iam "kubesphere.io/api/iam/v1alpha2"
 	tenant "kubesphere.io/api/tenant/v1alpha1"
 )
@@ -23,6 +25,11 @@ var (
 		Group:   "iam.kubesphere.io",
 		Version: "v1alpha2",
 	}
+
+	_ = &client.URLOptions{
+		Group:   "tenant.kubesphere.io",
+		Version: "v1alpha2",
+	}
 )
 
 const (
@@ -31,6 +38,7 @@ const (
 	ApiGroupIAM               = "iam.kubesphere.io"
 	ApiGroupRBACAuthorization = "rbac.authorization.k8s.io"
 	KindUser                  = "User"
+	AdminName                 = "admin"
 )
 
 func NewKSCli(url, adminName, adminPassword string) *KSCli {
@@ -101,7 +109,22 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 }
 
 func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
-	panic("implement me")
+	ns := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: opt.ProjectName,
+			Annotations: map[string]string{
+				constants.CreatorAnnotationKey: AdminName,
+			},
+			Labels: map[string]string{
+				tenant.WorkspaceLabel: MainWorkspace,
+			},
+		},
+	}
+	if err := cli.Create(ctx, ns); err != nil {
+		return nil, err
+	}
+
+	return &Project{Name: opt.ProjectName}, nil
 }
 
 func (cli KSCli) DeleteProject(ctx context.Context, project *Project) error {
