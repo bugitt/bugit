@@ -1,4 +1,4 @@
-package ks
+package kube
 
 import (
 	"strings"
