@@ -114,10 +114,7 @@ func GlobalInit(customConf string) error {
 	}
 
 	// 初始化Platform的各个客户端
-	err = platform.Init()
-	if err != nil {
-		return err
-	}
+	platform.Init()
 
 	return nil
 }

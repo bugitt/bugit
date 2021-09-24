@@ -1,6 +1,10 @@
 package platform
 
-import "context"
+import (
+	"context"
+
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+)
 
 type CreateUserOpt struct {
 	StudentID string
@@ -37,24 +41,34 @@ type User struct {
 var (
 	harborCli  *HarborCli
 	rancherCli *RancherCli
+	ksCli      *KSCli
 	cliSet     []Actor
 )
 
 // Init 初始化各个平台的客户端
-func Init() (err error) {
+func Init() {
+	var err error
 	harborCli, err = getHarborClient()
 	if err != nil {
-		return err
+		panic(err)
 	}
 	cliSet = append(cliSet, harborCli)
 
 	rancherCli, err = NewRancherCli()
 	if err != nil {
-		return err
+		panic(err)
 	}
 	cliSet = append(cliSet, rancherCli)
 
-	return nil
+	ksCli = NewKSCli(
+		conf.KS.KubernetesURL,
+		conf.KS.KSAdmin,
+		conf.KS.KSPassword,
+		conf.Harbor.Host,
+		conf.Harbor.AdminName,
+		conf.Harbor.AdminPasswd,
+	)
+	cliSet = append(cliSet, ksCli)
 }
 
 func CreateHarborUser(ctx context.Context, studentID, userName, email, realName string) (userID, projectID int64, err error) {
