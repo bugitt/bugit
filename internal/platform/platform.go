@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 )
@@ -141,6 +142,42 @@ func DeleteRancherProject(projectID string) (err error) {
 
 func RemoveRancherProjectMember(userID, projectID string) (err error) {
 	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
+}
+
+func CreateKSUser(ctx context.Context, studentID, email string) (userName, projectName string, err error) {
+	studentID = strings.ToLower(studentID)
+	u, p, err := createUser(ctx, ksCli, &CreateUserOpt{
+		StudentID: studentID,
+		UserName:  studentID,
+		Email:     email,
+		RealName:  studentID,
+	})
+	if err != nil {
+		return
+	}
+	return u.Name, p.Name, nil
+}
+
+func CreateKSProject(ctx context.Context, username string, projectName string) (projectID int64, err error) {
+	username = strings.ToLower(username)
+	projectName = strings.ToLower(projectName)
+	p, err := createProject(ctx, ksCli, &User{Name: username}, projectName)
+	if err != nil {
+		return 0, err
+	}
+	return p.IntID, err
+}
+
+func AddKSOwner(username, projectName string) (err error) {
+	return addOwner(context.Background(), ksCli, &User{Name: username}, &Project{Name: projectName})
+}
+
+func DeleteKSProject(projectName string) (err error) {
+	return deleteProject(context.Background(), ksCli, &Project{Name: projectName})
+}
+
+func RemoveKSProjectMember(username, projectName string) (err error) {
+	return removeMember(context.Background(), ksCli, &User{Name: username}, &Project{Name: projectName})
 }
 
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Project, error) {
