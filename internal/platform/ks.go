@@ -199,8 +199,9 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 		return nil, err
 	}
 	secret.ObjectMeta = metav1.ObjectMeta{
-		Name:      opt.ProjectName + "-default-harbor-registry",
-		Namespace: opt.ProjectName,
+		Annotations: AdminCreatorAnnotation,
+		Name:        opt.ProjectName + "-default-harbor-registry",
+		Namespace:   opt.ProjectName,
 	}
 	if err = cli.Create(ctx, secret); err != nil {
 		return nil, err
@@ -228,6 +229,10 @@ func (cli KSCli) AddOwner(_ context.Context, user *User, project *Project) error
 	return rc.AddProjectMember(project.Name, user.Name, "operator")
 }
 
-func (cli KSCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
-	panic("implement me")
+func (cli KSCli) RemoveMember(_ context.Context, u *User, p *Project) error {
+	rc, err := kube.NewRClient(cli.username, cli.password, cli.url)
+	if err != nil {
+		return err
+	}
+	return rc.DeleteProjectMember(p.Name, u.Name)
 }

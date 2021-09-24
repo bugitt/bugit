@@ -89,11 +89,11 @@ func TestKSCli_CreateProject(t *testing.T) {
 			}
 
 			// 测试删除
-			//delErr := cli.DeleteProject(tt.args.ctx, got)
-			//if (delErr != nil) != tt.wantDelErr {
-			//	t.Errorf("DeleteProject() error = %v, wantErr %v", delErr, tt.wantDelErr)
-			//	return
-			//}
+			delErr := cli.DeleteProject(tt.args.ctx, got)
+			if (delErr != nil) != tt.wantDelErr {
+				t.Errorf("DeleteProject() error = %v, wantErr %v", delErr, tt.wantDelErr)
+				return
+			}
 		})
 	}
 }
@@ -105,9 +105,10 @@ func TestKSCli_AddOwner(t *testing.T) {
 		project *Project
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name       string
+		args       args
+		wantErr    bool
+		wantDelErr bool
 	}{
 		{
 			name: "simple add member",
@@ -123,6 +124,9 @@ func TestKSCli_AddOwner(t *testing.T) {
 			cli := getTestCli()
 			if err := cli.AddOwner(tt.args.in0, tt.args.user, tt.args.project); (err != nil) != tt.wantErr {
 				t.Errorf("AddOwner() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err := cli.RemoveMember(tt.args.in0, tt.args.user, tt.args.project); (err != nil) != tt.wantDelErr {
+				t.Errorf("RemoveMember() error = %v, wantErr %v", err, tt.wantDelErr)
 			}
 		})
 	}

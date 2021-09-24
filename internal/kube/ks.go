@@ -68,3 +68,13 @@ func (cli RestClient) AddProjectMember(ns, username, role string) error {
 		Post("/kapis/iam.kubesphere.io/v1alpha2/namespaces/{namespace}/members")
 	return err
 }
+
+func (cli RestClient) DeleteProjectMember(ns, username string) error {
+	_, err := cli.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(&struct{}{}).
+		SetPathParam("namespace", ns).
+		SetPathParam("username", username).
+		Delete("/kapis/iam.kubesphere.io/v1alpha2/namespaces/{namespace}/members/{username}")
+	return err
+}
