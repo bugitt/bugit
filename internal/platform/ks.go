@@ -194,6 +194,17 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 	}
 
 	// 创建 harbor registry
+	secret, err := kube.GenDockerRegistrySecret(cli.harborOpt)
+	if err != nil {
+		return nil, err
+	}
+	secret.ObjectMeta = metav1.ObjectMeta{
+		Name:      opt.ProjectName + "-default-harbor-registry",
+		Namespace: opt.ProjectName,
+	}
+	if err = cli.Create(ctx, secret); err != nil {
+		return nil, err
+	}
 
 	return &Project{Name: opt.ProjectName}, nil
 }
