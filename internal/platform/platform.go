@@ -113,36 +113,36 @@ func GetHarborProjectName(ctx context.Context, projectID int64) (name string, er
 	return harborP.Name, nil
 }
 
-func CreateRancherUser(studentID, realName string) (userID, projectID string, err error) {
-	u, p, err := createUser(context.Background(), rancherCli, &CreateUserOpt{
+func CreateRancherUser(studentID, realName string) (userID string, err error) {
+	u, err := rancherCli.CreateUser(context.Background(), &CreateUserOpt{
 		StudentID: studentID,
 		RealName:  realName,
 	})
 	if err != nil {
-		return
-	}
-	return u.StringID, p.StringID, nil
-}
-
-func CreateRancherProject(userID, projectName string) (projectID string, err error) {
-	p, err := createProject(context.Background(), harborCli, &User{StringID: userID}, projectName)
-	if err != nil {
 		return "", err
 	}
-	return p.StringID, err
+	return u.StringID, nil
 }
 
-func AddRancherOwner(userID, projectID string) (err error) {
-	return addOwner(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
-}
-
-func DeleteRancherProject(projectID string) (err error) {
-	return deleteProject(context.Background(), harborCli, &Project{StringID: projectID})
-}
-
-func RemoveRancherProjectMember(userID, projectID string) (err error) {
-	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
-}
+//func CreateRancherProject(userID, projectName string) (projectID string, err error) {
+//	p, err := createProject(context.Background(), harborCli, &User{StringID: userID}, projectName)
+//	if err != nil {
+//		return "", err
+//	}
+//	return p.StringID, err
+//}
+//
+//func AddRancherOwner(userID, projectID string) (err error) {
+//	return addOwner(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
+//}
+//
+//func DeleteRancherProject(projectID string) (err error) {
+//	return deleteProject(context.Background(), harborCli, &Project{StringID: projectID})
+//}
+//
+//func RemoveRancherProjectMember(userID, projectID string) (err error) {
+//	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
+//}
 
 func CreateKSUser(ctx context.Context, studentID, email string) (userName, projectName string, err error) {
 	studentID = strings.ToLower(studentID)
