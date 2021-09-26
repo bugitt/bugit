@@ -8,7 +8,7 @@ import (
 
 func getTestCli() *KSCli {
 	return NewKSCli(
-		"10.251.0.40:31889",
+		"172.16.8.1:30643",
 		"admin",
 		"qAs.wChKwF5iKf#4",
 		"harbor.scs.buaa.edu.cn",
@@ -33,7 +33,7 @@ func TestKSCli_CreateUser(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				opt: &CreateUserOpt{
-					StudentID: "15131057",
+					StudentID: "15131059",
 					UserName:  "wurilege",
 					Email:     "15131057@buaa.edu.cn",
 					RealName:  "wurilege",
@@ -88,7 +88,7 @@ func TestKSCli_CreateProject(t *testing.T) {
 				t.Errorf("CreateProject() got = %v, want %v", got, tt.want)
 			}
 
-			// 测试删除
+			//测试删除
 			delErr := cli.DeleteProject(tt.args.ctx, got)
 			if (delErr != nil) != tt.wantDelErr {
 				t.Errorf("DeleteProject() error = %v, wantErr %v", delErr, tt.wantDelErr)
