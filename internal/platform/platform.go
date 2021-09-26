@@ -144,9 +144,9 @@ func CreateRancherUser(studentID, realName string) (userID string, err error) {
 //	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
 //}
 
-func CreateKSUser(ctx context.Context, studentID, email string) (userName, projectName string, err error) {
+func CreateKSUser(studentID, email string) (userName, projectName string, err error) {
 	studentID = strings.ToLower(studentID)
-	u, p, err := createUser(ctx, ksCli, &CreateUserOpt{
+	u, p, err := createUser(context.Background(), ksCli, &CreateUserOpt{
 		StudentID: studentID,
 		UserName:  studentID,
 		Email:     email,
@@ -158,14 +158,14 @@ func CreateKSUser(ctx context.Context, studentID, email string) (userName, proje
 	return u.Name, p.Name, nil
 }
 
-func CreateKSProject(ctx context.Context, username string, projectName string) (projectID int64, err error) {
+func CreateKSProject(username string, projectName string) (projectID string, err error) {
 	username = strings.ToLower(username)
 	projectName = strings.ToLower(projectName)
-	p, err := createProject(ctx, ksCli, &User{Name: username}, projectName)
+	p, err := createProject(context.Background(), ksCli, &User{Name: username}, projectName)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return p.IntID, err
+	return p.Name, err
 }
 
 func AddKSOwner(username, projectName string) (err error) {

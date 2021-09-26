@@ -118,8 +118,10 @@ type User struct {
 	HarborProjectID int64
 
 	// Rancher
-	RancherUserID    string
-	RancherProjectID string
+	RancherUserID string
+
+	// Kubesphere
+	KSProjectName string
 }
 
 func (u *User) BeforeInsert() {
@@ -642,11 +644,18 @@ func CreateUser(u *User) (err error) {
 	u.HarborUserID, u.HarborProjectID = harborUserID, harborProjectID
 
 	// create rancher user
-	rancherUserID, rancherProjectID, err := platform.CreateRancherUser(u.StudentID, u.Name)
+	rancherUserID, err := platform.CreateRancherUser(u.StudentID, u.Name)
 	if err != nil {
 		return err
 	}
-	u.RancherUserID, u.RancherProjectID = rancherUserID, rancherProjectID
+	u.RancherUserID = rancherUserID
+
+	// create kubesphere user
+	_, ksProjectName, err := platform.CreateKSUser(u.StudentID, u.Email)
+	if err != nil {
+		return err
+	}
+	u.KSProjectName = ksProjectName
 
 	sess := x.NewSession()
 	defer sess.Close()

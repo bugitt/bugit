@@ -165,11 +165,17 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.HarborProjectID = harborID
 
 	// create rancher project
-	rancherID, err := platform.CreateRancherProject(owner.RancherUserID, org.Name)
+	//rancherID, err := platform.CreateRancherProject(owner.RancherUserID, org.Name)
+	//if err != nil {
+	//	return err
+	//}
+	//org.RancherProjectID = rancherID
+
+	ksProjectName, err := platform.CreateKSProject(owner.StudentID, org.Name)
 	if err != nil {
 		return err
 	}
-	org.RancherProjectID = rancherID
+	org.KSProjectName = ksProjectName
 
 	sess := x.NewSession()
 	defer sess.Close()
@@ -281,7 +287,11 @@ func DeleteOrganization(org *User) (err error) {
 		return err
 	}
 
-	if err = platform.DeleteRancherProject(org.RancherProjectID); err != nil {
+	//if err = platform.DeleteRancherProject(org.RancherProjectID); err != nil {
+	//	return err
+	//}
+
+	if err = platform.DeleteKSProject(org.KSProjectName); err != nil {
 		return err
 	}
 
@@ -457,7 +467,7 @@ func AddOrgUser(orgID, uid int64) error {
 		return err
 	}
 
-	if err = platform.AddRancherOwner(user.RancherUserID, org.RancherProjectID); err != nil {
+	if err = platform.AddKSOwner(user.StudentID, org.KSProjectName); err != nil {
 		return err
 	}
 
@@ -547,7 +557,11 @@ func RemoveOrgUser(orgID, userID int64) error {
 		return err
 	}
 
-	if err = platform.RemoveRancherProjectMember(user.RancherUserID, org.RancherProjectID); err != nil {
+	//if err = platform.RemoveRancherProjectMember(user.RancherUserID, org.RancherProjectID); err != nil {
+	//	return err
+	//}
+
+	if err = platform.RemoveKSProjectMember(user.StudentID, org.KSProjectName); err != nil {
 		return err
 	}
 

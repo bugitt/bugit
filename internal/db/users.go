@@ -312,11 +312,18 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	user.HarborUserID, user.HarborProjectID = harborUserID, harborProjectID
 
 	// create rancher user
-	rancherUserID, rancherProjectID, err := platform.CreateRancherUser(user.StudentID, user.Name)
+	rancherUserID, err := platform.CreateRancherUser(user.StudentID, user.Name)
 	if err != nil {
 		return nil, err
 	}
-	user.RancherUserID, user.RancherProjectID = rancherUserID, rancherProjectID
+	user.RancherUserID = rancherUserID
+
+	// create kubesphere user
+	_, ksProjectName, err := platform.CreateKSUser(user.StudentID, user.Email)
+	if err != nil {
+		return nil, err
+	}
+	user.KSProjectName = ksProjectName
 
 	return user, db.DB.Create(user).Error
 }
