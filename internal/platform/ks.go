@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
@@ -75,6 +76,7 @@ func NewKSCli(url, adminName, adminPassword, harborHost, harborAdminName, harbor
 }
 
 func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
+	fmt.Printf("%#v", &cli)
 	password := opt.Password
 	if len(password) <= 0 {
 		password = conf.Harbor.DefaultPasswd
@@ -94,8 +96,11 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 		},
 	}
 	if err := cli.Create(ctx, u); err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
+
+	fmt.Println("user create")
 
 	workspaceRoleBinding := &iam.WorkspaceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
@@ -128,20 +133,20 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 	}, nil
 }
 
-func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Project, error) {
-	opt.ProjectName = "project-" + strings.ToLower(opt.ProjectName)
+func (cli KSCli) CreateProject(ctx context.Context, projectName string) (*Project, error) {
+	projectName = "project-" + strings.ToLower(projectName)
 
 	var err error
 	defer func() {
 		if err != nil {
 			// 强行兜底
-			_ = cli.deleteProject(ctx, opt.ProjectName)
+			_ = cli.deleteProject(ctx, projectName)
 		}
 	}()
 
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        opt.ProjectName,
+			Name:        projectName,
 			Annotations: AdminCreatorAnnotation,
 			Labels: map[string]string{
 				tenant.WorkspaceLabel: MainWorkspace,
@@ -155,8 +160,8 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 	// 设置Namespace中的资源限额
 	quota := &v1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        opt.ProjectName + "-ns-resource-limit",
-			Namespace:   opt.ProjectName,
+			Name:        projectName + "-ns-resource-limit",
+			Namespace:   projectName,
 			Annotations: AdminCreatorAnnotation,
 		},
 		Spec: v1.ResourceQuotaSpec{
@@ -173,8 +178,8 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 	// 设置容器默认的CPU和内存占用
 	limitRange := &v1.LimitRange{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace:   opt.ProjectName,
-			Name:        opt.ProjectName + "-default-container-resource-limit",
+			Namespace:   projectName,
+			Name:        projectName + "-default-container-resource-limit",
 			Annotations: AdminCreatorAnnotation,
 		},
 		Spec: v1.LimitRangeSpec{
@@ -200,14 +205,14 @@ func (cli KSCli) CreateProject(ctx context.Context, opt *CreateProjectOpt) (*Pro
 	}
 	secret.ObjectMeta = metav1.ObjectMeta{
 		Annotations: AdminCreatorAnnotation,
-		Name:        opt.ProjectName + "-default-harbor-registry",
-		Namespace:   opt.ProjectName,
+		Name:        projectName + "-default-harbor-registry",
+		Namespace:   projectName,
 	}
 	if err = cli.Create(ctx, secret); err != nil {
 		return nil, err
 	}
 
-	return &Project{Name: opt.ProjectName}, nil
+	return &Project{Name: projectName}, nil
 }
 
 func (cli KSCli) deleteProject(ctx context.Context, projectName string) error {

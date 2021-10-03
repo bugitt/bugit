@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v3"
@@ -42,9 +44,9 @@ to make automatic initialization process more smoothly`,
 		Usage:  "Create a new user in database",
 		Action: runCreateUser,
 		Flags: []cli.Flag{
-			stringFlag("name", "", "Username"),
 			stringFlag("password", "", "User password"),
 			stringFlag("email", "", "User email address"),
+			stringFlag("studentID", "", "Student number"),
 			boolFlag("admin", "User is an admin"),
 			stringFlag("config, c", "", "Custom configuration file path"),
 		},
@@ -152,8 +154,8 @@ to make automatic initialization process more smoothly`,
 )
 
 func runCreateUser(c *cli.Context) error {
-	if !c.IsSet("name") {
-		return errors.New("Username is not specified")
+	if !c.IsSet("studentID") {
+		return errors.New("StudentID is not specified")
 	} else if !c.IsSet("password") {
 		return errors.New("Password is not specified")
 	} else if !c.IsSet("email") {
@@ -166,16 +168,20 @@ func runCreateUser(c *cli.Context) error {
 	}
 	conf.InitLogging(true)
 
+	platform.Init()
+
 	if _, err = db.SetEngine(); err != nil {
 		return errors.Wrap(err, "set engine")
 	}
 
+	studentID := strings.ToLower(c.String("studentID"))
 	if err := db.CreateUser(&db.User{
-		Name:     c.String("name"),
-		Email:    c.String("email"),
-		Passwd:   c.String("password"),
-		IsActive: true,
-		IsAdmin:  c.Bool("admin"),
+		Name:      studentID,
+		Email:     c.String("email"),
+		Passwd:    c.String("password"),
+		StudentID: studentID,
+		IsActive:  true,
+		IsAdmin:   c.Bool("admin"),
 	}); err != nil {
 		return fmt.Errorf("CreateUser: %v", err)
 	}

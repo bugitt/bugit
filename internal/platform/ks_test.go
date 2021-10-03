@@ -8,7 +8,7 @@ import (
 
 func getTestCli() *KSCli {
 	return NewKSCli(
-		"172.16.8.1:30643",
+		"172.16.8.1:32698",
 		"admin",
 		"qAs.wChKwF5iKf#4",
 		"harbor.scs.buaa.edu.cn",

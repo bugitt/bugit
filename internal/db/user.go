@@ -637,6 +637,7 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
+	fmt.Printf("%#v", u)
 	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
 	if err != nil {
 		return err
@@ -644,11 +645,11 @@ func CreateUser(u *User) (err error) {
 	u.HarborUserID, u.HarborProjectID = harborUserID, harborProjectID
 
 	// create rancher user
-	rancherUserID, err := platform.CreateRancherUser(u.StudentID, u.Name)
-	if err != nil {
-		return err
-	}
-	u.RancherUserID = rancherUserID
+	//rancherUserID, err := platform.CreateRancherUser(u.StudentID, u.Name)
+	//if err != nil {
+	//	return err
+	//}
+	//u.RancherUserID = rancherUserID
 
 	// create kubesphere user
 	_, ksProjectName, err := platform.CreateKSUser(u.StudentID, u.Email)

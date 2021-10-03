@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
@@ -9,19 +10,16 @@ import (
 
 type CreateUserOpt struct {
 	StudentID string
-	UserName  string
 	Email     string
 	RealName  string
 	Password  string
 }
 
-type CreateProjectOpt struct {
-	ProjectName string
-}
-
 type Actor interface {
 	CreateUser(context.Context, *CreateUserOpt) (*User, error)
-	CreateProject(context.Context, *CreateProjectOpt) (*Project, error)
+	GetUser(context.Context, string) (*User, error)
+	GetProject(context.Context, string) (*Project, error)
+	CreateProject(context.Context, string) (*Project, error)
 	DeleteProject(context.Context, *Project) error
 	AddOwner(context.Context, *User, *Project) error
 	RemoveMember(ctx context.Context, u *User, p *Project) error
@@ -40,26 +38,23 @@ type User struct {
 }
 
 var (
-	harborCli  *HarborCli
-	rancherCli *RancherCli
-	ksCli      *KSCli
-	cliSet     []Actor
+	harborCli *HarborCli
+	//rancherCli *RancherCli
+	ksCli  *KSCli
+	cliSet []Actor
 )
 
 // Init 初始化各个平台的客户端
 func Init() {
-	var err error
-	harborCli, err = getHarborClient()
-	if err != nil {
-		panic(err)
-	}
+	//var err error
+	harborCli = NewHarborCli()
 	cliSet = append(cliSet, harborCli)
 
-	rancherCli, err = NewRancherCli()
-	if err != nil {
-		panic(err)
-	}
-	cliSet = append(cliSet, rancherCli)
+	//rancherCli, err = NewRancherCli()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//cliSet = append(cliSet, rancherCli)
 
 	ksCli = NewKSCli(
 		conf.KS.KubernetesURL,
@@ -113,16 +108,16 @@ func GetHarborProjectName(ctx context.Context, projectID int64) (name string, er
 	return harborP.Name, nil
 }
 
-func CreateRancherUser(studentID, realName string) (userID string, err error) {
-	u, err := rancherCli.CreateUser(context.Background(), &CreateUserOpt{
-		StudentID: studentID,
-		RealName:  realName,
-	})
-	if err != nil {
-		return "", err
-	}
-	return u.StringID, nil
-}
+//func CreateRancherUser(studentID, realName string) (userID string, err error) {
+//	u, err := rancherCli.CreateUser(context.Background(), &CreateUserOpt{
+//		StudentID: studentID,
+//		RealName:  realName,
+//	})
+//	if err != nil {
+//		return "", err
+//	}
+//	return u.StringID, nil
+//}
 
 //func CreateRancherProject(userID, projectName string) (projectID string, err error) {
 //	p, err := createProject(context.Background(), harborCli, &User{StringID: userID}, projectName)
@@ -181,6 +176,7 @@ func RemoveKSProjectMember(username, projectName string) (err error) {
 }
 
 func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Project, error) {
+	prettyCreateUserOpt(opt)
 	// 先创建用户本身
 	u, err := cli.CreateUser(ctx, opt)
 	if err != nil {
@@ -193,6 +189,8 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Pro
 		return nil, nil, err
 	}
 
+	fmt.Println("create project done")
+	fmt.Printf("%#v    %#v", u, p)
 	// 然后将这个用户设置为自己个人项目的管理员
 	if err = cli.AddOwner(ctx, u, p); err != nil {
 		return nil, nil, err
@@ -224,4 +222,11 @@ func deleteProject(ctx context.Context, cli Actor, p *Project) (err error) {
 
 func removeMember(ctx context.Context, cli Actor, u *User, p *Project) (err error) {
 	return cli.RemoveMember(ctx, u, p)
+}
+
+func prettyCreateUserOpt(opt *CreateUserOpt) {
+	if len(opt.Password) < 0 {
+		opt.Password = conf.Harbor.DefaultPasswd
+	}
+	opt.StudentID = strings.ToLower(opt.StudentID)
 }

@@ -33,14 +33,14 @@ func NewRancherCli() (*RancherCli, error) {
 		return nil, err
 	}
 
-	copt := opt
-	copt.URL = fmt.Sprintf("%s/clusters/%s", opt.URL, conf.Rancher.Cluster)
-	cc, err := clusterClient.NewClient(copt)
+	//copt := opt
+	//copt.URL = fmt.Sprintf("%s/clusters/%s", opt.URL, conf.Rancher.Cluster)
+	//cc, err := clusterClient.NewClient(copt)
 	return &RancherCli{
 		globalCliOpt: opt,
-		cclient:      cc,
-		mClient:      mClient,
-		pClientMap:   make(map[string]*projectClient.Client),
+		//cclient:      cc,
+		mClient:    mClient,
+		pClientMap: make(map[string]*projectClient.Client),
 	}, nil
 }
 
@@ -104,7 +104,7 @@ func (cli *RancherCli) createUserRole(userID, roleID string) error {
 	return err
 }
 
-func (cli *RancherCli) CreateProject(_ context.Context, opt *CreateProjectOpt) (*Project, error) {
+func (cli *RancherCli) CreateProject(_ context.Context, projectName string) (*Project, error) {
 	limit := &managementClient.ResourceQuotaLimit{
 		LimitsCPU:    conf.Deploy.DefaultNSCPULimit,
 		LimitsMemory: conf.Deploy.DefaultNSMemLimit,
@@ -123,7 +123,7 @@ func (cli *RancherCli) CreateProject(_ context.Context, opt *CreateProjectOpt) (
 		CreatorID:                     conf.Rancher.AdminID,
 		Description:                   "Project is created by BuGit.",
 		EnableProjectMonitoring:       true,
-		Name:                          opt.ProjectName,
+		Name:                          projectName,
 		NamespaceDefaultResourceQuota: &managementClient.NamespaceResourceQuota{Limit: limit},
 		ResourceQuota:                 &managementClient.ProjectResourceQuota{Limit: limit},
 		State:                         "unknown",
@@ -136,7 +136,7 @@ func (cli *RancherCli) CreateProject(_ context.Context, opt *CreateProjectOpt) (
 	ns, err := cli.cclient.Namespace.Create(&clusterClient.Namespace{
 		CreatorID:   conf.Rancher.AdminID,
 		Description: "The namespace is created by BuGit.",
-		Name:        opt.ProjectName,
+		Name:        projectName,
 		ProjectID:   p.ID,
 	})
 	if err != nil {
