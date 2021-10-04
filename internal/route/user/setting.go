@@ -11,7 +11,6 @@ import (
 	"html/template"
 	"image/png"
 	"io/ioutil"
-	"strings"
 
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
@@ -65,35 +64,6 @@ func SettingsPost(c *context.Context, f form.UpdateProfile) {
 	if c.HasError() {
 		c.Success(SETTINGS_PROFILE)
 		return
-	}
-
-	// Non-local users are not allowed to change their username
-	if c.User.IsLocal() {
-		// Check if username characters have been changed
-		if c.User.LowerName != strings.ToLower(f.Name) {
-			if err := db.ChangeUserName(c.User, f.Name); err != nil {
-				c.FormErr("Name")
-				var msg string
-				switch {
-				case db.IsErrUserAlreadyExist(err):
-					msg = c.Tr("form.username_been_taken")
-				case db.IsErrNameNotAllowed(err):
-					msg = c.Tr("user.form.name_not_allowed", err.(db.ErrNameNotAllowed).Value())
-				default:
-					c.Error(err, "change user name")
-					return
-				}
-
-				c.RenderWithErr(msg, SETTINGS_PROFILE, &f)
-				return
-			}
-
-			log.Trace("Username changed: %s -> %s", c.User.Name, f.Name)
-		}
-
-		// In case it's just a case change
-		c.User.Name = f.Name
-		c.User.LowerName = strings.ToLower(f.Name)
 	}
 
 	c.User.FullName = f.FullName
