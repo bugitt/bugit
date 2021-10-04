@@ -5,8 +5,6 @@
 package org
 
 import (
-	"strings"
-
 	log "unknwon.dev/clog/v2"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
@@ -38,34 +36,6 @@ func SettingsPost(c *context.Context, f form.UpdateOrgSetting) {
 	}
 
 	org := c.Org.Organization
-
-	// Check if organization name has been changed.
-	if org.LowerName != strings.ToLower(f.Name) {
-		isExist, err := db.IsUserExist(org.ID, f.Name)
-		if err != nil {
-			c.Error(err, "check if user exists")
-			return
-		} else if isExist {
-			c.Data["OrgName"] = true
-			c.RenderWithErr(c.Tr("form.username_been_taken"), SETTINGS_OPTIONS, &f)
-			return
-		} else if err = db.ChangeUserName(org, f.Name); err != nil {
-			c.Data["OrgName"] = true
-			switch {
-			case db.IsErrNameNotAllowed(err):
-				c.RenderWithErr(c.Tr("user.form.name_not_allowed", err.(db.ErrNameNotAllowed).Value()), SETTINGS_OPTIONS, &f)
-			default:
-				c.Error(err, "change user name")
-			}
-			return
-		}
-		// reset c.org.OrgLink with new name
-		c.Org.OrgLink = conf.Server.Subpath + "/org/" + f.Name
-		log.Trace("Organization name changed: %s -> %s", org.Name, f.Name)
-	}
-	// In case it's just a case change.
-	org.Name = f.Name
-	org.LowerName = strings.ToLower(f.Name)
 
 	if c.User.IsAdmin {
 		org.MaxRepoCreation = f.MaxRepoCreation
