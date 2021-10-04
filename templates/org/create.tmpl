@@ -15,7 +15,7 @@
 						<span class="help">{{.i18n.Tr "org.org_name_helper"}}</span>
 					</div>
 
-					<div class="inline required field {{if .Err_Courses}}error{{end}}">
+					<div class="inline field {{if .Err_Courses}}error{{end}}">
 						<label for="org_course">{{.i18n.Tr "org.org_course_holder"}}</label>
 						<div class="ui selection dropdown" id="org_course_dropdown">
 							<input type="hidden" name="org_course">
@@ -29,7 +29,7 @@
 						</div>
 					</div>
 
-					<div class="inline required field {{if .Err_Exps}}error{{end}}">
+					<div class="inline field {{if .Err_Exps}}error{{end}}">
 						<label for="org_exp">{{.i18n.Tr "org.org_exp_holder"}}</label>
 						<div class="ui selection dropdown" id="org_exp_dropdown">
 							<input type="hidden" name="org_exp">

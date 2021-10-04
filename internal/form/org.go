@@ -11,8 +11,8 @@ import (
 
 type CreateOrg struct {
 	OrgName   string `binding:"Required;AlphaDashDot;MaxSize(35)" locale:"org.org_name_holder"`
-	OrgCourse int64  `binding:"Required"`
-	OrgExp    int64  `binding:"Required"`
+	OrgCourse int64
+	OrgExp    int64
 }
 
 func (f *CreateOrg) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {
