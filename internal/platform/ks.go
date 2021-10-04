@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
@@ -76,7 +75,7 @@ func NewKSCli(url, adminName, adminPassword, harborHost, harborAdminName, harbor
 }
 
 func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
-	fmt.Printf("%#v", &cli)
+	var err error
 	password := opt.Password
 	if len(password) <= 0 {
 		password = conf.Harbor.DefaultPasswd
@@ -95,12 +94,15 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 			EncryptedPassword: password,
 		},
 	}
-	if err := cli.Create(ctx, u); err != nil {
-		fmt.Println(err.Error())
+	if err = cli.Create(ctx, u); err != nil {
 		return nil, err
 	}
 
-	fmt.Println("user create")
+	defer func() {
+		if err != nil {
+			_ = cli.Delete(ctx, u)
+		}
+	}()
 
 	workspaceRoleBinding := &iam.WorkspaceRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
@@ -123,7 +125,7 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 			},
 		},
 	}
-	if err := cli.Create(ctx, workspaceRoleBinding); err != nil {
+	if err = cli.Create(ctx, workspaceRoleBinding); err != nil {
 		return nil, err
 	}
 
