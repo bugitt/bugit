@@ -21,6 +21,14 @@ type RancherCli struct {
 	pClientMap   map[string]*projectClient.Client
 }
 
+func (cli *RancherCli) GetUser(ctx context.Context, s string) (*User, error) {
+	panic("implement me")
+}
+
+func (cli *RancherCli) GetProject(ctx context.Context, s string) (*Project, error) {
+	panic("implement me")
+}
+
 func NewRancherCli() (*RancherCli, error) {
 	opt := &clientbase.ClientOpts{
 		URL:       conf.Rancher.Url,
@@ -191,12 +199,12 @@ func encodeDockerRegistryConfig() string {
 	return string(data)
 }
 
-func (cli *RancherCli) GetProject(id string) (*managementClient.Project, error) {
+func (cli *RancherCli) GetProjectRancherSpec(id string) (*managementClient.Project, error) {
 	return cli.mClient.Project.ByID(id)
 }
 
 func (cli *RancherCli) DeleteProject(_ context.Context, project *Project) error {
-	p, err := cli.GetProject(project.StringID)
+	p, err := cli.GetProjectRancherSpec(project.StringID)
 	if err != nil {
 		return err
 	}
