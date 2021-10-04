@@ -638,7 +638,7 @@ func CreateUser(u *User) (err error) {
 
 	// create harbor user
 	fmt.Printf("%#v", u)
-	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Name, u.Email, u.Name)
+	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Email, u.Name)
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,6 @@ func TestKSCli_CreateUser(t *testing.T) {
 				ctx: context.Background(),
 				opt: &CreateUserOpt{
 					StudentID: "15131059",
-					UserName:  "wurilege",
 					Email:     "15131057@buaa.edu.cn",
 					RealName:  "wurilege",
 					Password:  "newpass",
@@ -57,8 +56,8 @@ func TestKSCli_CreateUser(t *testing.T) {
 
 func TestKSCli_CreateProject(t *testing.T) {
 	type args struct {
-		ctx context.Context
-		opt *CreateProjectOpt
+		ctx         context.Context
+		projectName string
 	}
 	tests := []struct {
 		name       string
@@ -70,8 +69,8 @@ func TestKSCli_CreateProject(t *testing.T) {
 		{
 			name: "simple create and delete simple project",
 			args: args{
-				ctx: context.Background(),
-				opt: &CreateProjectOpt{ProjectName: "15131059"},
+				ctx:         context.Background(),
+				projectName: "15131059",
 			},
 			want: &Project{Name: "project-15131059"},
 		},
@@ -79,7 +78,7 @@ func TestKSCli_CreateProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cli := getTestCli()
-			got, err := cli.CreateProject(tt.args.ctx, tt.args.opt)
+			got, err := cli.CreateProject(tt.args.ctx, tt.args.projectName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateProject() error = %v, wantErr %v", err, tt.wantErr)
 				return

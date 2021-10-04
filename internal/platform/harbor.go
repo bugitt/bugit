@@ -188,6 +188,26 @@ func (cli HarborCli) DeleteRepo(ctx context.Context, projectName, repoName strin
 	return err
 }
 
+func (cli HarborCli) ListMember(ctx context.Context, u *User, projectNameOrID string) ([]*hmodels.ProjectMemberEntity, error) {
+	respOK, err := cli.api.Member.ListProjectMembers(&hmember.ListProjectMembersParams{
+		Entityname:      &(u.Name),
+		ProjectNameOrID: projectNameOrID,
+		Context:         ctx,
+	}, cli.authInfo)
+	if err != nil {
+		return nil, err
+	}
+	return respOK.GetPayload(), nil
+}
+
+func (cli HarborCli) CheckOwner(ctx context.Context, u *User, projectName string) (bool, error) {
+	members, err := cli.ListMember(ctx, u, projectName)
+	if err != nil {
+		return false, err
+	}
+	return len(members) > 0, nil
+}
+
 func (cli HarborCli) AddOwner(ctx context.Context, u *User, p *Project) error {
 	return cli.addMember(ctx, u, p, 2)
 }
@@ -209,15 +229,10 @@ func (cli HarborCli) addMember(ctx context.Context, u *User, p *Project, roleID 
 
 func (cli HarborCli) RemoveMember(ctx context.Context, u *User, p *Project) error {
 	pid := strconv.FormatInt(p.IntID, 10)
-	respOK, err := cli.api.Member.ListProjectMembers(&hmember.ListProjectMembersParams{
-		Entityname:      &(u.Name),
-		ProjectNameOrID: pid,
-		Context:         ctx,
-	}, cli.authInfo)
+	resp, err := cli.ListMember(ctx, u, pid)
 	if err != nil {
 		return err
 	}
-	resp := respOK.GetPayload()
 	if len(resp) <= 0 {
 		return ErrNotFound
 	}

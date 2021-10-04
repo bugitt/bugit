@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/kube"
@@ -97,7 +96,7 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 		},
 		Spec: iam.UserSpec{
 			Description:       "The user is created by BuGit.",
-			DisplayName:       opt.StudentID,
+			DisplayName:       opt.RealName,
 			Email:             opt.Email,
 			EncryptedPassword: password,
 		},
@@ -143,12 +142,7 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 	}, nil
 }
 
-func getProjectName(studentID string) string {
-	return "project-" + strings.ToLower(studentID)
-}
-
-func (cli KSCli) GetProject(ctx context.Context, studentID string) (*Project, error) {
-	projectName := getProjectName(studentID)
+func (cli KSCli) GetProject(ctx context.Context, projectName string) (*Project, error) {
 	err := cli.Get(ctx, client.ObjectKey{Name: projectName}, &v1.Namespace{})
 	if err != nil {
 		return nil, err
@@ -156,8 +150,7 @@ func (cli KSCli) GetProject(ctx context.Context, studentID string) (*Project, er
 	return &Project{Name: projectName}, nil
 }
 
-func (cli KSCli) CreateProject(ctx context.Context, studentID string) (*Project, error) {
-	projectName := getProjectName(studentID)
+func (cli KSCli) CreateProject(ctx context.Context, projectName string) (*Project, error) {
 
 	var err error
 	defer func() {
@@ -247,6 +240,15 @@ func (cli KSCli) deleteProject(ctx context.Context, projectName string) error {
 
 func (cli KSCli) DeleteProject(ctx context.Context, project *Project) error {
 	return cli.deleteProject(ctx, project.Name)
+}
+
+func (cli KSCli) CheckOwner(ctx context.Context, user *User, projectName string) (bool, error) {
+	rc, err := kube.NewRClient(cli.username, cli.password, cli.url)
+	if err != nil {
+		return false, err
+	}
+	_, err = rc.GetProjectMember(projectName, user.Name)
+	return err == nil, err
 }
 
 func (cli KSCli) AddOwner(_ context.Context, user *User, project *Project) error {

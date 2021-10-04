@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
@@ -21,6 +20,7 @@ type Actor interface {
 	GetProject(context.Context, string) (*Project, error)
 	CreateProject(context.Context, string) (*Project, error)
 	DeleteProject(context.Context, *Project) error
+	CheckOwner(context.Context, *User, string) (bool, error)
 	AddOwner(context.Context, *User, *Project) error
 	RemoveMember(ctx context.Context, u *User, p *Project) error
 }
@@ -47,7 +47,7 @@ var (
 // Init 初始化各个平台的客户端
 func Init() {
 	//var err error
-	harborCli = NewHarborCli()
+	harborCli = NewHarborCli(conf.Harbor.Host, conf.Harbor.AdminName, conf.Harbor.AdminPasswd)
 	cliSet = append(cliSet, harborCli)
 
 	//rancherCli, err = NewRancherCli()
@@ -67,10 +67,9 @@ func Init() {
 	cliSet = append(cliSet, ksCli)
 }
 
-func CreateHarborUser(ctx context.Context, studentID, userName, email, realName string) (userID, projectID int64, err error) {
+func CreateHarborUser(ctx context.Context, studentID, email, realName string) (userID, projectID int64, err error) {
 	u, p, err := createUser(ctx, harborCli, &CreateUserOpt{
 		StudentID: studentID,
-		UserName:  userName,
 		Email:     email,
 		RealName:  realName,
 	})
@@ -143,7 +142,6 @@ func CreateKSUser(studentID, email string) (userName, projectName string, err er
 	studentID = strings.ToLower(studentID)
 	u, p, err := createUser(context.Background(), ksCli, &CreateUserOpt{
 		StudentID: studentID,
-		UserName:  studentID,
 		Email:     email,
 		RealName:  studentID,
 	})
@@ -175,24 +173,25 @@ func RemoveKSProjectMember(username, projectName string) (err error) {
 	return removeMember(context.Background(), ksCli, &User{Name: username}, &Project{Name: projectName})
 }
 
-func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Project, error) {
+func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (u *User, p *Project, err error) {
 	prettyCreateUserOpt(opt)
 	// 先创建用户本身
-	u, err := cli.CreateUser(ctx, opt)
-	if err != nil {
-		return nil, nil, err
+	u, _ = cli.GetUser(ctx, opt.StudentID)
+	if u == nil {
+		u, err = cli.CreateUser(ctx, opt)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// 然后创建用户的个人项目
-	p, err := cli.CreateProject(ctx, &CreateProjectOpt{ProjectName: u.Name})
+	p, err = createProject(ctx, cli, u, getProjectName(opt.StudentID))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	fmt.Println("create project done")
-	fmt.Printf("%#v    %#v", u, p)
 	// 然后将这个用户设置为自己个人项目的管理员
-	if err = cli.AddOwner(ctx, u, p); err != nil {
+	if err = addOwner(ctx, cli, u, p); err != nil {
 		return nil, nil, err
 	}
 
@@ -200,14 +199,20 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (*User, *Pro
 }
 
 func createProject(ctx context.Context, cli Actor, u *User, projectName string) (p *Project, err error) {
-	p, err = cli.CreateProject(ctx, &CreateProjectOpt{ProjectName: projectName})
-	if err != nil {
-		return
+	p, _ = cli.GetProject(ctx, projectName)
+	if p == nil {
+		p, err = cli.CreateProject(ctx, projectName)
+		if err != nil {
+			return
+		}
 	}
 
-	err = cli.AddOwner(ctx, u, p)
-	if err != nil {
-		return
+	ok, _ := cli.CheckOwner(ctx, u, projectName)
+	if !ok {
+		err = cli.AddOwner(ctx, u, p)
+		if err != nil {
+			return
+		}
 	}
 	return p, err
 }
@@ -229,4 +234,8 @@ func prettyCreateUserOpt(opt *CreateUserOpt) {
 		opt.Password = conf.Harbor.DefaultPasswd
 	}
 	opt.StudentID = strings.ToLower(opt.StudentID)
+}
+
+func getProjectName(studentID string) string {
+	return "project-" + strings.ToLower(studentID)
 }
