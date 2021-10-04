@@ -591,6 +591,7 @@ func isUsernameAllowed(name string) error {
 // CreateUser creates record of a new user.
 // Deprecated: Use Users.Create instead.
 func CreateUser(u *User) (err error) {
+	originalPassword := u.Passwd
 	if err = isUsernameAllowed(u.Name); err != nil {
 		return err
 	}
@@ -637,7 +638,7 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Email, u.Name)
+	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Email, u.Name, originalPassword)
 	if err != nil {
 		return err
 	}
@@ -651,7 +652,7 @@ func CreateUser(u *User) (err error) {
 	//u.RancherUserID = rancherUserID
 
 	// create kubesphere user
-	_, ksProjectName, err := platform.CreateKSUser(u.StudentID, u.Email)
+	_, ksProjectName, err := platform.CreateKSUser(u.StudentID, u.Email, originalPassword)
 	if err != nil {
 		return err
 	}

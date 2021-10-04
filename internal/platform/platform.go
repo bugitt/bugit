@@ -68,11 +68,12 @@ func Init() {
 	cliSet = append(cliSet, ksCli)
 }
 
-func CreateHarborUser(ctx context.Context, studentID, email, realName string) (userID, projectID int64, err error) {
+func CreateHarborUser(ctx context.Context, studentID, email, realName, password string) (userID, projectID int64, err error) {
 	u, p, err := createUser(ctx, harborCli, &CreateUserOpt{
 		StudentID: studentID,
 		Email:     email,
 		RealName:  realName,
+		Password:  password,
 	})
 	if err != nil {
 		return
@@ -139,12 +140,13 @@ func GetHarborProjectName(ctx context.Context, projectID int64) (name string, er
 //	return removeMember(context.Background(), harborCli, &User{StringID: userID}, &Project{StringID: projectID})
 //}
 
-func CreateKSUser(studentID, email string) (userName, projectName string, err error) {
+func CreateKSUser(studentID, email, password string) (userName, projectName string, err error) {
 	studentID = strings.ToLower(studentID)
 	u, p, err := createUser(context.Background(), ksCli, &CreateUserOpt{
 		StudentID:  studentID,
 		Email:      email,
 		RealName:   studentID,
+		Password:   password,
 		NeedPrefix: true,
 	})
 	if err != nil {

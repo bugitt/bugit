@@ -7,6 +7,7 @@ package user
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/go-macaron/captcha"
 	"github.com/pkg/errors"
@@ -330,9 +331,36 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 		c.RenderWithErr(c.Tr("form.password_not_match"), SIGNUP, &f)
 		return
 	}
+	checkPassword := func() bool {
+		length := len(f.Password)
+		if length < 8 || length > 20 {
+			return false
+		}
+		var (
+			capital = false
+			lower   = false
+			digit   = false
+		)
+		for _, c := range f.Password {
+			if c >= 'a' && c <= 'z' {
+				lower = true
+			} else if c >= 'A' && c <= 'Z' {
+				capital = true
+			} else if c >= '0' && c <= '9' {
+				digit = true
+			}
+		}
+		return capital && lower && digit
+	}
+	if !checkPassword() {
+		c.FormErr("Password")
+		c.RenderWithErr(c.Tr("form.password_format_error"), SIGNUP, &f)
+		return
+	}
 
+	f.StudentNumber = strings.ToLower(f.StudentNumber)
 	u := &db.User{
-		Name:      f.UserName,
+		Name:      f.StudentNumber,
 		Email:     f.Email,
 		Passwd:    f.Password,
 		StudentID: f.StudentNumber,

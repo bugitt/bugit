@@ -12,17 +12,13 @@
 					{{if .DisableRegistration}}
 						<p>{{.i18n.Tr "auth.disable_register_prompt"}}</p>
 					{{else}}
-						<div class="required inline field {{if .Err_UserName}}error{{end}}">
-							<label for="user_name">{{.i18n.Tr "username"}}</label>
-							<input id="user_name" name="user_name" value="{{.user_name}}" autofocus required>
+						<div class="required inline field {{if .Err_StudentNumber}}error{{end}}">
+							<label for="student_number">{{.i18n.Tr "student_number"}}</label>
+							<input id="student_number" name="student_number" value="{{.student_number}}" required>
 						</div>
 						<div class="required inline field {{if .Err_Email}}error{{end}}">
 							<label for="email">{{.i18n.Tr "email"}}</label>
 							<input id="email" name="email" type="email" value="{{.email}}" required>
-						</div>
-						<div class="required inline field {{if .Err_StudentNumber}}error{{end}}">
-							<label for="student_number">{{.i18n.Tr "student_number"}}</label>
-							<input id="student_number" name="student_number" value="{{.student_number}}" required>
 						</div>
 						<div class="required inline field {{if .Err_Password}}error{{end}}">
 							<label for="password">{{.i18n.Tr "password"}}</label>

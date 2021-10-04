@@ -305,7 +305,7 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	user.EncodePassword()
 
 	// create harbor user
-	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), user.StudentID, user.Email, user.Name)
+	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), user.StudentID, user.Email, user.Name, opts.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +319,7 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 	//user.RancherUserID = rancherUserID
 
 	// create kubesphere user
-	_, ksProjectName, err := platform.CreateKSUser(user.StudentID, user.Email)
+	_, ksProjectName, err := platform.CreateKSUser(user.StudentID, user.Email, opts.Password)
 	if err != nil {
 		return nil, err
 	}
