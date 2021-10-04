@@ -8,10 +8,11 @@ import (
 )
 
 type CreateUserOpt struct {
-	StudentID string
-	Email     string
-	RealName  string
-	Password  string
+	StudentID  string
+	Email      string
+	RealName   string
+	Password   string
+	NeedPrefix bool
 }
 
 type Actor interface {
@@ -141,9 +142,10 @@ func GetHarborProjectName(ctx context.Context, projectID int64) (name string, er
 func CreateKSUser(studentID, email string) (userName, projectName string, err error) {
 	studentID = strings.ToLower(studentID)
 	u, p, err := createUser(context.Background(), ksCli, &CreateUserOpt{
-		StudentID: studentID,
-		Email:     email,
-		RealName:  studentID,
+		StudentID:  studentID,
+		Email:      email,
+		RealName:   studentID,
+		NeedPrefix: true,
 	})
 	if err != nil {
 		return
@@ -185,13 +187,8 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (u *User, p 
 	}
 
 	// 然后创建用户的个人项目
-	p, err = createProject(ctx, cli, u, getProjectName(opt.StudentID))
+	p, err = createProject(ctx, cli, u, getProjectName(opt))
 	if err != nil {
-		return nil, nil, err
-	}
-
-	// 然后将这个用户设置为自己个人项目的管理员
-	if err = addOwner(ctx, cli, u, p); err != nil {
 		return nil, nil, err
 	}
 
@@ -230,12 +227,19 @@ func removeMember(ctx context.Context, cli Actor, u *User, p *Project) (err erro
 }
 
 func prettyCreateUserOpt(opt *CreateUserOpt) {
-	if len(opt.Password) < 0 {
+	if len(opt.Password) <= 0 {
 		opt.Password = conf.Harbor.DefaultPasswd
 	}
 	opt.StudentID = strings.ToLower(opt.StudentID)
+	if len(opt.RealName) <= 0 {
+		opt.RealName = opt.StudentID
+	}
 }
 
-func getProjectName(studentID string) string {
-	return "project-" + strings.ToLower(studentID)
+func getProjectName(opt *CreateUserOpt) string {
+	if opt.NeedPrefix {
+		return "project-" + strings.ToLower(opt.StudentID)
+	} else {
+		return strings.ToLower(opt.StudentID)
+	}
 }

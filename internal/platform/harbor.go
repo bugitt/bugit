@@ -87,7 +87,6 @@ func (cli HarborCli) DeleteUser(ctx context.Context, u *User) error {
 }
 
 func (cli HarborCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
-	prettyCreateUserOpt(opt)
 	_, err := cli.api.User.CreateUser(&huser.CreateUserParams{
 		UserReq: &hmodels.UserCreationReq{
 			Comment:  "Created by BuGit",
@@ -105,26 +104,23 @@ func (cli HarborCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User,
 }
 
 func (cli HarborCli) GetProject(ctx context.Context, projectName string) (*Project, error) {
-	projectName = PrettyName(projectName)
-	respOK, err := cli.api.Project.GetProject(&hproject.GetProjectParams{
-		ProjectNameOrID: projectName,
-		Context:         ctx,
+	respOK, err := cli.api.Project.ListProjects(&hproject.ListProjectsParams{
+		Name:    &projectName,
+		Context: ctx,
 	}, cli.authInfo)
 	if err != nil {
 		return nil, err
 	}
 	resp := respOK.GetPayload()
-	if resp == nil {
+	if resp == nil || len(resp) <= 0 {
 		return nil, ErrNotFound
 	}
-	return &Project{Name: resp.Name, IntID: int64(resp.ProjectID)}, nil
+	p := resp[0]
+	return &Project{Name: p.Name, IntID: int64(p.ProjectID)}, nil
 }
 
 func (cli HarborCli) CreateProject(ctx context.Context, projectName string) (*Project, error) {
-	projectName = PrettyName(projectName)
 	_, err := cli.api.Project.CreateProject(&hproject.CreateProjectParams{
-		XRequestID:              nil,
-		XResourceNameInLocation: nil,
 		Project: &hmodels.ProjectReq{
 			ProjectName:  projectName,
 			Public:       getBoolPtr(true),

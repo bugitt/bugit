@@ -637,7 +637,6 @@ func CreateUser(u *User) (err error) {
 	u.MaxRepoCreation = -1
 
 	// create harbor user
-	fmt.Printf("%#v", u)
 	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), u.StudentID, u.Email, u.Name)
 	if err != nil {
 		return err

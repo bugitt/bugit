@@ -3,6 +3,7 @@ package kube
 import (
 	"strings"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"github.com/go-resty/resty/v2"
 	iamv1alpha2 "kubesphere.io/api/iam/v1alpha2"
 )
@@ -72,12 +73,18 @@ func (cli RestClient) AddProjectMember(ns, username, role string) error {
 
 func (cli RestClient) GetProjectMember(ns, username string) (*iamv1alpha2.User, error) {
 	u := &iamv1alpha2.User{}
-	_, err := cli.R().
+	resp, err := cli.R().
 		SetHeader("Content-Type", "application/json").
 		SetPathParam("namespace", ns).
 		SetPathParam("username", username).
 		SetResult(u).
 		Get("/kapis/iam.kubesphere.io/v1alpha2/namespaces/{namespace}/members/{username}")
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != 200 {
+		return nil, errors.New(resp.String())
+	}
 	return u, err
 }
 

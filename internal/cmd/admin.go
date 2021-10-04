@@ -186,7 +186,7 @@ func runCreateUser(c *cli.Context) error {
 		return fmt.Errorf("CreateUser: %v", err)
 	}
 
-	fmt.Printf("New user '%s' has been successfully created!\n", c.String("name"))
+	fmt.Printf("New user '%s' has been successfully created!\n", studentID)
 	return nil
 }
 
