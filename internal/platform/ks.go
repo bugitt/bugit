@@ -74,6 +74,14 @@ func NewKSCli(url, adminName, adminPassword, harborHost, harborAdminName, harbor
 		}}
 }
 
+func (cli KSCli) GetUser(ctx context.Context, studentID string) (*User, error) {
+	err := cli.Get(ctx, client.ObjectKey{Name: studentID}, &iam.User{})
+	if err != nil {
+		return nil, err
+	}
+	return &User{Name: studentID}, nil
+}
+
 func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, error) {
 	var err error
 	password := opt.Password
@@ -135,8 +143,21 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 	}, nil
 }
 
-func (cli KSCli) CreateProject(ctx context.Context, projectName string) (*Project, error) {
-	projectName = "project-" + strings.ToLower(projectName)
+func getProjectName(studentID string) string {
+	return "project-" + strings.ToLower(studentID)
+}
+
+func (cli KSCli) GetProject(ctx context.Context, studentID string) (*Project, error) {
+	projectName := getProjectName(studentID)
+	err := cli.Get(ctx, client.ObjectKey{Name: projectName}, &v1.Namespace{})
+	if err != nil {
+		return nil, err
+	}
+	return &Project{Name: projectName}, nil
+}
+
+func (cli KSCli) CreateProject(ctx context.Context, studentID string) (*Project, error) {
+	projectName := getProjectName(studentID)
 
 	var err error
 	defer func() {
