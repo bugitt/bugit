@@ -68,7 +68,7 @@ func init() {
 		new(Notice), new(EmailAddress))
 
 	cloudLegacyTables = append(cloudLegacyTables,
-		new(Course), new(CourseStudentMapping), new(Experiment), new(ExperimentStudent),
+		new(Course), new(CourseStudentMapping), new(Experiment),
 		new(CloudUser),
 	)
 

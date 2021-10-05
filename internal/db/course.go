@@ -4,7 +4,7 @@ import "xorm.io/xorm"
 
 type Course struct {
 	ID        int64
-	TeacherID int64
+	TeacherID string
 	TermID    int64
 	Name      string
 }
