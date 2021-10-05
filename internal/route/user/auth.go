@@ -359,6 +359,12 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 	}
 
 	f.StudentNumber = strings.ToLower(f.StudentNumber)
+	if ok, err := db.ExistCloudUser(f.StudentNumber); err != nil || !ok {
+		c.FormErr("StudentNumber")
+		c.RenderWithErr(c.Tr("form.student_number_error"), SIGNUP, &f)
+		return
+	}
+
 	u := &db.User{
 		Name:      f.StudentNumber,
 		Email:     f.Email,

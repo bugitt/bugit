@@ -69,6 +69,7 @@ func init() {
 
 	cloudLegacyTables = append(cloudLegacyTables,
 		new(Course), new(CourseStudentMapping), new(Experiment), new(ExperimentStudent),
+		new(CloudUser),
 	)
 
 	gonicNames := []string{"SSL"}
