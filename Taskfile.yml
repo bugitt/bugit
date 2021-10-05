@@ -5,7 +5,7 @@ tasks:
     desc: Build the binary and start the web server.
     deps: [build]
     cmds:
-      - ./gogs web
+      - ./bugit web
     sources:
       - gogs.go
       - internal/**/*.go
@@ -19,32 +19,7 @@ tasks:
         -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
         '
         -tags '{{.TAGS}}'
-        -trimpath -o gogs
-    vars:
-      PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
-      BUILD_TIME:
-        sh: date -u '+%Y-%m-%d %I:%M:%S %Z'
-      BUILD_COMMIT:
-        sh: git rev-parse HEAD
-
-  deploy:
-    desc: Deploy the binary.
-    cmds:
-      - GOOS=linux
-        GOARCH=amd64
-        go build -v
-        -ldflags '
-        -X "{{.PKG_PATH}}.BuildTime={{.BUILD_TIME}}"
-        -X "{{.PKG_PATH}}.BuildCommit={{.BUILD_COMMIT}}"
-        '
-        -tags '{{.TAGS}}'
-        -trimpath -o gogs-deploy
-      - scp ./gogs-deploy kmaster:/root/gogs-tmp
-      - ssh kmaster "systemctl stop bugit"
-      - ssh kmaster "mv /home/git/bugit/gogs /home/git/bugit/gogs.old"
-      - ssh kmaster "mv /root/gogs-tmp /home/git/bugit/gogs"
-      - ssh kmaster "chmod a+x /home/git/bugit/gogs"
-      - ssh kmaster "systemctl start bugit"
+        -trimpath -o bugit
     vars:
       PKG_PATH: git.scs.buaa.edu.cn/iobs/bugit/internal/conf
       BUILD_TIME:
@@ -85,11 +60,11 @@ tasks:
     cmds:
       - rm -rf {{.RELEASE_GOGS}}
       - mkdir -p {{.RELEASE_GOGS}}
-      - cp -r gogs LICENSE README.md README_ZH.md scripts {{.RELEASE_GOGS}}
-      - cd {{.RELEASE_ROOT}} && zip -r gogs.$(NOW).zip "gogs"
+      - cp -r bugit LICENSE README.md README_ZH.md scripts {{.RELEASE_GOGS}}
+      - cd {{.RELEASE_ROOT}} && zip -r bugit.$(NOW).zip "bugit"
     vars:
       RELEASE_ROOT: release
-      RELEASE_GOGS: release/gogs
+      RELEASE_GOGS: release/bugit
 
   less:
     desc: Generate CSS from LESS files.
