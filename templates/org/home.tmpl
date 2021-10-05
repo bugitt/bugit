@@ -9,6 +9,8 @@
 						{{.Org.DisplayName}}
 						{{if .IsOrganizationOwner}}<a class="text grey" href="{{.OrgLink}}/settings"><span class="octicon octicon-gear"></span></a>{{end}}
 					</div>
+					{{if .Org.CourseName}}<p class="desc">{{.Org.CourseName}}</p>{{end}}
+					{{if .Org.ExpName}}<p class="desc">{{.Org.ExpName}}</p>{{end}}
 					{{if .Org.Description}}<p class="desc">{{.Org.Description}}</p>{{end}}
 					<div class="text grey meta">
 						{{if .Org.Location}}<div class="item"><span class="octicon octicon-location"></span> <span>{{.Org.Location}}</span></div>{{end}}
