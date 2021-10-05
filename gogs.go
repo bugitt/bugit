@@ -1,3 +1,4 @@
+//go:build go1.14
 // +build go1.14
 
 // Copyright 2014 The Gogs Authors. All rights reserved.
@@ -23,7 +24,7 @@ func init() {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "Gogs"
+	app.Name = "BuGit"
 	app.Usage = "A painless self-hosted Git service"
 	app.Version = conf.App.Version
 	app.Commands = []cli.Command{
