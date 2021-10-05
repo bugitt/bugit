@@ -44,7 +44,7 @@ var (
 
 const (
 	MainWorkspace             = "main-workspace"
-	MainWorkspaceViewer       = "main-workspace-viewer"
+	MainWorkspaceBugit        = "main-workspace-bugit"
 	ApiGroupIAM               = "iam.kubesphere.io"
 	ApiGroupRBACAuthorization = "rbac.authorization.k8s.io"
 	KindUser                  = "User"
@@ -117,12 +117,12 @@ func (cli KSCli) CreateUser(ctx context.Context, opt *CreateUserOpt) (*User, err
 				iam.UserReferenceLabel: opt.StudentID,
 				tenant.WorkspaceLabel:  MainWorkspace,
 			},
-			Name: opt.StudentID + "-" + MainWorkspaceViewer,
+			Name: opt.StudentID + "-" + MainWorkspaceBugit,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: ApiGroupIAM,
 			Kind:     iam.ResourceKindWorkspaceRole,
-			Name:     MainWorkspaceViewer,
+			Name:     MainWorkspaceBugit,
 		},
 		Subjects: []rbacv1.Subject{
 			{
