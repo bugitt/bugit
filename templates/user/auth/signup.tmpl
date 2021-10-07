@@ -20,6 +20,7 @@
 						<div class="required inline field {{if .Err_Email}}error{{end}}">
 							<label for="email">{{.i18n.Tr "email"}}</label>
 							<input id="email" name="email" type="email" value="{{.email}}" required>
+							<span class="help">{{.i18n.Tr "email_help"}}</span>
 						</div>
 						<div class="required inline field {{if .Err_Password}}error{{end}}">
 							<label for="password">{{.i18n.Tr "password"}}</label>
