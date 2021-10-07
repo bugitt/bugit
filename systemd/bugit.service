@@ -1,0 +1,14 @@
+[Unit]
+Description=bugit-v2
+After=network.target
+
+[Service]
+Type=simple
+User=bugit
+Restart=always
+RestartSec=5s
+ExecStart=/home/bugit/bugit/setup.sh
+WorkingDirectory=/home/bugit/bugit
+
+[Install]
+WantedBy=multi-user.target
