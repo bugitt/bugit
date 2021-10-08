@@ -48,7 +48,7 @@ func listUserOrgs(c *context.APIContext, u *db.User, all bool) {
 		return
 	}
 
-	apiOrgs := make([]*api.Organization, len(u.Orgs))
+	apiOrgs := make([]*convert.Organization, len(u.Orgs))
 	for i := range u.Orgs {
 		apiOrgs[i] = convert.ToOrganization(u.Orgs[i])
 	}

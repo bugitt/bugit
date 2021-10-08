@@ -15,6 +15,19 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
+
+type Organization struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	FullName    string `json:"full_name"`
+	ExpName     string `json:"exp_name"`
+	CourseName  string `json:"course_name"`
+	AvatarUrl   string `json:"avatar_url"`
+	Description string `json:"description"`
+	Website     string `json:"website"`
+	Location    string `json:"location"`
+}
+
 func ToEmail(email *db.EmailAddress) *api.Email {
 	return &api.Email{
 		Email:    email.Email,
@@ -105,15 +118,17 @@ func ToDeployKey(apiLink string, key *db.DeployKey) *api.DeployKey {
 	}
 }
 
-func ToOrganization(org *db.User) *api.Organization {
-	return &api.Organization{
+func ToOrganization(org *db.User) *Organization {
+	return &Organization{
 		ID:          org.ID,
 		AvatarUrl:   org.AvatarLink(),
-		UserName:    org.Name,
+		Name:        org.Name,
 		FullName:    org.FullName,
 		Description: org.Description,
 		Website:     org.Website,
 		Location:    org.Location,
+		ExpName:     org.ExpName,
+		CourseName:  org.CourseName,
 	}
 }
 
