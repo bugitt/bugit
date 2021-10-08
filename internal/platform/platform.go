@@ -198,6 +198,7 @@ func createUser(ctx context.Context, cli Actor, opt *CreateUserOpt) (u *User, p 
 }
 
 func createProject(ctx context.Context, cli Actor, u *User, projectName string) (p *Project, err error) {
+	projectName = strings.ToLower(projectName)
 	p, _ = cli.GetProject(ctx, projectName)
 	if p == nil {
 		p, err = cli.CreateProject(ctx, projectName)
