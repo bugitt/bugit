@@ -15,12 +15,14 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 )
 
-
 type Organization struct {
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	FullName    string `json:"full_name"`
 	ExpName     string `json:"exp_name"`
+	BugitURL    string `json:"bugit_url"`
+	KSURL       string `json:"ks_url"`
+	HarborURL   string `json:"harbor_url"`
 	CourseName  string `json:"course_name"`
 	AvatarUrl   string `json:"avatar_url"`
 	Description string `json:"description"`
@@ -124,6 +126,9 @@ func ToOrganization(org *db.User) *Organization {
 		AvatarUrl:   org.AvatarLink(),
 		Name:        org.Name,
 		FullName:    org.FullName,
+		BugitURL: "https://git.scs.buaa.edu.cn/"+org.Name,
+		KSURL: fmt.Sprintf("https://kube.scs.buaa.edu.cn/main-workspace/clusters/default/projects/%s/overview", org.KSProjectName),
+		HarborURL: fmt.Sprintf("https://harbor.scs.buaa.edu.cn/harbor/projects/%d/repositories", org.HarborProjectID),
 		Description: org.Description,
 		Website:     org.Website,
 		Location:    org.Location,
