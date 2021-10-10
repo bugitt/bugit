@@ -182,8 +182,8 @@ func (cli KSCli) CreateProject(ctx context.Context, projectName string) (*Projec
 		},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: map[v1.ResourceName]resource.Quantity{
-				v1.ResourceName("limits.cpu"):    resource.MustParse("2"),
-				v1.ResourceName("limits.memory"): resource.MustParse("4096Mi"),
+				v1.ResourceName("limits.cpu"):    resource.MustParse("1"),
+				v1.ResourceName("limits.memory"): resource.MustParse("2048Mi"),
 			},
 		},
 	}
