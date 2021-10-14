@@ -136,7 +136,7 @@ func initRedis() *redis.Pool {
 	return rePool
 }
 
-func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
+func RedisAuthUser(token string) (*db.User, bool) {
 	var studentID string
 	var err error
 	if conf.CloudAPI.SupperDebug && len(token) < 12 {
@@ -150,10 +150,10 @@ func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
 		studentID, err = redis.String(redisConn.Do("GET", token))
 		if err != nil {
 			log.Error(err.Error())
-			return 0, false
+			return nil, false
 		}
 		if len(studentID) <= 0 {
-			return 0, false
+			return nil, false
 		}
 	}
 	studentID = strings.Trim(studentID, "\"")
@@ -161,13 +161,22 @@ func redisAuthUserID(token string) (_ int64, isTokenAuth bool) {
 	user, err := db.GetUserByStudentID(studentID)
 	if err != nil {
 		log.Error(err.Error())
-		return 0, false
+		return nil, false
 	}
 	if user == nil {
 		log.Error("student user %s not found", studentID)
+		return nil, false
+	}
+	return user, true
+}
+
+func redisAuthUserID(token string) (int64, bool) {
+	u, ok := RedisAuthUser(token)
+	if ok {
+		return u.ID, true
+	} else {
 		return 0, false
 	}
-	return user.ID, true
 }
 
 // authenticatedUserID returns the ID of the authenticated user, along with a bool value
@@ -198,6 +207,9 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 				}
 				// 还是不行的话，尝试从URL中拿到校验信息
 				token := c.QueryTrim("Authorization")
+				if len(token) <= 0 {
+					token = c.QueryTrim("authorization")
+				}
 				if len(token) > 0 {
 					// 从Redis中获取权限校验信息
 					c.Data["Token"] = auths[0]

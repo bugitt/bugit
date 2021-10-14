@@ -85,6 +85,16 @@ func Login(c *context.Context) {
 		return
 	}
 
+	// Check login from Cloud
+	token := c.QueryTrim("authorization")
+	if len(token) > 0 {
+		if u, ok := context.RedisAuthUser(token); ok {
+			afterLogin(c, u, true)
+			log.Info("login from cloud: %s", u.StudentID)
+			return
+		}
+	}
+
 	redirectTo := c.Query("redirect_to")
 	if len(redirectTo) > 0 {
 		c.SetCookie("redirect_to", redirectTo, 0, conf.Server.Subpath)
