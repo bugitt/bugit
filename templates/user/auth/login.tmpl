@@ -1,8 +1,9 @@
 {{template "base/head" .}}
 <div class="user signin">
-	<div class="ui middle very relaxed page grid">
-		<div class="column">
-			{{template "user/auth/message" .}}
+	<div class="ui middle very relaxed page centered grid">
+		<div class="row">{{template "user/auth/message" .}}
+		</div>
+		<div class="row">
 			<form class="ui form" action="{{.Link}}" method="post">
 				{{.CSRFTokenHTML}}
 				<h3 class="ui top attached header">
@@ -63,7 +64,7 @@
 			</form>
 		</div>
 
-		<div class="column">
+		<div class="row">
 			<button
 				class="ui right labeled icon primary button"
 				onclick="window.location.href='https://scs.buaa.edu.cn/?service=https://git.scs.buaa.edu.cn/user/login'">
