@@ -47,13 +47,13 @@ func run(ctx *Context) (err error) {
 	}
 	log.Info("push image successfully: %d", ctx.pipeline.ID)
 
-	// deploy
-	err = deploy(ctx)
-	if err != nil {
-		log.Error("deploy failed: %d, error message: %s", ctx.pipeline.ID, err.Error())
-		return
-	}
-	log.Info("deploy successfully: %d", ctx.pipeline.ID)
+	//// deploy
+	//err = deploy(ctx)
+	//if err != nil {
+	//	log.Error("deploy failed: %d, error message: %s", ctx.pipeline.ID, err.Error())
+	//	return
+	//}
+	//log.Info("deploy successfully: %d", ctx.pipeline.ID)
 
 	return nil
 }
