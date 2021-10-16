@@ -2,6 +2,8 @@ package db
 
 import (
 	"errors"
+	"html/template"
+	"strings"
 	"time"
 
 	"github.com/bugitt/git-module"
@@ -75,11 +77,15 @@ type BasicTaskResult struct {
 	Describe     string `xorm:"text"`
 	PipelineID   int64
 	IsSuccessful bool
-	Log          string `xorm:"text"`
-	ErrMsg       string `xorm:"text"`
+	Log          string        `xorm:"text"`
+	LogHTML      template.HTML `xorm:"-" gorm:"-" json:"-"`
+	ErrMsg       string        `xorm:"text"`
+	ErrMsgHTML   template.HTML `xorm:"-" gorm:"-" json:"-"`
 	Duration     int64
-	BeginUnix    int64 // 开始时间戳
-	EndUnix      int64 // 结束时间戳
+	BeginUnix    int64     // 开始时间戳
+	BeginTime    time.Time `xorm:"-" gorm:"-" json:"-"`
+	EndUnix      int64     // 结束时间戳
+	EndTime      time.Time `xorm:"-" gorm:"-" json:"-"`
 }
 
 type PreBuildResult struct {
@@ -137,6 +143,7 @@ func (pipeline *Pipeline) Succeed() error {
 	if err == nil && row != 1 {
 		err = errors.New("set ptask success failed")
 	}
+	_, _ = x.Table(new(Pipeline)).ID(pipeline.ID).Update(map[string]interface{}{"is_successful": true})
 	return err
 }
 
@@ -160,29 +167,31 @@ func (pipeline *Pipeline) UpdateStage(status PipeStage, taskNum int) error {
 	return err
 }
 
-func (result *BasicTaskResult) End(begin time.Time, err error, logs string) {
-	result.BeginUnix = begin.Unix()
-	result.Duration = time.Since(begin).Milliseconds()
-	result.EndUnix = time.Now().Unix()
+func (b *BasicTaskResult) End(begin time.Time, err error, logs string) {
+	b.BeginUnix = begin.Unix()
+	b.Duration = time.Since(begin).Milliseconds()
+	b.EndUnix = time.Now().Unix()
 	if err != nil {
-		result.ErrMsg = err.Error()
+		b.ErrMsg = err.Error()
 	} else {
-		result.IsSuccessful = true
+		b.IsSuccessful = true
 	}
-	result.Log = logs
+	b.Log = logs
 }
 
 func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pusher *User, refName string, conf *CIConfig, confErr error) (*Pipeline, error) {
+	_ = repo.LoadAttributes()
 	pipeline := &Pipeline{
-		RepoID:    repo.ID,
-		PusherID:  pusher.ID,
-		RefName:   refName,
-		PipeType:  pipeType,
-		Commit:    commit.ID.String(),
-		ProjectID: repo.OwnerID,
-		Stage:     NotStart,
-		Status:    BeforeStart,
-		TaskNum:   -1,
+		RepoID:            repo.ID,
+		PusherID:          pusher.ID,
+		RefName:           refName,
+		PipeType:          pipeType,
+		Commit:            commit.ID.String(),
+		ProjectID:         repo.OwnerID,
+		HarborProjectName: repo.Owner.LowerName,
+		Stage:             NotStart,
+		Status:            BeforeStart,
+		TaskNum:           -1,
 	}
 
 	harborProjectName, err := repo.Owner.GetHarborProjectName()
@@ -227,6 +236,34 @@ func (pipeline *Pipeline) AfterSet(colName string, cell xorm.Cell) {
 	pipeline.BaseModel.AfterSet(colName, cell)
 }
 
+func (pipeline *Pipeline) GetPusher() (*User, error) {
+	return GetUserByID(pipeline.PusherID)
+}
+
+func (pipeline *Pipeline) GetPreBuildResult() ([]*PreBuildResult, error) {
+	results := make([]*PreBuildResult, 0)
+	err := x.Where("pipeline_id = ?", pipeline.ID).Find(&results)
+	return results, err
+}
+
+func (pipeline *Pipeline) GetBuildResult() (*BuildResult, error) {
+	result := new(BuildResult)
+	_, err := x.Where("pipeline_id = ?", pipeline.ID).Get(result)
+	return result, err
+}
+
+func (pipeline *Pipeline) GetPostBuildResult() ([]*PostBuildResult, error) {
+	results := make([]*PostBuildResult, 0)
+	err := x.Where("pipeline_id = ?", pipeline.ID).Find(&results)
+	return results, err
+}
+
+func (pipeline *Pipeline) GetPushResult() ([]*PushResult, error) {
+	results := make([]*PushResult, 0)
+	err := x.Where("pipeline_id = ?", pipeline.ID).Find(&results)
+	return results, err
+}
+
 func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	tasks := make([]*Pipeline, 0)
 	query := x.Where("stage = ?", NotStart).And("status <= ?", BeforeStart)
@@ -235,6 +272,16 @@ func GetNotStartPipelines(repoID int64) ([]*Pipeline, error) {
 	}
 	err := query.Find(&tasks)
 	return tasks, err
+}
+
+func GetPipelineByRepoPage(repoID int64, branch string, page, size int) ([]*Pipeline, error) {
+	ps := make([]*Pipeline, 0)
+	query := x.Limit(size, (page-1)*size).Where("repo_id = ?", repoID)
+	if len(branch) > 0 {
+		query = query.And("ref_name = ?", branch)
+	}
+	err := query.Find(&ps)
+	return ps, err
 }
 
 func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
@@ -316,4 +363,30 @@ func PrettyStage(stage PipeStage) string {
 		des = "等待开始……"
 	}
 	return des
+}
+
+func (b *BasicTaskResult) AfterSet(colName string, _ xorm.Cell) {
+	replaceBR := func(s string) string {
+		s = strings.Replace(s, "\n", "<br />", -1)
+		return strings.Replace(s, "\\n", "<br />", -1)
+	}
+	switch colName {
+	case "begin_unix":
+		b.BeginTime = time.Unix(b.BeginUnix, 0).Local()
+	case "end_unix":
+		b.EndTime = time.Unix(b.EndUnix, 0).Local()
+	case "log":
+		b.LogHTML = template.HTML(replaceBR(b.Log))
+	case "err_msg":
+		b.ErrMsgHTML = template.HTML(replaceBR(b.ErrMsg))
+	}
+}
+
+func (b *BasicTaskResult) ConvertLogHTML() {
+	replaceBR := func(s string) string {
+		s = strings.Replace(s, "\n", "<br />", -1)
+		return strings.Replace(s, "\\n", "<br />", -1)
+	}
+	b.LogHTML = template.HTML(replaceBR(b.Log))
+	b.ErrMsgHTML = template.HTML(replaceBR(b.ErrMsg))
 }

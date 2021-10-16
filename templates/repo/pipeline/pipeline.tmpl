@@ -1,0 +1,156 @@
+{{template "base/head" .}}
+<div class="repository">
+		{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="ui divider"></div>
+
+
+
+
+
+		<div class="ui large feed">
+        {{range .PipelineDesList}}
+					<div class="event">
+						<div class="label">
+							<img src="{{.Pusher.AvatarLink}}">
+						</div>
+						<div class="content">
+							<div class="date">
+                  {{if .Pipeline.IsSuccessful}}
+										<div class="ui green label">
+											<i class="check icon"></i> 构建成功
+										</div>
+                  {{else if eq .Pipeline.Status 3}}
+										<div class="ui red label">
+											<i class="times icon"></i> 构建失败
+										</div>
+                  {{else}}
+										<div class="ui yellow label">
+											<i class="check icon"></i> 构建中
+										</div>
+                  {{end}}
+                  {{TimeSince .Pipeline.Created $.i18n.Lang}}
+
+								&nbsp;&nbsp;&nbsp;&nbsp;
+								<a class="ui label" onclick="showPipelineDetail({{.Pipeline.ID}})">详情</a>
+								&nbsp;&nbsp;&nbsp;
+								<div class="ui label">镜像：{{.Pipeline.ImageTag}}</div>
+							</div>
+
+							<div class="ui pipe-detail modal" id="pipe-{{.Pipeline.ID}}">
+								<i class="close icon"></i>
+								<div class="header">
+									构建详情
+								</div>
+								<div class="content">
+                    {{/* 具体的菜单项相关 */}}
+									<div class="ui grid">
+										<div class="three wide column">
+											<div class="ui vertical fluid tabular menu">
+												<a class="item" data-tab="first">
+													Pre Build
+												</a>
+												<a class="item active" data-tab="second">
+													Build
+												</a>
+												<a class="item" data-tab="third">
+													Post Build
+												</a>
+												<a class="item" data-tab="four">
+													Push Images
+												</a>
+											</div>
+										</div>
+										<div class="thirteen wide stretched column">
+											<div class="ui attached tab segment" data-tab="first">
+												<div class="content">
+												</div>
+											</div>
+											<div class="ui attached active tab segment" data-tab="second">
+												<div class="content">
+													<div class="ui top attached header">
+														日志详情
+													</div>
+													<div class="ui scrolling attached content">
+														{{.Build.LogHTML}}
+													</div>
+													<div class="ui top attached header">
+														错误信息
+													</div>
+													<div class="ui scrolling attached content">
+                              {{.Build.ErrMsgHTML}}
+													</div>
+												</div>
+											</div>
+											<div class="ui attached tab segment" data-tab="third">
+												<div class="content">
+												</div>
+											</div>
+											<div class="ui attached tab segment" data-tab="four">
+												<div class="content">
+													{{range .Push}}
+														<div class="ui top attached header">
+															日志详情
+														</div>
+														<div class="ui scrolling attached content">
+																{{.LogHTML}}
+														</div>
+														<div class="ui top attached header">
+															错误信息
+														</div>
+														<div class="ui scrolling attached content">
+																{{.ErrMsgHTML}}
+														</div>
+													{{end}}
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="actions">
+									<div class="ui positive right button">
+										确定
+									</div>
+								</div>
+							</div>
+
+							<div class="summary">
+								<a href="{{.Pusher.HomeLink}}">
+                    {{.Pusher.Name}}
+								</a>
+								启动了分支
+								<a rel="nofollow" href="{{.BranchURL}}">
+                    {{.Pipeline.RefName}}
+								</a>
+								基于提交
+								<a rel="nofollow" class="ui sha label" href="{{.CommitURL}}">
+                    {{.PrettyCommit}}
+								</a>
+								的构建
+							</div>
+							<div class="meta">
+								开始于
+                  {{TimeFormat .Pipeline.BeginUnix}}
+                  {{if eq .Pipeline.Status 3}}
+										&nbsp;&nbsp;&nbsp;结束于
+                    {{TimeFormat .Pipeline.EndUnix}}
+                  {{end}}
+							</div>
+
+							<div class="extra text">
+
+								{{if .Pipeline.ErrMsg}}
+								<p class="red">
+										错误信息：{{.Pipeline.ErrMsg}}
+								</p>
+								{{end}}
+							</div>
+							<div class="ui divider">
+							</div>
+						</div>
+					</div>
+        {{end}}
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

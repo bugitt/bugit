@@ -582,6 +582,10 @@ func runWeb(c *cli.Context) error {
 				c.Data["PageIsViewFiles"] = true
 			})
 
+			m.Group("/pipelines", func() {
+				m.Get("", repo.Pipelines)
+			}, reqSignIn, reqRepoWriter, context.RepoRef())
+
 			m.Group("/wiki", func() {
 				m.Group("", func() {
 					m.Combo("/_new").Get(repo.NewWiki).

@@ -26,7 +26,8 @@ func (b *BaseModel) AfterSet(colName string, _ xorm.Cell) {
 	switch colName {
 	case "created_unix":
 		b.Created = time.Unix(b.CreatedUnix, 0).Local()
+		break
 	case "updated_unix":
-		b.Updated = time.Unix(b.UpdatedUnix, 0)
+		b.Updated = time.Unix(b.UpdatedUnix, 0).Local()
 	}
 }

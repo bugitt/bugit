@@ -1798,6 +1798,10 @@ function showMessageMaxLength(maxLen, textElemId, counterId) {
   $msg.keyup(onMessageKey).keydown(onMessageKey);
 }
 
+function showPipelineDetail(number) {
+  $("#pipe-"+number).modal('show')
+}
+
 // 手动触发部署时的弹出窗口
 $(function () {
   $("#create_deploy_button").click(function () {
