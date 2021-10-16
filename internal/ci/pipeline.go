@@ -21,7 +21,7 @@ func runHandle(pipeline *db.Pipeline) {
 		if err != nil {
 			log.Error("pipe CI error: %s", err.Error())
 			if err = pipeline.Fail(err); err != nil {
-				log.Error("update pipeline error: %s", err.Error())
+				log.Error("update pipeline(%d) error: %s", pipeline.ID, err.Error())
 			}
 		}
 	}()
