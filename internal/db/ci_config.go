@@ -112,6 +112,9 @@ func (ps Ports) KubePorts() []kube.Port {
 }
 
 func (config *DeployTaskConfig) Pretty() {
+	if config == nil {
+		return
+	}
 	if len(config.CPU) <= 0 {
 		config.CPU = conf.Devops.DeployCPU
 	}
