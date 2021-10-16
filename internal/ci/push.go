@@ -43,8 +43,9 @@ func pushNum(ctx *Context, num int, tag string) (err error) {
 		result.End(begin, err, outputLog)
 		dbErr := db.SaveCIResult(result)
 		if dbErr != nil {
+			log.Error("save push image task %s failed, error message: %s", tag, dbErr.Error())
 			if err != nil {
-				log.Error("push image %s failed, error message: %s", tag, dbErr.Error())
+				// 防止dbError将真正的错误覆盖
 				return
 			}
 			err = dbErr
