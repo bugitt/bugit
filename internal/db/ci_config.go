@@ -51,7 +51,6 @@ type BuildTaskConfig struct {
 	BaseTaskConf `yaml:",inline"`
 	DockerTag    string `yaml:"docker_tag"`
 	Dockerfile   string `yaml:"dockerfile"`
-	Scope        string `yaml:"scope"`
 }
 
 type PostTaskConfig struct {
