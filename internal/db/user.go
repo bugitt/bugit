@@ -498,7 +498,9 @@ func (u *User) IsMailable() bool {
 
 // GetHarborProjectName 获取项目所对应的Harbor项目的名称
 func (u *User) GetHarborProjectName() (string, error) {
-	return platform.GetHarborProjectName(context.Background(), u.HarborProjectID)
+	// 先不要实时拉取，而是直接返回预先存储的 Harbor Name
+	//return platform.GetHarborProjectName(context.Background(), u.HarborProjectID)
+	return u.LowerName, nil
 }
 
 // IsUserExist checks if given user name exist,
