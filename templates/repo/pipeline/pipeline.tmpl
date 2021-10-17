@@ -2,41 +2,65 @@
 <div class="repository">
 		{{template "repo/header" .}}
 	<div class="ui container">
-
-		<div class="ui card">
-			<div class="content">
-				<div class="header"></div>
+		{{if .ExistDeploy}}
+		<div class="ui attached header">
+			服务详情
+		</div>
+		<div class="ui attached segment">
+		<div class="ui cards">
+			<div class="ui card">
+				<div class="content">
+					<div class="header">服务详情</div>
+				</div>
+				<div class="content">
+						{{range .DeployDes.Ports}}
+							<div class="event">
+								<div class="content">
+									<div class="summary">
+										<p>名称：{{.Name}}</p>
+										<p>服务端口：<a href="http://{{$.DeployDes.IP}}:{{.ExportPort}}">{{$.DeployDes.IP}}:{{.ExportPort}}</a></p>
+										<p>协议：{{.Protocol}}</p>
+										<p>容器端口：{{.Port.Port}}</p>
+									</div>
+								</div>
+							</div>
+								<div class="ui divider"></div>
+						{{end}}
+				</div>
+				<div class="extra content">
+						<a class="ui button" href="{{.DeployDes.SvcURL}}">详情</a>
+				</div>
 			</div>
-			<div class="content">
-				<h4 class="ui sub header">Activity</h4>
-				<div class="ui small feed">
-					<div class="event">
-						<div class="content">
-							<div class="summary">
-								<a>Elliot Fu</a> added <a>Jenny Hess</a> to the project
-							</div>
-						</div>
+			<div class="card">
+				<div class="content">
+					<div class="header">
+						容器详情
 					</div>
-					<div class="event">
-						<div class="content">
-							<div class="summary">
-								<a>Stevie Feliciano</a> was added as an <a>Administrator</a>
-							</div>
-						</div>
+					<div class="description">
+						容器状态：{{.DeployDes.PodStatus}}
 					</div>
-					<div class="event">
-						<div class="content">
-							<div class="summary">
-								<a>Helen Troy</a> added two pictures
-							</div>
-						</div>
+				</div>
+				<div class="extra content">
+					<a class="ui button" href="{{.DeployDes.SvcURL}}">详情</a>
+				</div>
+			</div>
+			<div class="ui card">
+				<div class="content">
+					<div class="header">元信息</div>
+					<div class="description">
+						<p>创建者：<a href="{{.DeployDes.Pusher.HomeLink}}">{{.DeployDes.Pusher.Name}}</a></p>
+						<p>分支：<a rel="nofollow" class="ui sha label" href="{{.DeployDes.BranchURL}}">{{.DeployDes.Branch}}</a></p>
+						<p>提交：<a rel="nofollow" class="ui sha label" href="{{.DeployDes.CommitURL}}">{{.DeployDes.PrettyCommit}}</a></p>
 					</div>
 				</div>
 			</div>
-			<div class="extra content">
-				<button class="ui button">Join Project</button>
-			</div>
 		</div>
+		</div>
+			{{else}}
+			<div class="ui header">
+				无已部署服务
+			</div>
+		{{end}}
 
 
 

@@ -37,6 +37,7 @@ func Pipelines(c *context.Context) {
 
 	c.Data["PipelineDesList"] = pipelineDesList
 	c.Data["DeployDes"] = deployDes
+	c.Data["ExistDeploy"] = deployDes.Exist
 
 	c.Success(PIPELINES)
 }
