@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/kube"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 	"github.com/artdarek/go-unzip"
 	"github.com/bugitt/git-module"
 	"github.com/loheagn/loclo/docker/container"
-	"github.com/loheagn/loclo/kube"
 	"github.com/unknwon/com"
 	"gopkg.in/yaml.v3"
 	log "unknwon.dev/clog/v2"
@@ -73,6 +73,7 @@ type Cmd struct {
 }
 
 type DeployTaskConfig struct {
+	On       []string          `yaml:"on"`
 	Envs     map[string]string `yaml:"envs"`
 	Ports    Ports             `yaml:"ports"`
 	Stateful bool              `yaml:"stateful"`

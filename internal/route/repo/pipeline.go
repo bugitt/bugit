@@ -1,6 +1,7 @@
 package repo
 
 import (
+	cc "context"
 	"sort"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
@@ -27,7 +28,15 @@ func Pipelines(c *context.Context) {
 	for _, p := range pipelineDesList {
 		prettyLog(p)
 	}
+
+	deployDes, err := ci.GetDeployDes(cc.Background(), c.Repo.Repository)
+	if err != nil {
+		c.Error(err, "get deploy")
+		return
+	}
+
 	c.Data["PipelineDesList"] = pipelineDesList
+	c.Data["DeployDes"] = deployDes
 
 	c.Success(PIPELINES)
 }

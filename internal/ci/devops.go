@@ -2,7 +2,6 @@ package ci
 
 import (
 	"strconv"
-	"time"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/sync"
@@ -44,43 +43,6 @@ func ci() {
 
 func StartCI() {
 	go ci()
-}
-
-// DeployDes 描述一个project中的一个仓库最新的部署情况
-type DeployDes struct {
-	// 总体描述
-	Repo         *db.Repository `json:"-"`
-	RepoID       int64
-	RepoName     string
-	Branch       string
-	BranchURL    string
-	Commit       string
-	CommitURL    string
-	PrettyCommit string
-	Status       db.RunStatus
-	Stage        db.PipeStage
-	StageString  string
-	IsSuccessful bool
-	IsHealthy    bool
-	ErrMsg       string
-	BeginUnix    int64
-	EndUnix      int64
-	Pusher       *db.User
-	// 流水线任务创建的时间
-	CreatedUnix int64
-	Created     time.Time `json:"-"`
-
-	// 具体的部署情况
-	ImageTag   string
-	IP         string
-	HasDeploy  bool
-	Namespace  string
-	Deployment string
-	Service    string
-	PodLabels  map[string]string
-	DepLabels  map[string]string
-	SvcLabels  map[string]string
-	Ports      []db.Port
 }
 
 type DeployOption struct {

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: harbor.scs.buaa.edu.cn/library/nginx:1.17
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "800Mi"
+              cpu: "1"
+            requests:
+              memory: "600Mi"
+              cpu: "1"

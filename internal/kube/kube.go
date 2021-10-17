@@ -14,12 +14,6 @@ type HarborOpt struct {
 	Host     string
 }
 
-type DockerRegistryAuthConfig struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Auth     string `json:"auth"`
-}
-
 func GenDockerRegistrySecret(opt *HarborOpt) (*v1.Secret, error) {
 	configJson := map[string]map[string]DockerRegistryAuthConfig{
 		"auths": {

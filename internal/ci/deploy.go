@@ -1,14 +1,14 @@
 package ci
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	json "github.com/json-iterator/go"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
-	"github.com/loheagn/loclo/kube"
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/kube"
 	log "unknwon.dev/clog/v2"
 )
 
@@ -19,6 +19,23 @@ func deploy(ctx *Context) (err error) {
 	}
 
 	config := ctx.config.Deploy
+
+	// 双重检查是否需要启动Deploy
+	checkNeedDeploy := func() bool {
+		if config == nil || len(config.On) <= 0 {
+			return false
+		}
+		for _, branch := range config.On {
+			if branch == ctx.refName {
+				return true
+			}
+		}
+		return false
+	}
+	if !checkNeedDeploy() {
+		return nil
+	}
+
 	if err = doDeploy(ctx, config); err != nil {
 		return
 	}
@@ -31,21 +48,26 @@ func doDeploy(ctx *Context, config *db.DeployTaskConfig) (err error) {
 	var (
 		outputLog      string
 		begin          = time.Now()
-		namespace      = fmt.Sprintf("project-%d", ctx.owner.ID)
+		namespace      = ctx.repo.Owner.KSProjectName
 		svcName        = deployName
 		deploymentName = deployName
-		ip             = nextIP()
+		ip             = NextIP()
 		labels         = map[string]string{
 			"repo": ctx.repo.LowerName,
 		}
 		extraLabels = map[string]string{
-			"branch": ctx.refName,
-			"commit": ctx.commit,
-			"pusher": ctx.pusher.LowerName,
+			"branch":     ctx.refName,
+			"commit":     ctx.commit,
+			"pusher":     ctx.pusher.LowerName,
+			"pusherID":   strconv.FormatInt(ctx.pusher.ID, 10),
+			"pipelineID": strconv.FormatInt(ctx.pipeline.ID, 10),
 		}
 		svcPorts []kube.SvcPort
 		result   = db.DeployResult{
 			IP:             ip,
+			RepoID:         ctx.repo.ID,
+			Branch:         ctx.refName,
+			Commit:         ctx.commit,
 			Namespace:      namespace,
 			ServiceName:    svcName,
 			DeploymentName: deploymentName,
@@ -133,8 +155,8 @@ func doDeploy(ctx *Context, config *db.DeployTaskConfig) (err error) {
 	return
 }
 
-// nextIP 获取这次应该部署的到哪个IP上
-var nextIP = func() func() string {
+// NextIP 获取这次应该部署的到哪个IP上（手动负载均衡）
+var NextIP = func() func() string {
 	i := -1
 	return func() string {
 		i = (i + 1) % len(conf.Devops.KubeIP)

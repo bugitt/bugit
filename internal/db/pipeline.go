@@ -114,6 +114,9 @@ type PushResult struct {
 
 type DeployResult struct {
 	IP              string
+	RepoID          int64
+	Branch          string
+	Commit          string
 	Ports           string `xorm:"TEXT"`
 	Namespace       string
 	DeploymentName  string
@@ -282,6 +285,12 @@ func GetPipelineByRepoPage(repoID int64, branch string, page, size int) ([]*Pipe
 	}
 	err := query.Find(&ps)
 	return ps, err
+}
+
+func GetPipelineByID(ID int64) (*Pipeline, error) {
+	p := new(Pipeline)
+	_, err := x.ID(ID).Get(p)
+	return p, err
 }
 
 func GetPipelinesByRepo(repoID int64) ([]*Pipeline, error) {
