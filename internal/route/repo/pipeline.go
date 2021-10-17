@@ -30,14 +30,15 @@ func Pipelines(c *context.Context) {
 	}
 
 	deployDes, err := ci.GetDeployDes(cc.Background(), c.Repo.Repository)
-	if err != nil {
-		c.Error(err, "get deploy")
-		return
+	// 吞掉Error
+	if err == nil {
+		c.Data["DeployDes"] = deployDes
+		c.Data["ExistDeploy"] = deployDes.Exist
+	} else {
+		c.Data["ExistDeploy"] = false
 	}
 
 	c.Data["PipelineDesList"] = pipelineDesList
-	c.Data["DeployDes"] = deployDes
-	c.Data["ExistDeploy"] = deployDes.Exist
 
 	c.Success(PIPELINES)
 }
