@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"strings"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -53,12 +54,14 @@ func (cli *Client) CreateOrReplaceService(ctx context.Context, opt *ServiceOpt) 
 			return
 		}
 		// 删除原来的service
-		deletePolicy := metav1.DeletePropagationForeground
+		deletePolicy := metav1.DeletePropagationBackground
 		if err = serviceClient.Delete(ctx, opt.Name, metav1.DeleteOptions{
 			PropagationPolicy: &deletePolicy,
 		}); err != nil {
 			return
 		}
+		// 先用非常trick的方式解决问题
+		time.Sleep(10 * time.Second)
 	}
 
 	// create
@@ -77,7 +80,7 @@ func comparePorts(svcPorts []v1.ServicePort, ports []Port) bool {
 		sp, pp := svcPorts[i], ports[i]
 		if sp.Name != pp.Name ||
 			sp.TargetPort.IntVal != pp.Port ||
-			strings.ToLower(string(sp.Protocol)) != strings.ToLower(pp.Protocol) {
+			strings.EqualFold(string(sp.Protocol), pp.Protocol) {
 			return false
 		}
 	}

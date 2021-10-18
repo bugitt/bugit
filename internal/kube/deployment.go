@@ -84,7 +84,7 @@ func (d DeploymentController) GetPods(ctx context.Context) ([]apiv1.Pod, error) 
 }
 
 func (d DeploymentController) Delete(ctx context.Context) error {
-	deletePolicy := metav1.DeletePropagationForeground
+	deletePolicy := metav1.DeletePropagationBackground
 	return d.DCli.Delete(ctx, d.D.Name, metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	})

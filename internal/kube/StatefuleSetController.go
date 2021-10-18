@@ -84,7 +84,7 @@ func (s StatefulSetController) GetPods(ctx context.Context) ([]apiv1.Pod, error)
 }
 
 func (s StatefulSetController) Delete(ctx context.Context) error {
-	deletePolicy := metav1.DeletePropagationForeground
+	deletePolicy := metav1.DeletePropagationBackground
 	return s.SCli.Delete(ctx, s.S.Name, metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
 	})
