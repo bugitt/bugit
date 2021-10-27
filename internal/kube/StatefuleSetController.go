@@ -65,7 +65,12 @@ func (s StatefulSetController) DeployOrUpdate(ctx context.Context) (err error) {
 		return err
 	}
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		result, err := s.SCli.Update(ctx, s.S, metav1.UpdateOptions{})
+		oldStatefulSet, err := s.SCli.Get(ctx, s.S.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		oldStatefulSet.Spec.Template = s.S.Spec.Template
+		result, err := s.SCli.Update(ctx, oldStatefulSet, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
