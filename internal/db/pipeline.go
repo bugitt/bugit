@@ -207,6 +207,8 @@ func PreparePipeline(commit *git.Commit, pipeType PipeType, repo *Repository, pu
 		pipeline.ErrMsg = confErr.Error()
 		pipeline.IsSuccessful = false
 		pipeline.Status = Finished
+		pipeline.BeginUnix = time.Now().Unix()
+		pipeline.EndUnix = time.Now().Unix()
 	} else {
 		conf.Pretty()
 		confS, _ := yaml.Marshal(conf)
