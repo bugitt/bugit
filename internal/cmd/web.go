@@ -337,6 +337,7 @@ func runWeb(c *cli.Context) error {
 
 		reqRepoAdmin := context.RequireRepoAdmin()
 		reqRepoWriter := context.RequireRepoWriter()
+		reqRepoReader := context.RequireRepoReader()
 
 		webhookRoutes := func() {
 			m.Group("", func() {
@@ -583,8 +584,8 @@ func runWeb(c *cli.Context) error {
 			})
 
 			m.Group("/pipelines", func() {
-				m.Get("", repo.Pipelines)
-			}, reqSignIn, reqRepoWriter, context.RepoAssignment(), context.RepoRef())
+				m.Get("", reqRepoReader, repo.Pipelines)
+			}, reqSignIn, context.RepoAssignment(), context.RepoRef())
 
 			m.Group("/wiki", func() {
 				m.Group("", func() {

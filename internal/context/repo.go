@@ -462,6 +462,15 @@ func RequireRepoWriter() macaron.Handler {
 	}
 }
 
+func RequireRepoReader() macaron.Handler {
+	return func(c *Context) {
+		if !c.IsLogged || (!c.Repo.HasAccess() && !c.User.IsAdmin) {
+			c.NotFound()
+			return
+		}
+	}
+}
+
 // GitHookService checks if repository Git hooks service has been enabled.
 func GitHookService() macaron.Handler {
 	return func(c *Context) {

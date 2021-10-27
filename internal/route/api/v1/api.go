@@ -119,6 +119,16 @@ func reqToken() macaron.Handler {
 	}
 }
 
+// reqLogged makes sure the context user is logged.
+func reqLogged() macaron.Handler {
+	return func(c *context.Context) {
+		if !c.IsLogged {
+			c.Status(http.StatusUnauthorized)
+			return
+		}
+	}
+}
+
 // reqBasicAuth makes sure the context user is authorized via HTTP Basic Auth.
 func reqBasicAuth() macaron.Handler {
 	return func(c *context.Context) {
@@ -143,6 +153,16 @@ func reqAdmin() macaron.Handler {
 func reqRepoWriter() macaron.Handler {
 	return func(c *context.Context) {
 		if !c.Repo.IsWriter() {
+			c.Status(http.StatusForbidden)
+			return
+		}
+	}
+}
+
+// reqRepoReader makes sure the context user has at least read access to the repository.
+func reqRepoReader() macaron.Handler {
+	return func(c *context.Context) {
+		if !c.Repo.HasAccess() {
 			c.Status(http.StatusForbidden)
 			return
 		}
@@ -390,8 +410,13 @@ func RegisterRoutes(m *macaron.Macaron) {
 				m.Patch("/issue-tracker", reqRepoWriter(), bind(api.EditIssueTrackerOption{}), repo.IssueTracker)
 				m.Post("/mirror-sync", reqRepoWriter(), repo.MirrorSync)
 				m.Get("/editorconfig/:filename", context.RepoRef(), repo.GetEditorconfig)
+
+				// devops
+				m.Group("/devops", func() {
+					m.Post("", reqRepoWriter(), bind(repo.CreatePipelineOption{}), repo.CreatePipeline)
+				}, reqRepoReader(), context.RepoRef())
 			}, repoAssignment())
-		}, reqToken())
+		}, reqLogged())
 
 		m.Get("/issues", reqToken(), repo.ListUserIssues)
 

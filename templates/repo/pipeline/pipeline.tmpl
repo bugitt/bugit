@@ -77,6 +77,9 @@
 			<button class="ui button" onclick="refreshPipelineListAuto()">
 				更新
 			</button>
+			<button class="ui button" onclick="manualCI('/api/v1/repos/{{.Repository.Owner.Name}}/{{.Repository.Name}}/devops')">
+				构建 & 部署
+			</button>
 		</div>
 		</div>
 

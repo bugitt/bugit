@@ -7,6 +7,7 @@ import (
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/kube"
+	"github.com/bugitt/git-module"
 	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 )
@@ -51,6 +52,14 @@ type DeployDes struct {
 	IP         string
 	Ports      []kube.SvcPort
 	SvcURL     string
+}
+
+type CreatePipelineOption struct {
+	GitRepo *git.Repository
+	Repo    *db.Repository
+	Pusher  *db.User
+	Branch  string
+	Commit  string
 }
 
 func GetDeployDes(ctx context.Context, repo *db.Repository) (*DeployDes, error) {
@@ -196,4 +205,40 @@ func GetPipelineDesList(opt *GetPipelinesOption) ([]*PipelineDes, error) {
 	}
 
 	return result, nil
+}
+
+func CreatePipeline(opt *CreatePipelineOption) error {
+	if opt.Repo == nil || opt.GitRepo == nil {
+		return ErrCreatePipelineParam
+	}
+	repo := opt.Repo
+	if len(opt.Branch) <= 0 {
+		opt.Branch = repo.DefaultBranch
+	}
+	if len(opt.Commit) <= 0 {
+		commit, err := opt.GitRepo.BranchCommit(opt.Branch)
+		if err != nil {
+			return err
+		}
+		opt.Commit = commit.ID.String()
+	}
+	gitCommit, err := opt.GitRepo.CatFileCommit(opt.Commit)
+	if err != nil {
+		return err
+	}
+
+	// 检查对应的commit中是否有合法的 CIConfig 配置文件
+	ciConfig, err := db.GetCIConfigFromCommit(gitCommit)
+	if err != nil || ciConfig == nil {
+		return ErrCreatePipelineCIFileInvalid
+	}
+
+	// 触发新的部署
+	_, err = db.PreparePipeline(gitCommit, db.MANUAL, opt.Repo, opt.Pusher, opt.Branch, ciConfig, nil)
+	if err != nil {
+		return err
+	}
+
+	go Queue.Add(repo.ID)
+	return nil
 }

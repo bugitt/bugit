@@ -1832,9 +1832,13 @@ $(function () {
   });
 });
 
+function autoGetBranch() {
+  return $(".ui.pipeline_dropdown.dropdown").dropdown("get value");
+}
+
 // 自动读取分支值，然后更新pipeList
 function refreshPipelineListAuto() {
-  const branch = $(".ui.pipeline_dropdown.dropdown").dropdown("get value");
+  const branch = autoGetBranch();
   refreshPipelineList(branch);
 }
 
@@ -1848,6 +1852,39 @@ function refreshPipelineList(branch) {
   }).done(function (data, status, request) {
     $(".ui.pipeline_list.container").html(data);
   });
+}
+
+// 手动触发 构建 & 部署
+function manualCI(url) {
+  const branch = autoGetBranch();
+  if (!confirm("确定执行分支 "+ branch + " 的构建和部署吗？")) {
+    return
+  }
+  $.ajax({
+    type: "POST",
+    url: url,
+    data: {
+      "branch": branch,
+    },
+    xhrFields: {
+      withCredentials: true
+    },
+    headers: {
+      "X-AJAX": "true"
+    },
+    success: function () {
+      alert("构建任务已成功加入队列中");
+      refreshPipelineList(branch)
+    },
+    complete: function (response) {
+      const code = response.status
+      if (code === 400) {
+        alert("未在指定分支中解析到合法的配置文件");
+      } else if (code >= 500) {
+        alert("服务器内部错误");
+      }
+    }
+  }).always();
 }
 
 // 激活menu tab
