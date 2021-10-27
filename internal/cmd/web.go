@@ -584,7 +584,7 @@ func runWeb(c *cli.Context) error {
 
 			m.Group("/pipelines", func() {
 				m.Get("", repo.Pipelines)
-			}, reqSignIn, reqRepoWriter, context.RepoRef())
+			}, reqSignIn, reqRepoWriter, context.RepoAssignment(), context.RepoRef())
 
 			m.Group("/wiki", func() {
 				m.Group("", func() {

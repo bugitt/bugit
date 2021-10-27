@@ -1822,6 +1822,16 @@ $(function () {
   });
 });
 
+$(function () {
+  $(".ui.pipeline_dropdown.dropdown").dropdown({
+    action: 'activate',
+    onChange: function(value, text, $selectedItem) {
+      alert(value);
+      alert(text);
+    }
+  });
+});
+
 // 激活menu tab
 $('.menu .item')
   .tab()

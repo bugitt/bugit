@@ -279,7 +279,16 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 			c.Error(err, "get branches")
 			return
 		}
-		c.Data["Branches"] = branches
+		// 对分支列表进行重排，使默认分支在第一个
+		defaultBranch := c.Repo.Repository.DefaultBranch
+		newBranches := make([]string, 0, len(branches))
+		newBranches = append(newBranches, defaultBranch)
+		for _, branch := range branches {
+			if branch != defaultBranch {
+				newBranches = append(newBranches, branch)
+			}
+		}
+		c.Data["Branches"] = newBranches
 		c.Data["BranchCount"] = len(branches)
 
 		// If not branch selected, try default one.

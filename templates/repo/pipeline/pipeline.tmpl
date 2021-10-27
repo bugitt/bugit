@@ -2,6 +2,7 @@
 <div class="repository">
 		{{template "repo/header" .}}
 	<div class="ui container">
+		<div class="ui container">
 		{{if .ExistDeploy}}
 		<div class="ui attached header">
 			服务详情
@@ -61,6 +62,23 @@
 				无已部署服务
 			</div>
 		{{end}}
+		</div>
+
+		<div class="ui divider"></div>
+
+		<div class="ui container">
+		<div class="text right">
+			<i class="octicon octicon-git-branch"></i>
+			<select class="ui pipeline_dropdown dropdown">
+					{{range .Branches}}
+						<option value="{{.}}">{{.}}</option>
+					{{end}}
+			</select>
+			<button class="ui button">
+				Follow
+			</button>
+		</div>
+		</div>
 
 
 		<div class="ui divider"></div>
