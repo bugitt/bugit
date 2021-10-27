@@ -1832,6 +1832,12 @@ $(function () {
   });
 });
 
+// 自动读取分支值，然后更新pipeList
+function refreshPipelineListAuto() {
+  const branch = $(".ui.pipeline_dropdown.dropdown").dropdown("get value");
+  refreshPipelineList(branch);
+}
+
 // 更新 pipeline_list
 function refreshPipelineList(branch) {
   $.ajax({
