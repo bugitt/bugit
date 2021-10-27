@@ -1822,15 +1822,27 @@ $(function () {
   });
 });
 
+// 构建 & 部署 页面的分支下拉框功能
 $(function () {
   $(".ui.pipeline_dropdown.dropdown").dropdown({
     action: 'activate',
-    onChange: function(value, text, $selectedItem) {
-      alert(value);
-      alert(text);
+    onChange: function(value) {
+      refreshPipelineList(value)
     }
   });
 });
+
+// 更新 pipeline_list
+function refreshPipelineList(branch) {
+  $.ajax({
+    url: "?request_list=true&branch=" + branch,
+    headers: {
+      "X-AJAX": "true"
+    }
+  }).done(function (data, status, request) {
+    $(".ui.pipeline_list.container").html(data);
+  });
+}
 
 // 激活menu tab
 $('.menu .item')

@@ -8,15 +8,20 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/context"
 )
 
-const PIPELINES = "repo/pipeline/pipeline"
+const (
+	PIPELINES    = "repo/pipeline/pipeline"
+	PIPELIN_LIST = "explore/pipe_list"
+)
 
 func Pipelines(c *context.Context) {
 	c.Data["PageIsPipelineList"] = true
 
+	branch := c.QueryTrim("branch")
 	pipelineDesList, err := ci.GetPipelineDesList(&ci.GetPipelinesOption{
-		Repo: c.Repo.Repository,
-		Page: 1,
-		Size: 1000,
+		Repo:   c.Repo.Repository,
+		Branch: branch,
+		Page:   1,
+		Size:   1000,
 	})
 	if err != nil {
 		c.Error(err, "get pipeline list")
@@ -29,6 +34,14 @@ func Pipelines(c *context.Context) {
 		prettyLog(p)
 	}
 
+	c.Data["PipelineDesList"] = pipelineDesList
+
+	// 查看是不是只更新list部分
+	if c.QueryBool("request_list") {
+		c.Success(PIPELIN_LIST)
+		return
+	}
+
 	deployDes, err := ci.GetDeployDes(cc.Background(), c.Repo.Repository)
 	// 吞掉Error
 	if err == nil {
@@ -37,8 +50,6 @@ func Pipelines(c *context.Context) {
 	} else {
 		c.Data["ExistDeploy"] = false
 	}
-
-	c.Data["PipelineDesList"] = pipelineDesList
 
 	c.Success(PIPELINES)
 }
