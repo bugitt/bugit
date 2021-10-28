@@ -36,6 +36,7 @@ to make automatic initialization process more smoothly`,
 			subcmdReinitMissingRepositories,
 			subcmdMigrageFromSqlite,
 			subcmdCIConfigExample,
+			subcmdSyncKS,
 		},
 	}
 
@@ -151,6 +152,16 @@ to make automatic initialization process more smoothly`,
 		Usage:  "get ci config example",
 		Action: getCIConfigExample,
 	}
+
+	subcmdSyncKS = cli.Command{
+		Name:   "sync-ks",
+		Usage:  "sync users and orgs to ks",
+		Action: adminSyncKS,
+		Flags: []cli.Flag{
+			boolFlag("all", "sync all users and orgs"),
+			stringFlag("username", "", "user name"),
+		},
+	}
 )
 
 func runCreateUser(c *cli.Context) error {
@@ -242,5 +253,85 @@ func getCIConfigExample(c *cli.Context) error {
 		return err
 	}
 	fmt.Println(string(data))
+	return nil
+}
+
+func adminSyncKS(c *cli.Context) error {
+	err := conf.Init(c.String("config"))
+	if err != nil {
+		return errors.Wrap(err, "init configuration")
+	}
+	conf.InitLogging(true)
+
+	if _, err = db.SetEngine(); err != nil {
+		return errors.Wrap(err, "set engine")
+	}
+
+	platform.Init()
+
+	var users []*db.User
+	isAll := c.Bool("all")
+	if isAll {
+		uList, err := db.GetAllUsersAndOrgs()
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+		users = uList
+	} else {
+		name := c.String("username")
+		u, err := db.GetUserByName(name)
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+		users = append(users, u)
+	}
+
+	// 处理user
+	for _, u := range users {
+		if u.IsOrganization() {
+			continue
+		}
+		err := func() error {
+			_, _, err := platform.CreateKSUser(u.Name, u.Email, "")
+			return err
+		}()
+		if err == nil {
+			fmt.Printf("crated ks user %s\n", u.Name)
+		} else {
+			fmt.Printf("crated ks user %s, failed\n", u.Name)
+		}
+	}
+
+	// 处理org
+	for _, org := range users {
+		if !org.IsOrganization() {
+			continue
+		}
+		err := func() error {
+			_, err := platform.CreateKSProject("admin", org.LowerName)
+			if err != nil {
+				return err
+			}
+			err = org.GetMembers(-1)
+			if err != nil {
+				return err
+			}
+			for _, u := range org.Members {
+				err = platform.AddKSOwner(u.Name, org.LowerName)
+				if err != nil {
+					fmt.Printf("add %s to %s, failed", u.Name, org.LowerName)
+					err = nil
+				}
+			}
+			return nil
+		}()
+		if err == nil {
+			fmt.Printf("crated ks org %s\n", org.Name)
+		} else {
+			fmt.Printf("crated ks org %s, failed\n", org.Name)
+		}
+	}
 	return nil
 }

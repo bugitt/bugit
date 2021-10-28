@@ -976,6 +976,12 @@ func UserPath(username string) string {
 	return filepath.Join(conf.Repository.Root, strings.ToLower(username))
 }
 
+func GetAllUsersAndOrgs() ([]*User, error) {
+	users := make([]*User, 0)
+	err := x.Where("true = true").Find(&users)
+	return users, err
+}
+
 func GetUserByKeyID(keyID int64) (*User, error) {
 	user := new(User)
 	has, err := x.SQL("SELECT a.* FROM `user` AS a, public_key AS b WHERE a.id = b.owner_id AND b.id=?", keyID).Get(user)

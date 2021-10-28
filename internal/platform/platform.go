@@ -217,7 +217,14 @@ func createProject(ctx context.Context, cli Actor, u *User, projectName string) 
 }
 
 func addOwner(ctx context.Context, cli Actor, u *User, p *Project) (err error) {
-	return cli.AddOwner(ctx, u, p)
+	ok, _ := cli.CheckOwner(ctx, u, p.Name)
+	if !ok {
+		err = cli.AddOwner(ctx, u, p)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 func deleteProject(ctx context.Context, cli Actor, p *Project) (err error) {
