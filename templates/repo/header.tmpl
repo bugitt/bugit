@@ -77,7 +77,7 @@
 					<i class="octicon octicon-git-pull-request"></i> {{.i18n.Tr "repo.pulls"}} <span class="ui {{if not .Repository.NumOpenPulls}}gray{{else}}blue{{end}} small label">{{.Repository.NumOpenPulls}}</span>
 				</a>
 			{{end}}
-			{{if .IsRepositoryWriter}}
+			{{if not $.IsGuest}}
 				<a class="{{if .PageIsPipelineList}}active{{end}} item" href="{{.RepoLink}}/pipelines">
 					<i class="octicon octicon-gear"></i> {{.i18n.Tr "repo.pipelines"}}
 				</a>
