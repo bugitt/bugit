@@ -1879,7 +1879,7 @@ function manualCI(url) {
     complete: function (response) {
       const code = response.status
       if (code === 400) {
-        alert("未在指定分支中解析到合法的配置文件");
+        alert("未在指定分支中解析到合法的配置文件，\n请参考 https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/ 进行配置");
       } else if (code >= 500) {
         alert("服务器内部错误");
       }
