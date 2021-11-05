@@ -312,6 +312,17 @@ func SignUp(c *context.Context) {
 		return
 	}
 
+	referer := c.Query("referer")
+	if len(referer) > 0 {
+		c.Data["Referer"] = referer
+	}
+	token := c.Query("token")
+	if len(token) > 0 {
+		c.Data["Token"] = token
+	}
+	alert := c.QueryBool("alert")
+	c.Data["Alert"] = alert
+
 	c.Success(SIGNUP)
 }
 
@@ -424,6 +435,13 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 		if err := c.Cache.Put(u.MailResendCacheKey(), 1, 180); err != nil {
 			log.Error("Failed to put cache key 'mail resend': %v", err)
 		}
+		return
+	}
+
+	referer := c.Query("referer")
+	token := c.Query("token")
+	if len(referer) > 0 {
+		c.Redirect(fmt.Sprintf("%s?authorization=%s", referer, token))
 		return
 	}
 

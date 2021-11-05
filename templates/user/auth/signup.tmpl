@@ -3,7 +3,7 @@
 	<div class="ui middle very relaxed page grid">
 		<div class="column">
 			{{template "user/auth/message" .}}
-			<form class="ui form" action="{{.Link}}" method="post">
+			<form class="ui form" action="{{.Link}}{{if .Referer}}?referer={{.Referer}}{{end}}{{if .Token}}&token={{.Token}}{{end}}" method="post">
 				{{.CSRFTokenHTML}}
 				<h3 class="ui top attached header">
 					{{.i18n.Tr "sign_up"}}
@@ -55,4 +55,9 @@
 		</div>
 	</div>
 </div>
+{{if .Alert}}
+<script type="text/javascript">
+	alert("检测到你还没有激活PaaS平台，请激活账户后登录！")
+</script>
+{{end}}
 {{template "base/footer" .}}
