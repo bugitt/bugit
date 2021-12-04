@@ -45,14 +45,14 @@
 	<!-- notebook.js for rendering ipython notebooks and marked.js for rendering markdown in notebooks -->
 	{{if .IsIPythonNotebook}}
 		<script src="{{AppSubURL}}/plugins/notebookjs-0.4.2/notebook.min.js"></script>
-		<script src="https://cdn.bootcdn.net/ajax/libs/marked/0.8.1/marked.min.js"></script>
+		<script src="{{AppSubURL}}/plugins/marked-0.8.1/marked.min.js"></script>
 	{{end}}
 
 	{{if .RequireSimpleMDE}}
-		<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/simplemde/1.9.0/simplemde.min.css">
-		<script src="https://cdn.bootcdn.net/ajax/libs/simplemde/1.9.0/simplemde.min.js"></script>
-		<script src="https://cdn.bootcdn.net/ajax/libs/codemirror/5.17.0/addon/mode/loadmode.js"></script>
-		<script src="https://cdn.bootcdn.net/ajax/libs/codemirror/5.17.0/mode/meta.js"></script>
+		<link rel="stylesheet" href="{{AppSubURL}}/plugins/simplemde-1.10.1/simplemde.min.css">
+		<script src="{{AppSubURL}}/plugins/simplemde-1.10.1/simplemde.min.js"></script>
+		<script src="{{AppSubURL}}/plugins/codemirror-5.17.0/addon/mode/loadmode.js"></script>
+		<script src="{{AppSubURL}}/plugins/codemirror-5.17.0/mode/meta.js"></script>
 		<script>
 			CodeMirror.modeURL =  "{{AppSubURL}}/plugins/codemirror-5.17.0/mode/%N/%N.js";
 		</script>
