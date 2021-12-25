@@ -30,3 +30,5 @@ gogs-deploy
 
 # 产物
 bugit
+
+*_gen.go
