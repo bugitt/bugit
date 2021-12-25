@@ -156,7 +156,7 @@ func RedisAuthUser(token string) (*db.User, bool) {
 			return nil, false
 		}
 	}
-	studentID = strings.Trim(studentID, "\"")
+	studentID = strings.ToLower(strings.Trim(studentID, "\""))
 	log.Info("get user from cloud: %s", studentID)
 	user, err := db.GetUserByStudentID(studentID)
 	if err != nil {
