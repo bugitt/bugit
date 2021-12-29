@@ -1,8 +1,6 @@
 {{template "base/head" .}}
 <div class="user signin">
 	<div class="ui middle very relaxed page centered grid">
-		<div class="row">{{template "user/auth/message" .}}
-		</div>
 		<div class="row">
 			<form class="ui form" action="{{.Link}}" method="post">
 				{{.CSRFTokenHTML}}
