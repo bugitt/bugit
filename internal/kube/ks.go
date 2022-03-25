@@ -1,10 +1,15 @@
 package kube
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"github.com/go-resty/resty/v2"
+	rbacv1 "k8s.io/api/rbac/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	iamv1alpha2 "kubesphere.io/api/iam/v1alpha2"
 )
 
@@ -61,14 +66,39 @@ func NewRClient(username, password, url string) (*RestClient, error) {
 	return &RestClient{cli}, nil
 }
 
-func (cli RestClient) AddProjectMember(ns, username, role string) error {
-	memberList := []Member{{username, role}}
-	_, err := cli.R().
-		SetHeader("Content-Type", "application/json").
-		SetBody(&memberList).
-		SetPathParam("namespace", ns).
-		Post("/kapis/iam.kubesphere.io/v1alpha2/namespaces/{namespace}/members")
-	return err
+func AddProjectMember(ctx context.Context, ns, username, role string) error {
+	roleBindingName := fmt.Sprintf("%s-%s", username, role)
+	kubeClient, err := NewClient(context.Background(), &CreateClientOpt{Namespace: ns})
+	if err != nil {
+		return err
+	}
+	_, err = kubeClient.RbacV1().RoleBindings(ns).Get(ctx, roleBindingName, metav1.GetOptions{})
+	if err != nil && kerrors.IsNotFound(err) {
+		roleBinding := rbacv1.RoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   roleBindingName,
+				Labels: map[string]string{"iam.kubesphere.io/user-ref": username},
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					Kind:     rbacv1.UserKind,
+					APIGroup: rbacv1.SchemeGroupVersion.Group,
+					Name:     username,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
+				APIGroup: rbacv1.SchemeGroupVersion.Group,
+				Kind:     "Role",
+				Name:     role,
+			},
+		}
+		if _, err := kubeClient.RbacV1().RoleBindings(ns).Create(ctx, &roleBinding, metav1.CreateOptions{}); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cli RestClient) GetProjectMember(ns, username string) (*iamv1alpha2.User, error) {

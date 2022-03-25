@@ -228,12 +228,8 @@ func (cli KSCli) CheckOwner(_ context.Context, user *User, projectName string) (
 	return err == nil, err
 }
 
-func (cli KSCli) AddOwner(_ context.Context, user *User, project *Project) error {
-	rc, err := kube.NewRClient(cli.username, cli.password, cli.url)
-	if err != nil {
-		return err
-	}
-	return rc.AddProjectMember(project.Name, user.Name, "operator")
+func (cli KSCli) AddOwner(ctx context.Context, user *User, project *Project) error {
+	return kube.AddProjectMember(ctx, project.Name, user.Name, "operator")
 }
 
 func (cli KSCli) RemoveMember(_ context.Context, u *User, p *Project) error {
