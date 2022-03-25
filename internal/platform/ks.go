@@ -182,35 +182,12 @@ func (cli KSCli) CreateProject(ctx context.Context, projectName string) (*Projec
 		},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: map[v1.ResourceName]resource.Quantity{
-				v1.ResourceName("limits.cpu"):    resource.MustParse("2"),
-				v1.ResourceName("limits.memory"): resource.MustParse("4096Mi"),
+				v1.ResourceName("limits.cpu"):    resource.MustParse("4"),
+				v1.ResourceName("limits.memory"): resource.MustParse("8192Mi"),
 			},
 		},
 	}
 	if err = cli.Create(ctx, quota); err != nil {
-		return nil, err
-	}
-
-	// 设置容器默认的CPU和内存占用
-	limitRange := &v1.LimitRange{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace:   projectName,
-			Name:        projectName + "-default-container-resource-limit",
-			Annotations: AdminCreatorAnnotation,
-		},
-		Spec: v1.LimitRangeSpec{
-			Limits: []v1.LimitRangeItem{
-				{
-					Default: map[v1.ResourceName]resource.Quantity{
-						v1.ResourceCPU:    resource.MustParse("0.25"),
-						v1.ResourceMemory: resource.MustParse("500Mi"),
-					},
-					Type: v1.LimitTypeContainer,
-				},
-			},
-		},
-	}
-	if err = cli.Create(ctx, limitRange); err != nil {
 		return nil, err
 	}
 
@@ -242,7 +219,7 @@ func (cli KSCli) DeleteProject(ctx context.Context, project *Project) error {
 	return cli.deleteProject(ctx, project.Name)
 }
 
-func (cli KSCli) CheckOwner(ctx context.Context, user *User, projectName string) (bool, error) {
+func (cli KSCli) CheckOwner(_ context.Context, user *User, projectName string) (bool, error) {
 	rc, err := kube.NewRClient(cli.username, cli.password, cli.url)
 	if err != nil {
 		return false, err
