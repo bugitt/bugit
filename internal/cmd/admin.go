@@ -5,11 +5,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
 
+	"git.scs.buaa.edu.cn/iobs/bugit/internal/kube"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -37,6 +39,7 @@ to make automatic initialization process more smoothly`,
 			subcmdMigrageFromSqlite,
 			subcmdCIConfigExample,
 			subcmdSyncKS,
+			subcmdSyncUsersWithCloudPlatform,
 		},
 	}
 
@@ -161,6 +164,12 @@ to make automatic initialization process more smoothly`,
 			boolFlag("all", "sync all users and orgs"),
 			stringFlag("username", "", "user name"),
 		},
+	}
+
+	subcmdSyncUsersWithCloudPlatform = cli.Command{
+		Name:   "sync-users-with-cloud-platform",
+		Usage:  "sync users with cloud platform",
+		Action: adminSyncCloud,
 	}
 )
 
@@ -333,5 +342,104 @@ func adminSyncKS(c *cli.Context) error {
 			fmt.Printf("crated ks org %s, failed\n", org.Name)
 		}
 	}
+	return nil
+}
+
+func adminSyncCloud(c *cli.Context) error {
+	err := conf.Init(c.String("config"))
+	if err != nil {
+		return errors.Wrap(err, "init configuration")
+	}
+	conf.InitLogging(true)
+	if _, err := db.SetEngine(); err != nil {
+		return errors.Wrap(err, "set engine")
+	}
+
+	platform.Init()
+
+	uList, err := db.GetAllUsersAndOrgs()
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+
+	for _, u := range uList {
+		if u.Type == db.UserIndividual {
+			err := kube.AddProjectMember(context.Background(), "project-"+u.Name, u.Name, "operator")
+			if err != nil {
+				return err
+			}
+			fmt.Println(u.Name)
+		}
+	}
+
+	//uMap := make(map[string]*db.User)
+	//for _, u := range uList {
+	//	uMap[u.Name] = u
+	//}
+
+	//
+	//cloudUList, err := db.GetAllCloudUserList()
+	//if err != nil {
+	//	return err
+	//}
+	//cloudUMap := make(map[string]*db.CloudUser)
+	//for _, u := range cloudUList {
+	//	cloudUMap[strings.ToLower(u.ID)] = u
+	//}
+	//
+	//// 首先同步BuGit中的邮箱
+	////for _, u := range uList {
+	////	if cloudU, ok := cloudUMap[u.Name]; ok && cloudU.Email != u.Email {
+	////		cloudU.Email = u.Email
+	////		if err = db.UpdateCloudUserEmail(cloudU); err != nil {
+	////			return err
+	////		}
+	////	}
+	////}
+	//
+	//validEmail := func(email string) bool {
+	//	_, err := mail.ParseAddress(email)
+	//	return err == nil
+	//}
+	//
+	//{
+	//	// clear duplicate emails
+	//	m := make(map[string]bool)
+	//	newList := make([]*db.CloudUser, 0)
+	//	for _, u := range uList {
+	//		if u.Type != db.UserOrganization {
+	//			m[u.Email] = true
+	//		}
+	//	}
+	//	for _, u := range cloudUList {
+	//		if _, ok := m[u.Email]; !ok {
+	//			newList = append(newList, u)
+	//			m[u.Email] = true
+	//		}
+	//	}
+	//	cloudUList = newList
+	//}
+	//
+	//// 然后同步用户
+	//for _, cloudU := range cloudUList {
+	//	if _, ok := uMap[strings.ToLower(cloudU.ID)]; !ok && cloudU.Email != "" && cloudU.Email != "1@roycent.cn" && cloudU.Email != "unknown@buaa.edu.cn" && validEmail(cloudU.Email) {
+	//		realCloudU := *cloudU
+	//		fmt.Println(realCloudU.ID)
+	//		studentID := strings.ToLower(realCloudU.ID)
+	//		if err := db.CreateUser(&db.User{
+	//			Name:      studentID,
+	//			Email:     realCloudU.Email,
+	//			Passwd:    conf.Harbor.DefaultPasswd,
+	//			StudentID: studentID,
+	//			IsActive:  true,
+	//			IsAdmin:   false,
+	//		}); err != nil {
+	//			fmt.Printf("CreateUser: %#v\n, %#v", err, realCloudU)
+	//			return err
+	//		}
+	//	}
+	//}
+
 	return nil
 }
