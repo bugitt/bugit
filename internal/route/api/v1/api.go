@@ -411,10 +411,6 @@ func RegisterRoutes(m *macaron.Macaron) {
 				m.Post("/mirror-sync", reqRepoWriter(), repo.MirrorSync)
 				m.Get("/editorconfig/:filename", context.RepoRef(), repo.GetEditorconfig)
 
-				// devops
-				m.Group("/devops", func() {
-					m.Post("", reqRepoWriter(), bind(repo.CreatePipelineOption{}), repo.CreatePipeline)
-				}, reqRepoReader(), context.RepoRef())
 			}, repoAssignment())
 		}, reqLogged())
 

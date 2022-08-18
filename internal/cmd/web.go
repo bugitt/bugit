@@ -40,7 +40,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/admin"
 	apiv1 "git.scs.buaa.edu.cn/iobs/bugit/internal/route/api/v1"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/deploy"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/dev"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/lfs"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/route/org"
@@ -189,14 +188,14 @@ func runWeb(c *cli.Context) error {
 		// ***** START: User *****
 		m.Group("/user", func() {
 			m.Group("/login", func() {
-				m.Combo("").Get(user.Login).
-					Post(bindIgnErr(form.SignIn{}), user.LoginPost)
-				m.Combo("/two_factor").Get(user.LoginTwoFactor).Post(user.LoginTwoFactorPost)
-				m.Combo("/two_factor_recovery_code").Get(user.LoginTwoFactorRecoveryCode).Post(user.LoginTwoFactorRecoveryCodePost)
+				m.Combo("").Get(user.LoginRedirectCloudRoot)
+				//	Post(bindIgnErr(form.SignIn{}), user.LoginPost)
+				//m.Combo("/two_factor").Get(user.LoginTwoFactor).Post(user.LoginTwoFactorPost)
+				//m.Combo("/two_factor_recovery_code").Get(user.LoginTwoFactorRecoveryCode).Post(user.LoginTwoFactorRecoveryCodePost)
 			})
 
-			m.Get("/sign_up", user.SignUp)
-			m.Post("/sign_up", bindIgnErr(form.Register{}), user.SignUpPost)
+			//m.Get("/sign_up", user.SignUp)
+			//m.Post("/sign_up", bindIgnErr(form.Register{}), user.SignUpPost)
 			m.Get("/reset_password", user.ResetPasswd)
 			m.Post("/reset_password", user.ResetPasswdPost)
 		}, reqSignOut)
@@ -337,7 +336,6 @@ func runWeb(c *cli.Context) error {
 
 		reqRepoAdmin := context.RequireRepoAdmin()
 		reqRepoWriter := context.RequireRepoWriter()
-		reqRepoReader := context.RequireRepoReader()
 
 		webhookRoutes := func() {
 			m.Group("", func() {
@@ -583,10 +581,6 @@ func runWeb(c *cli.Context) error {
 				c.Data["PageIsViewFiles"] = true
 			})
 
-			m.Group("/pipelines", func() {
-				m.Get("", reqRepoReader, repo.Pipelines)
-			}, reqSignIn, context.RepoAssignment(), context.RepoRef())
-
 			m.Group("/wiki", func() {
 				m.Group("", func() {
 					m.Combo("/_new").Get(repo.NewWiki).
@@ -622,14 +616,6 @@ func runWeb(c *cli.Context) error {
 			m.Get("/watchers", repo.Watchers)
 		}, ignSignIn, context.RepoAssignment(), context.RepoRef())
 		// ***** END: Repository *****
-
-		// ***** BEGIN: Deploy *****
-		m.Group("/deploy", func() {
-			m.Group("", func() {
-				m.Post("/create", deploy.CreatePost)
-			})
-		}, reqSignIn)
-		// ***** END: Deploy *****
 
 		// **********************
 		// ----- API routes -----

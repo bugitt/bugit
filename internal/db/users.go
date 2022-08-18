@@ -5,7 +5,6 @@
 package db
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -17,7 +16,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/auth"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/cryptoutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 )
 
 // UsersStore is the persistent interface for users.
@@ -303,27 +301,6 @@ func (db *users) Create(username, email string, opts CreateUserOpts) (*User, err
 		return nil, err
 	}
 	user.EncodePassword()
-
-	// create harbor user
-	harborUserID, harborProjectID, err := platform.CreateHarborUser(context.Background(), user.StudentID, user.Email, user.Name, opts.Password)
-	if err != nil {
-		return nil, err
-	}
-	user.HarborUserID, user.HarborProjectID = harborUserID, harborProjectID
-
-	// create rancher user
-	//rancherUserID, err := platform.CreateRancherUser(user.StudentID, user.Name)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//user.RancherUserID = rancherUserID
-
-	// create kubesphere user
-	_, ksProjectName, err := platform.CreateKSUser(user.StudentID, user.Email, opts.Password)
-	if err != nil {
-		return nil, err
-	}
-	user.KSProjectName = ksProjectName
 
 	return user, db.DB.Create(user).Error
 }

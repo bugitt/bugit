@@ -318,68 +318,9 @@ var (
 		BasicAuthPassword string
 	}
 
-	// Devops settings
-	Devops struct {
-		Filename   []string `ini:"filename" delim:"|"`
-		Tmpdir     string   `ini:"tmpdir"`
-		KubeIP     []string `ini:"kubeip" delim:"|"`
-		KubeConfig string   `ini:"kubeconfig"`
-
-		DeployCPU string `ini:"deploy_cpu"`
-		DeployMem string `ini:"deploy_memory"`
-	}
-
-	// Docker settings
-	Docker struct {
-		Registry      string `ini:"registry"`
-		DockerService string `ini:"docker_service"`
-	}
-
-	// Harbor settings
-	Harbor struct {
-		Url           string `ini:"url"`
-		Host          string `ini:"host"`
-		AdminName     string `ini:"admin_name"`
-		AdminPasswd   string `ini:"admin_password"`
-		DefaultPasswd string `ini:"default_password"`
-	}
-
-	// Rancher settings
-	Rancher struct {
-		Url           string `ini:"url"`
-		AccessKey     string `ini:"access_key"`
-		SecretKey     string `ini:"secret_key"`
-		Token         string `ini:"token"`
-		AdminID       string `ini:"admin_id"`
-		Cluster       string `ini:"cluster"`
-		DefaultPasswd string `ini:"default_password"`
-	}
-
-	// Deploy settings
-	Deploy struct {
-		DefaultNSCPULimit        string `ini:"default_ns_cpu_limit"`
-		DefaultNSMemLimit        string `ini:"default_ns_memory_limit"`
-		DefaultContainerCPULimit string `ini:"default_container_cpu_limit"`
-		DefaultContainerMemLimit string `ini:"default_container_memory_limit"`
-	}
-
-	// KS KubeSphere settings
-	KS struct {
-		KubernetesURL string `ini:"kubernetes_url"`
-		KSAdmin       string `ini:"ks_admin"`
-		KSPassword    string `ini:"ks_password"`
-		MainWorkspace string `ini:"main_workspace"`
-	}
-
-	// CloudAPI settings
-	CloudAPI struct {
-		RedisHost   string `ini:"redis_host"`
-		SupperDebug bool   `ini:"supper_debug"`
-		DBUser      string `ini:"db_user"`
-		DBPasswd    string `ini:"db_password"`
-		DBHost      string `ini:"db_host"`
-		DBPort      int    `ini:"db_port"`
-		DBName      string `ini:"db_name"`
+	Redis struct {
+		AuthRedis         string `ini:"AUTH_REDIS"`
+		AuthRedisPassword string `ini:"AUTH_REDIS_PASSWORD"`
 	}
 
 	// Other settings

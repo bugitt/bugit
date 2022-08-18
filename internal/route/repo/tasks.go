@@ -7,7 +7,6 @@ package repo
 import (
 	"net/http"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
 	"gopkg.in/macaron.v1"
 	log "unknwon.dev/clog/v2"
 
@@ -71,12 +70,6 @@ func TriggerTask(c *macaron.Context) {
 
 	go db.HookQueue.Add(repo.ID)
 	go db.AddTestPullRequestTask(pusher, repo.ID, branch, true)
-
-	// check CI
-	shouldCI := c.Query("ci")
-	if shouldCI == "true" {
-		go ci.Queue.Add(repo.ID)
-	}
 
 	c.Status(http.StatusAccepted)
 }

@@ -47,19 +47,12 @@ var (
 	x            *xorm.Engine
 	legacyTables []interface{}
 
-	cloudX            *xorm.Engine
-	cloudLegacyTables []interface{} // 注意: cloudLegacyTables功能没有与legacyTables对齐!
-
 	HasEngine bool
 )
 
 func init() {
 	legacyTables = append(legacyTables,
 		new(User), new(PublicKey), new(TwoFactor), new(TwoFactorRecoveryCode),
-		new(Pipeline),
-		new(PreBuildResult), new(PostBuildResult),
-		new(BuildResult), new(PushResult),
-		new(DeployResult),
 		new(Repository), new(DeployKey), new(Collaboration), new(Upload),
 		new(Watch), new(Star), new(Follow), new(Action),
 		new(Issue), new(PullRequest), new(Comment), new(Attachment), new(IssueUser),
@@ -68,11 +61,6 @@ func init() {
 		new(ProtectBranch), new(ProtectBranchWhitelist),
 		new(Team), new(OrgUser), new(TeamUser), new(TeamRepo),
 		new(Notice), new(EmailAddress))
-
-	cloudLegacyTables = append(cloudLegacyTables,
-		new(Course), new(CourseStudentMapping), new(Experiment),
-		new(CloudUser),
-	)
 
 	gonicNames := []string{"SSL"}
 	for _, name := range gonicNames {
@@ -92,11 +80,6 @@ func getMysqlEngine(user, password, host, name, param string) (*xorm.Engine, err
 	}
 	var engineParams = map[string]string{"rowFormat": "DYNAMIC"}
 	return xorm.NewEngineWithParams("mysql", connStr, engineParams)
-}
-
-func getCloudEngine() (*xorm.Engine, error) {
-	Param := getDBParam(conf.CloudAPI.DBName)
-	return getMysqlEngine(conf.CloudAPI.DBUser, conf.CloudAPI.DBPasswd, conf.CloudAPI.DBHost, conf.CloudAPI.DBName, Param)
 }
 
 func getDBParam(dbName string) string {
@@ -202,10 +185,6 @@ func SetEngine() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	cloudX, err = getConfigXormEngine(getCloudEngine, fileWriter)
-	if err != nil {
-		return nil, err
-	}
 
 	var gormLogger logger.Writer
 	if conf.HookMode {
@@ -239,7 +218,7 @@ func NewEngine() (err error) {
 		return err
 	}
 
-	return migrate(cloudX, cloudLegacyTables)
+	return nil
 }
 
 type Statistic struct {

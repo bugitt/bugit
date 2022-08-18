@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/ci"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"github.com/bugitt/git-module"
 	"github.com/pkg/errors"
 	"github.com/unknwon/com"
@@ -85,7 +83,6 @@ func GlobalInit(customConf string) error {
 		cron.NewContext()
 		db.InitSyncMirrors()
 		db.InitDeliverHooks()
-		ci.StartCI()
 		db.InitTestPullRequests()
 	}
 	if conf.HasMinWinSvc {
@@ -112,9 +109,6 @@ func GlobalInit(customConf string) error {
 			log.Warn("Failed to rewrite authorized_keys file: %v", err)
 		}
 	}
-
-	// 初始化Platform的各个客户端
-	platform.Init()
 
 	return nil
 }

@@ -6,7 +6,6 @@ package db
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -33,7 +32,6 @@ import (
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/conf"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/db/errors"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/strutil"
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/tool"
 )
@@ -104,24 +102,6 @@ type User struct {
 	NumMembers  int
 	Teams       []*Team `xorm:"-" gorm:"-" json:"-"`
 	Members     []*User `xorm:"-" gorm:"-" json:"-"`
-
-	// Course & Exp
-	Exp        *Experiment `xorm:"-" gorm:"-" json:"-"`
-	ExpID      int64       `json:"exp_id"`
-	ExpName    string      `json:"exp_name"`
-	Course     *Course     `xorm:"-" gorm:"-" json:"-"`
-	CourseID   int64       `json:"course_id"`
-	CourseName string      `json:"course_name"`
-
-	// Harbor
-	HarborUserID    int64
-	HarborProjectID int64
-
-	// Rancher
-	RancherUserID string
-
-	// Kubesphere
-	KSProjectName string
 }
 
 func (u *User) BeforeInsert() {
@@ -529,7 +509,7 @@ func NewGhostUser() *User {
 }
 
 var (
-	reservedUsernames    = []string{"-", "explore", "create", "assets", "css", "img", "js", "less", "plugins", "debug", "raw", "install", "api", "avatar", "user", "org", "help", "stars", "issues", "pulls", "commits", "repo", "template", "admin", "new", ".", ".."}
+	reservedUsernames    = []string{"-", "explore", "create", "assets", "css", "img", "js", "less", "plugins", "debug", "raw", "install", "api", "avatar", "user", "org", "help", "stars", "issues", "pulls", "commits", "repo", "template", "new", ".", ".."}
 	reservedUserPatterns = []string{"*.keys"}
 )
 
@@ -593,7 +573,6 @@ func isUsernameAllowed(name string) error {
 // CreateUser creates record of a new user.
 // Deprecated: Use Users.Create instead.
 func CreateUser(u *User) (err error) {
-	originalPassword := u.Passwd
 	if err = isUsernameAllowed(u.Name); err != nil {
 		return err
 	}
@@ -638,20 +617,6 @@ func CreateUser(u *User) (err error) {
 	}
 	u.EncodePassword()
 	u.MaxRepoCreation = -1
-
-	// create harbor user
-	harborUserID, harborProjectID, _ := platform.CreateHarborUser(context.Background(), u.StudentID, u.Email, u.Name, originalPassword)
-	if err != nil {
-		return err
-	}
-	u.HarborUserID, u.HarborProjectID = harborUserID, harborProjectID
-
-	// create kubesphere user
-	_, ksProjectName, err := platform.CreateKSUser(u.StudentID, u.Email, originalPassword)
-	if err != nil {
-		return err
-	}
-	u.KSProjectName = ksProjectName
 
 	sess := x.NewSession()
 	defer sess.Close()

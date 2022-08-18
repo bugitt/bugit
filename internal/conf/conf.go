@@ -336,60 +336,11 @@ func Init(customConf string) error {
 	I18n.dateLangs = File.Section("i18n.datelang").KeysHash()
 
 	// *************************
-	// ----- devops settings -----
+	// ----- Redis settings -----
 	// *************************
 
-	if err = File.Section("devops").MapTo(&Devops); err != nil {
-		return errors.Wrap(err, "mapping [devops] section")
-	}
-	Devops.Tmpdir = ensureAbs(Devops.Tmpdir)
-
-	// *************************
-	// ----- docker settings -----
-	// *************************
-
-	if err = File.Section("docker").MapTo(&Docker); err != nil {
-		return errors.Wrap(err, "mapping [docker] section")
-	}
-
-	// *************************
-	// ----- harbor settings -----
-	// *************************
-
-	if err = File.Section("harbor").MapTo(&Harbor); err != nil {
-		return errors.Wrap(err, "mapping [harbor] section")
-	}
-
-	// *************************
-	// ----- rancher settings -----
-	// *************************
-
-	if err = File.Section("rancher").MapTo(&Rancher); err != nil {
-		return errors.Wrap(err, "mapping [rancher] section")
-	}
-
-	// *************************
-	// ----- deploy settings -----
-	// *************************
-
-	if err = File.Section("deploy").MapTo(&Deploy); err != nil {
-		return errors.Wrap(err, "mapping [deploy] section")
-	}
-
-	// *************************
-	// ----- ks settings -----
-	// *************************
-
-	if err = File.Section("ks").MapTo(&KS); err != nil {
-		return errors.Wrap(err, "mapping [ks] section")
-	}
-
-	// *************************
-	// ----- cloud api settings -----
-	// *************************
-
-	if err = File.Section("cloud_api").MapTo(&CloudAPI); err != nil {
-		return errors.Wrap(err, "mapping [cloud_api] section")
+	if err = File.Section("redis").MapTo(&Redis); err != nil {
+		return errors.Wrap(err, "mapping [redis] section")
 	}
 
 	// *************************

@@ -75,7 +75,12 @@ func AutoLogin(c *context.Context) (bool, error) {
 	return true, nil
 }
 
+func LoginRedirectCloudRoot(c *context.Context) {
+	c.Redirect("/")
+}
+
 func Login(c *context.Context) {
+	c.Redirect("/")
 	c.Title("sign_in")
 
 	// Check auto-login
@@ -88,7 +93,7 @@ func Login(c *context.Context) {
 	// Check login from Cloud
 	token := c.QueryTrim("authorization")
 	if len(token) > 0 {
-		if u, ok := context.RedisAuthUser(token); ok {
+		if u, err := context.RedisAuthUser(token); err == nil {
 			afterLogin(c, u, true)
 			log.Info("login from cloud: %s", u.StudentID)
 			return
@@ -380,11 +385,6 @@ func SignUpPost(c *context.Context, cpt *captcha.Captcha, f form.Register) {
 	}
 
 	f.StudentNumber = strings.ToLower(f.StudentNumber)
-	if ok, err := db.ExistCloudUser(f.StudentNumber); err != nil || !ok {
-		c.FormErr("StudentNumber")
-		c.RenderWithErr(c.Tr("form.student_number_error"), SIGNUP, &f)
-		return
-	}
 
 	u := &db.User{
 		Name:      f.StudentNumber,

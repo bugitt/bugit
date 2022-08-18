@@ -5,7 +5,6 @@
 package db
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,7 +14,6 @@ import (
 	"xorm.io/xorm"
 
 	"git.scs.buaa.edu.cn/iobs/bugit/internal/errutil"
-	"git.scs.buaa.edu.cn/iobs/bugit/internal/platform"
 )
 
 var (
@@ -101,21 +99,6 @@ func (u *User) RemoveOrgRepo(repoID int64) error {
 	return u.removeOrgRepo(x, repoID)
 }
 
-func isUserExpConflict(sid string, cid, eid int64) (bool, error) {
-	isExist, err := ExistCourseByStudentID(cid, sid)
-	if err != nil {
-		return true, err
-	} else if !isExist {
-		return true, nil
-	}
-
-	isExist, err = ExistExpByID(eid, cid)
-	if err != nil {
-		return true, err
-	}
-	return !isExist, nil
-}
-
 // CreateOrganization creates record of a new organization.
 func CreateOrganization(org, owner *User) (err error) {
 	if err = isUsernameAllowed(org.Name); err != nil {
@@ -129,24 +112,6 @@ func CreateOrganization(org, owner *User) (err error) {
 		return ErrUserAlreadyExist{args: errutil.Args{"name": org.Name}}
 	}
 
-	if org.CourseID != 0 && org.ExpID != 0 {
-		// 检查给出的课程ID和实验ID是不是合法的
-		isConflict, err := isUserExpConflict(owner.StudentID, org.CourseID, org.ExpID)
-		if err != nil {
-			return err
-		} else if isConflict {
-			return ErrUserExpConflict{args: errutil.Args{"exp": org.ExpName}}
-		}
-
-		// 检查该用户是不是已经使用同样的实验创建过项目了
-		isExist, err = ExistOrgByExpStudent(org.ExpID, owner.ID)
-		if err != nil {
-			return err
-		} else if isExist {
-			return ErrUserOrgExpConflict{args: errutil.Args{"exp": org.ExpName}}
-		}
-	}
-
 	org.LowerName = strings.ToLower(org.Name)
 	if org.Rands, err = GetUserSalt(); err != nil {
 		return err
@@ -158,26 +123,6 @@ func CreateOrganization(org, owner *User) (err error) {
 	org.MaxRepoCreation = -1
 	org.NumTeams = 1
 	org.NumMembers = 1
-
-	// create harbor project
-	harborID, err := platform.CreateHarborProject(context.Background(), owner.HarborUserID, org.Name)
-	if err != nil {
-		return err
-	}
-	org.HarborProjectID = harborID
-
-	// create rancher project
-	//rancherID, err := platform.CreateRancherProject(owner.RancherUserID, org.Name)
-	//if err != nil {
-	//	return err
-	//}
-	//org.RancherProjectID = rancherID
-
-	ksProjectName, err := platform.CreateKSProject(owner.StudentID, org.Name)
-	if err != nil {
-		return err
-	}
-	org.KSProjectName = ksProjectName
 
 	sess := x.NewSession()
 	defer sess.Close()
@@ -284,19 +229,6 @@ func DeleteOrganization(org *User) (err error) {
 	if err = sess.Commit(); err != nil {
 		return err
 	}
-
-	if err = platform.DeleteHarborProject(context.Background(), org.HarborProjectID); err != nil {
-		return err
-	}
-
-	//if err = platform.DeleteRancherProject(org.RancherProjectID); err != nil {
-	//	return err
-	//}
-
-	if err = platform.DeleteKSProject(org.KSProjectName); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -461,18 +393,6 @@ func AddOrgUser(orgID, uid int64) error {
 		return err
 	}
 
-	user, org, err := getUserOrg(orgID, uid)
-	if err != nil {
-		return err
-	}
-	if err = platform.AddHarborOwner(context.Background(), user.HarborUserID, org.HarborProjectID); err != nil {
-		return err
-	}
-
-	if err = platform.AddKSOwner(user.StudentID, org.KSProjectName); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -552,18 +472,6 @@ func RemoveOrgUser(orgID, userID int64) error {
 	}
 
 	if err := sess.Commit(); err != nil {
-		return err
-	}
-
-	if err = platform.RemoveHarborProjectMember(context.Background(), user.HarborUserID, org.HarborProjectID); err != nil {
-		return err
-	}
-
-	//if err = platform.RemoveRancherProjectMember(user.RancherUserID, org.RancherProjectID); err != nil {
-	//	return err
-	//}
-
-	if err = platform.RemoveKSProjectMember(user.StudentID, org.KSProjectName); err != nil {
 		return err
 	}
 

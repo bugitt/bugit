@@ -105,12 +105,12 @@ func isAPIPath(url string) bool {
 	return strings.HasPrefix(url, "/api/")
 }
 
-var rePool *redis.Pool
+var redisPool *redis.Pool
 
 func initRedis() *redis.Pool {
-	host := conf.CloudAPI.RedisHost
+	host := conf.Redis.AuthRedis
 
-	rePool = &redis.Pool{
+	redisPool = &redis.Pool{
 		MaxIdle:     30,
 		MaxActive:   1024,
 		IdleTimeout: 300,
@@ -120,7 +120,7 @@ func initRedis() *redis.Pool {
 				log.Error(err.Error())
 				return nil, err
 			}
-			if _, err := c.Do("AUTH", "@buaa21"); err != nil {
+			if _, err := c.Do("AUTH", conf.Redis.AuthRedisPassword); err != nil {
 				c.Close()
 				return nil, err
 			}
@@ -133,46 +133,47 @@ func initRedis() *redis.Pool {
 		},
 	}
 	log.Info("redis init success")
-	return rePool
+	return redisPool
 }
 
-func RedisAuthUser(token string) (*db.User, bool) {
+func redisAuthUserStudentID(token string) (string, error) {
 	var studentID string
 	var err error
-	if conf.CloudAPI.SupperDebug && len(token) < 12 {
+	if len(token) < 12 {
 		studentID = token
 	} else {
-		if rePool == nil {
-			rePool = initRedis()
+		if redisPool == nil {
+			redisPool = initRedis()
 		}
-		redisConn := rePool.Get()
+		redisConn := redisPool.Get()
 		defer redisConn.Close()
 		studentID, err = redis.String(redisConn.Do("GET", token))
 		if err != nil {
-			log.Error(err.Error())
-			return nil, false
+			return "", err
 		}
 		if len(studentID) <= 0 {
-			return nil, false
+			return "", err
 		}
 	}
 	studentID = strings.ToLower(strings.Trim(studentID, "\""))
-	log.Info("get user from cloud: %s", studentID)
+	return studentID, nil
+}
+
+func RedisAuthUser(token string) (*db.User, error) {
+	studentID, err := redisAuthUserStudentID(token)
+	if err != nil {
+		return nil, err
+	}
 	user, err := db.GetUserByStudentID(studentID)
 	if err != nil {
-		log.Error(err.Error())
-		return nil, false
+		return nil, err
 	}
-	if user == nil {
-		log.Error("student user %s not found", studentID)
-		return nil, false
-	}
-	return user, true
+	return user, nil
 }
 
 func redisAuthUserID(token string) (int64, bool) {
-	u, ok := RedisAuthUser(token)
-	if ok {
+	u, err := RedisAuthUser(token)
+	if err != nil {
 		return u.ID, true
 	} else {
 		return 0, false
@@ -250,11 +251,23 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 	return 0, false
 }
 
+func authFromCloudCookie(ctx *macaron.Context) (*db.User, error) {
+	token := ctx.GetCookie("token")
+	if token != "" {
+		return RedisAuthUser(token)
+	}
+	return nil, nil
+}
+
 // authenticatedUser returns the user object of the authenticated user, along with two bool values
 // which indicate whether the user uses HTTP Basic Authentication or token authentication respectively.
 func authenticatedUser(ctx *macaron.Context, sess session.Store) (_ *db.User, isBasicAuth bool, isTokenAuth bool) {
 	if !db.HasEngine {
 		return nil, false, false
+	}
+
+	if u, _ := authFromCloudCookie(ctx); u != nil {
+		return u, false, false
 	}
 
 	uid, isTokenAuth := authenticatedUserID(ctx, sess)

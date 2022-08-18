@@ -18,28 +18,7 @@ const (
 )
 
 func Create(c *context.Context) {
-	courseID, request_exps := c.QueryInt64("course_id"), c.QueryBool("request_exps")
-	if courseID > 0 && request_exps {
-		exps, err := db.GetExpsByCourseID(courseID)
-		if err != nil {
-			c.Error(err, "get exps error")
-			return
-		}
-		c.Data["Exps"] = exps
-		c.Success(EXPS)
-		return
-	}
-
 	c.Title("new_org")
-
-	// get all courses for this user
-	courses, err := db.GetCoursesByStudentID(c.User.StudentID)
-	if err != nil {
-		c.Error(err, "get courses error")
-		return
-	}
-	c.Data["Courses"] = courses
-
 	c.Success(CREATE)
 }
 
@@ -51,37 +30,13 @@ func CreatePost(c *context.Context, f form.CreateOrg) {
 		return
 	}
 
-	course, err := db.GetCourseByID(f.OrgCourse)
-	if err != nil {
-		c.Error(err, "get course")
-		return
-	}
-	exp, err := db.GetExpByID(f.OrgExp)
-	if err != nil {
-		c.Error(err, "get experiment")
-		return
-	}
-
 	org := &db.User{
 		Name:     f.OrgName,
 		IsActive: true,
 		Type:     db.UserOrganization,
-
-		CourseID:   course.ID,
-		CourseName: course.Name,
-		ExpID:      exp.ID,
-		ExpName:    exp.Name,
 	}
 
 	if err := db.CreateOrganization(org, c.User); err != nil {
-		// get all courses for this user 用于再次渲染前端页面
-		if courses, err := db.GetCoursesByStudentID(c.User.StudentID); err != nil {
-			c.Error(err, "get courses error")
-			return
-		} else {
-			c.Data["Courses"] = courses
-		}
-
 		switch {
 		case db.IsErrUserAlreadyExist(err):
 			c.Data["Err_OrgName"] = true
