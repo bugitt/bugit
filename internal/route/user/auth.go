@@ -93,7 +93,7 @@ func Login(c *context.Context) {
 	// Check login from Cloud
 	token := c.QueryTrim("authorization")
 	if len(token) > 0 {
-		if u, err := context.RedisAuthUser(token); err == nil {
+		if u, err := context.RedisAuthUser(token, false); err == nil {
 			afterLogin(c, u, true)
 			log.Info("login from cloud: %s", u.StudentID)
 			return

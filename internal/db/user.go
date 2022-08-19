@@ -570,6 +570,21 @@ func isUsernameAllowed(name string) error {
 	return isNameAllowed(reservedUsernames, reservedUserPatterns, name)
 }
 
+func CreateDefaultUserByStudentID(studentID string) (*User, error) {
+	user := &User{
+		Name:      studentID,
+		Email:     studentID + "@buaa.edu.cn",
+		Passwd:    conf.User.DefaultPassword,
+		StudentID: studentID,
+		IsActive:  true,
+		IsAdmin:   false,
+	}
+	if err := CreateUser(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 // CreateUser creates record of a new user.
 // Deprecated: Use Users.Create instead.
 func CreateUser(u *User) (err error) {

@@ -142,6 +142,7 @@ var (
 	// User settings
 	User struct {
 		EnableEmailNotification bool
+		DefaultPassword         string `ini:"DEFAULT_PASSWORD"`
 	}
 
 	// Session settings

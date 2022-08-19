@@ -159,20 +159,23 @@ func redisAuthUserStudentID(token string) (string, error) {
 	return studentID, nil
 }
 
-func RedisAuthUser(token string) (*db.User, error) {
+func RedisAuthUser(token string, createIfNotExist bool) (*db.User, error) {
 	studentID, err := redisAuthUserStudentID(token)
 	if err != nil {
 		return nil, err
 	}
 	user, err := db.GetUserByStudentID(studentID)
 	if err != nil {
+		if _, ok := err.(db.ErrUserNotExist); ok && createIfNotExist {
+			return db.CreateDefaultUserByStudentID(studentID)
+		}
 		return nil, err
 	}
 	return user, nil
 }
 
 func redisAuthUserID(token string) (int64, bool) {
-	u, err := RedisAuthUser(token)
+	u, err := RedisAuthUser(token, false)
 	if err != nil {
 		return u.ID, true
 	} else {
@@ -254,7 +257,7 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 func authFromCloudCookie(ctx *macaron.Context) (*db.User, error) {
 	token := ctx.GetCookie("token")
 	if token != "" {
-		return RedisAuthUser(token)
+		return RedisAuthUser(token, true)
 	}
 	return nil, nil
 }
