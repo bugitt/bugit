@@ -34,7 +34,7 @@ func Profile(c *context.Context, puser *context.ParamsUser) {
 	}
 
 	if puser.IsOrganization() {
-		showOrgProfile(c)
+		c.RedirectSubpath("/org/" + puser.Name + "/dashboard")
 		return
 	}
 

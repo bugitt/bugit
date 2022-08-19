@@ -39,13 +39,6 @@
 				<a class="{{if .PageIsPulls}}active{{end}} item" href="{{AppSubURL}}/org/{{.ContextUser.Name}}/pulls">
 					<i class="octicon octicon-git-pull-request"></i>&nbsp;{{.i18n.Tr "pull_requests"}}
 				</a>
-				<div class="right menu">
-					<div class="item">
-						<a class="ui blue basic button" href="{{.ContextUser.HomeLink}}">
-							{{.i18n.Tr "home.view_home" (.ContextUser.ShortName 10)}}
-						</a>
-					</div>
-				</div>
 			</div>
 		</div>
 	{{end}}
