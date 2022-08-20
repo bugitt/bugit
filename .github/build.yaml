@@ -1,0 +1,31 @@
+name: 'Build and Push Docker Image'
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Golang
+        uses: actions/setup-go@v3
+
+      - name: Setup Go-task
+        uses: arduino/setup-task@v1
+
+      - name: Build Binary
+        run: task generate && task build
+
+      - name: Docker Build and Push
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: ${{ secrets.ALIYUN_DOCKER_NAMESPACE }}/bugit
+          tags: ${{ github.event.release.tag_name }}
+          registry: ${{ secrets.ALIYUN_DOCKER_REGISTRY }}
+          username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
+          password: ${{ secrets.ALIYUN_DOCKER_PASSWORD }}
+
