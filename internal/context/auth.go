@@ -257,7 +257,7 @@ func authenticatedUserID(c *macaron.Context, sess session.Store) (_ int64, isTok
 func authFromCloudCookie(ctx *macaron.Context) (*db.User, error) {
 	token := ctx.GetCookie("token")
 	if token != "" {
-		return RedisAuthUser(token, true)
+		return RedisAuthUser(token, false)
 	}
 	return nil, nil
 }
