@@ -93,3 +93,16 @@ func Edit(c *context.APIContext, form api.EditOrgOption) {
 
 	c.JSONSuccess(convert.ToOrganization(org))
 }
+
+func AddMember(c *context.APIContext) {
+	username := c.Params(":username")
+	u, err := db.GetUserByName(username)
+	if err != nil {
+		c.Error(err, "get user")
+		return
+	}
+	if err := db.AddOrgUser(c.Org.Organization.ID, u.ID); err != nil {
+		c.Error(err, "add org user")
+		return
+	}
+}

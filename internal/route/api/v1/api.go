@@ -427,6 +427,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 				Get(org.Get).
 				Patch(bind(api.EditOrgOption{}), org.Edit)
 			m.Get("/teams", org.ListTeams)
+			m.Post("/memberships/:username", org.AddMember)
 		}, orgAssignment(true))
 
 		m.Group("/admin", func() {
