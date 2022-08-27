@@ -106,3 +106,16 @@ func AddMember(c *context.APIContext) {
 		return
 	}
 }
+
+func RemoveMember(c *context.Context) {
+	username := c.Params(":username")
+	u, err := db.GetUserByName(username)
+	if err != nil {
+		c.Error(err, "get user")
+		return
+	}
+	if err := db.RemoveOrgUser(c.Org.Organization.ID, u.ID); err != nil {
+		c.Error(err, "remove org user")
+		return
+	}
+}
