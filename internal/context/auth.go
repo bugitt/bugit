@@ -164,10 +164,16 @@ func RedisAuthUser(token string, createIfNotExist bool) (*db.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := db.GetUserByStudentID(studentID)
+	user, err := db.GetUserByName(studentID)
 	if err != nil {
-		if _, ok := err.(db.ErrUserNotExist); ok && createIfNotExist {
-			return db.CreateDefaultUserByStudentID(studentID)
+		if _, ok := err.(db.ErrUserNotExist); ok {
+			if user, err = db.GetUserByStudentID(studentID); err != nil {
+				if _, ok := err.(db.ErrUserNotExist); ok && createIfNotExist {
+					return db.CreateDefaultUserByStudentID(studentID)
+				}
+				return nil, err
+			}
+			return user, nil
 		}
 		return nil, err
 	}
