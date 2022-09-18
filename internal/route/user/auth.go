@@ -76,7 +76,7 @@ func AutoLogin(c *context.Context) (bool, error) {
 }
 
 func LoginRedirectCloudRoot(c *context.Context) {
-	c.Redirect("/?redirect=" + conf.Server.Subpath)
+	c.Redirect("/login/redirect/" + conf.Server.Subpath)
 }
 
 func Login(c *context.Context) {
