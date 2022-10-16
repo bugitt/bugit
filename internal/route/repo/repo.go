@@ -58,7 +58,7 @@ func checkContextUser(c *context.Context, uid int64) *db.User {
 	}
 
 	// Check ownership of organization.
-	if !org.IsOrganization() || !(c.User.IsAdmin || org.IsOwnedBy(c.User.ID)) {
+	if !org.IsOrganization() || !(c.User.IsAdmin || org.IsOwnedBy(c.User.ID) || org.IsOrgMember(c.User.ID)) {
 		c.Status(http.StatusForbidden)
 		return nil
 	}
@@ -76,8 +76,21 @@ func Create(c *context.Context) {
 	c.Data["readme"] = "Default"
 	c.Data["private"] = c.User.LastRepoVisibility
 	c.Data["IsForcedPrivate"] = conf.Repository.ForcePrivate
+	c.Data["DefaultOwner"] = c.Query("owner")
 
-	ctxUser := checkContextUser(c, c.QueryInt64("org"))
+	org, err := db.GetUserByName(c.Query("owner"))
+	if db.IsErrUserNotExist(err) {
+		c.Data["Err_Owner"] = true
+		c.RenderWithErr("在Git平台中找不到目标项目", CREATE, &form.CreateRepo{})
+		return
+	}
+	var ctxUserID int64
+	if org != nil {
+		ctxUserID = org.ID
+	} else {
+		ctxUserID = c.QueryInt64("org")
+	}
+	ctxUser := checkContextUser(c, ctxUserID)
 	if c.Written() {
 		return
 	}
