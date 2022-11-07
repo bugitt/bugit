@@ -522,6 +522,24 @@ func (u *User) GetUserTeams(userID int64) ([]*Team, error) {
 // GetUserRepositories returns a range of repositories in organization which the user has access to,
 // and total number of records based on given condition.
 func (u *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Repository, int64, error) {
+	repos := make([]*Repository, 0, pageSize)
+	if page <= 0 {
+		page = 1
+	}
+	owner, err := GetUserByID(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+	if owner.IsAdmin {
+		if err := x.Where("owner_id = ?", u.ID).Limit(pageSize, (page-1)*pageSize).Find(&repos); err != nil {
+			return nil, 0, err
+		}
+		repoCount, err := x.Where("owner_id = ?", u.ID).Count(new(Repository))
+		if err != nil {
+			return nil, 0, fmt.Errorf("count user repositories: %v", err)
+		}
+		return repos, repoCount, nil
+	}
 	teamIDs, err := u.GetUserTeamIDs(userID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("GetUserTeamIDs: %v", err)
@@ -540,10 +558,6 @@ func (u *User) GetUserRepositories(userID int64, page, pageSize int) ([]*Reposit
 		teamRepoIDs = []int64{-1} // there is no repo with id=-1
 	}
 
-	if page <= 0 {
-		page = 1
-	}
-	repos := make([]*Repository, 0, pageSize)
 	if err = x.Where("owner_id = ?", u.ID).
 		And(builder.Or(
 			builder.And(builder.Expr("is_private = ?", false), builder.Expr("is_unlisted = ?", false)),
