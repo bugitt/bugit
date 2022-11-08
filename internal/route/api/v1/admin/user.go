@@ -70,6 +70,39 @@ func CreateUser(c *context.APIContext, form api.CreateUserOption) {
 	c.JSON(http.StatusCreated, u.APIFormat())
 }
 
+type ChangePasswordRequest struct {
+	Password string `json:"password" binding:"MaxSize(255)"`
+}
+
+func ChangePassword(c *context.APIContext, form ChangePasswordRequest) {
+	u := user.GetUserByParams(c)
+	if c.Written() {
+		return
+	}
+
+	if len(form.Password) > 0 {
+		u.Passwd = form.Password
+		var err error
+		if u.Salt, err = db.GetUserSalt(); err != nil {
+			c.Error(err, "get user salt")
+			return
+		}
+		u.EncodePassword()
+	}
+
+	if err := db.UpdateUser(u); err != nil {
+		if db.IsErrEmailAlreadyUsed(err) {
+			c.ErrorStatus(http.StatusUnprocessableEntity, err)
+		} else {
+			c.Error(err, "change user's password")
+		}
+		return
+	}
+	log.Trace("Account password updated by admin %q: %s", c.User.Name, u.Name)
+
+	c.JSONSuccess(u.APIFormat())
+}
+
 func EditUser(c *context.APIContext, form api.EditUserOption) {
 	u := user.GetUserByParams(c)
 	if c.Written() {

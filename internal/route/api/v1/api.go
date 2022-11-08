@@ -441,6 +441,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 					m.Combo("").
 						Patch(bind(api.EditUserOption{}), admin.EditUser).
 						Delete(admin.DeleteUser)
+					m.Put("/password", bind(admin.ChangePasswordRequest{}), admin.ChangePassword)
 					m.Post("/keys", bind(api.CreateKeyOption{}), admin.CreatePublicKey)
 					m.Post("/orgs", bind(api.CreateOrgOption{}), admin.CreateOrg)
 					m.Post("/repos", bind(api.CreateRepoOption{}), admin.CreateRepo)
