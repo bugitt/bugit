@@ -17,7 +17,7 @@ jobs:
 
       - name: Setup Go-task
         run: |
-          env GOBIN=/bin go install github.com/go-task/task/v3/cmd/task@latest
+          go install github.com/go-task/task/v3/cmd/task@latest
 
       - name: Setup Go-bindata
         run: |
