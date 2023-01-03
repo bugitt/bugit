@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -131,8 +130,6 @@ func openDB(opts conf.DatabaseOpts, cfg *gorm.Config) (*gorm.DB, error) {
 		dialector = postgres.Open(dsn)
 	case "mssql":
 		dialector = sqlserver.Open(dsn)
-	case "sqlite3":
-		dialector = sqlite.Open(dsn)
 	default:
 		panic("unreachable")
 	}

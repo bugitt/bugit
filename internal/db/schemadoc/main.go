@@ -10,7 +10,6 @@ import (
 	"gopkg.in/DATA-DOG/go-sqlmock.v2"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
@@ -41,7 +40,6 @@ func main() {
 			Conn:                      conn,
 			SkipInitializeWithVersion: true,
 		}),
-		sqlite.Open(""),
 	}
 	collected := make([][]*tableInfo, 0, len(dialectors))
 	for i, dialector := range dialectors {
