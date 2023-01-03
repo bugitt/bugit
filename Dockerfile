@@ -1,8 +1,8 @@
-FROM bitnami/git:2-debian-11
+FROM ubuntu
+
+RUN apt update && apt install build-essential git -y
 
 RUN git config --global init.defaultBranch main
-
-RUN apt update && apt install build-essential -y
 
 WORKDIR /root/
 
