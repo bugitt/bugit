@@ -16,7 +16,8 @@ jobs:
         uses: actions/setup-go@v3
 
       - name: Setup Go-task
-        uses: arduino/setup-task@v1
+        run: |
+          env GOBIN=/bin go install github.com/go-task/task/v3/cmd/task@latest
 
       - name: Setup Go-bindata
         run: |
