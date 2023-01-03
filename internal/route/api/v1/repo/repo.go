@@ -197,7 +197,7 @@ func CreateOrgRepo(c *context.APIContext, opt api.CreateRepoOption) {
 		return
 	}
 
-	if !org.IsOwnedBy(c.User.ID) {
+	if !c.User.IsAdmin && !org.IsOwnedBy(c.User.ID) {
 		c.ErrorStatus(http.StatusForbidden, errors.New("Given user is not owner of organization."))
 		return
 	}
