@@ -40,7 +40,7 @@ jobs:
       - name: Docker Build and Push
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
-          image: ${{ secrets.ALIYUN_DOCKER_NAMESPACE }}/bugit
+          image: ${{ secrets.ALIYUN_DOCKER_REGISTRY }}/${{ secrets.ALIYUN_DOCKER_NAMESPACE }}/bugit
           tags: ${{ github.ref_name }}
           registry: ${{ secrets.ALIYUN_DOCKER_REGISTRY }}
           username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
